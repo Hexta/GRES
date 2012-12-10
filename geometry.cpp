@@ -1,0 +1,477 @@
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+#include <GL/gl.h>
+#include "geometry.h"
+
+#define CACHE_SIZE 240
+#define PI 3.1415926535897932385
+#define SIN sinf
+#define COS cosf
+#define SQRT sqrtf
+
+#ifdef _WIN32
+#    include <windows.h>
+#    define glBindBufferARB           pglBindBufferARB
+#    define glDeleteBuffersARB        pglDeleteBuffersARB
+#    define glBufferDataARB           pglBufferDataARB
+#    define glBufferSubDataARB        pglBufferSubDataARB
+#endif
+
+void
+createAtomsAndBondes( surface3D* surface, vector<atomType>* surfAtoms, atomsCoords* cellAts, float xs, float ys, float zs, int z_min, float scaling, vector<atomName>* atNames_, Bonds* outBonds )
+{
+	int name = 0;
+	for ( unsigned int i = 0; i < surfAtoms->size( ); ++i )
+	{
+
+		short x = ( *surfAtoms )[i].x;
+		short y = ( *surfAtoms )[i].y;
+		unsigned short z = ( *surfAtoms )[i].z;
+		unsigned char a = ( *surfAtoms )[i].type;
+
+		if ( ( *surface )[z][y][x][a].neighbours.size( ) )
+		{
+			float x0 = scaling * x*xs;
+			float y0 = scaling * y*ys;
+			float z0 = -scaling * ( z - z_min ) * zs;
+
+			float xA = x0 + scaling * ( *cellAts )[a].x;
+			float yA = y0 + scaling * ( *cellAts )[a].y;
+			float zA = z0 - scaling * ( *cellAts )[a].z;
+
+			++name;
+			atomName temp = { name, x, y, z, xA, yA, zA, a, ( short ) ( *surface )[z][y][x][a].neighbours.size( ) };
+			atNames_->push_back( temp );
+
+			for ( int nb = ( *surface )[z][y][x][a].neighbours.size( ); --nb >= 0; )
+			{
+				float xNb = scaling * ( xs * ( *surface )[z][y][x][a].neighbours[nb].x + ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].x );
+
+				float yNb = scaling * ( ys * ( *surface )[z][y][x][a].neighbours[nb].y + ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].y );
+
+				float zNb = scaling * ( -zs * ( *surface )[z][y][x][a].neighbours[nb].z - ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].z );
+
+				Bond bondT = { xA, yA, zA,
+							xNb, yNb, zNb };
+				outBonds -> push_back( bondT );
+			}
+		}
+	}
+
+	for ( unsigned int i = 0; i < surfAtoms->size( ); ++i )
+	{
+		short x_ = ( *surfAtoms )[i].x;
+		short y_ = ( *surfAtoms )[i].y;
+		unsigned short z_ = ( *surfAtoms )[i].z;
+		unsigned char a_ = ( *surfAtoms )[i].type;
+		for ( int nb = ( *surface )[z_][y_][x_][a_].neighbours.size( ); --nb >= 0; )
+		{
+			//unsigned short a = (*surfAtoms)[i].type;
+
+			short x = ( *surface )[z_][y_][x_][a_].neighbours[nb].x;
+			short y = ( *surface )[z_][y_][x_][a_].neighbours[nb].y;
+			short z = ( *surface )[z_][y_][x_][a_].neighbours[nb].z;
+			unsigned char a = ( *surface )[z_][y_][x_][a_].neighbours[nb].type;
+
+			if ( x > 1 && x < ( *surface )[z_][y_].size( ) - 2 && y > 1 && y < ( *surface )[z_].size( ) - 2 )
+				if ( !( *surface )[z][y][x][a].deleted )
+				{
+
+					float x0 = scaling * x*xs;
+					float y0 = scaling * y*ys;
+					float z0 = -scaling * ( z - z_min ) * zs;
+
+					float xA = x0 + scaling * ( *cellAts )[a].x;
+					float yA = y0 + scaling * ( *cellAts )[a].y;
+					float zA = z0 - scaling * ( *cellAts )[a].z;
+
+					++name;
+					atomName temp = { name, x, y, z, xA, yA, zA, a, ( short ) ( *surface )[z][y][x][a].neighbours.size( ) };
+					atNames_->push_back( temp );
+
+					for ( int nb = ( *surface )[z][y][x][a].neighbours.size( ); --nb >= 0; )
+					{
+						float xNb = scaling * ( xs * ( *surface )[z][y][x][a].neighbours[nb].x + ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].x );
+
+						float yNb = scaling * ( ys * ( *surface )[z][y][x][a].neighbours[nb].y + ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].y );
+
+						float zNb = scaling * ( -zs * ( *surface )[z][y][x][a].neighbours[nb].z - ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].z );
+
+						Bond bondT = { xA, yA, zA,
+									xNb, yNb, zNb };
+						outBonds -> push_back( bondT );
+					}
+				}
+		}
+	}
+}
+
+void
+glVertex3fSoftNormal( float x, float y, float z )
+{
+	const float len = sqrt( ( x * x ) + ( y * y ) + ( z * z ) );
+	glNormal3f( x / len, y / len, z / len );
+	glVertex3f( x, y, z );
+}
+
+void
+normalize( float v[3] )
+{
+	const GLfloat len = sqrt( v[0] * v[0] + v[1] * v[1] + v[2] * v[2] );
+	v[0] /= len;
+	v[1] /= len;
+	v[2] /= len;
+	glNormal3fv( &v[0] );
+}
+
+void
+normalize( float v[3], coords3D* out )
+{
+	const GLfloat len = sqrt( v[0] * v[0] + v[1] * v[1] + v[2] * v[2] );
+	coords3D temp = { v[0] / len, v[1] / len, v[2] / len };
+	*out = temp;
+}
+
+coords3D
+normalize( coords3D in )
+{
+	GLfloat len = sqrt( pow( in.x, 2 ) + pow( in.y, 2 ) + pow( in.z, 2 ) );
+	coords3D temp = { in.x / len, in.y / len, in.z / len };
+	return temp;
+}
+
+void
+createSphere( GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSize2, int* vSize3 )
+{
+#ifdef _WIN32
+	PFNGLBINDBUFFERARBPROC pglBindBufferARB = ( PFNGLBINDBUFFERARBPROC ) wglGetProcAddress( "glBindBufferARB" );
+	PFNGLDELETEBUFFERSARBPROC pglDeleteBuffersARB = ( PFNGLDELETEBUFFERSARBPROC ) wglGetProcAddress( "glDeleteBuffersARB" );
+	PFNGLBUFFERDATAARBPROC pglBufferDataARB = ( PFNGLBUFFERDATAARBPROC ) wglGetProcAddress( "glBufferDataARB" );
+	PFNGLBUFFERSUBDATAARBPROC pglBufferSubDataARB = ( PFNGLBUFFERSUBDATAARBPROC ) wglGetProcAddress( "glBufferSubDataARB" );
+#endif
+	GLint i, j;
+	GLfloat sinCache1a[CACHE_SIZE];
+	GLfloat cosCache1a[CACHE_SIZE];
+	GLfloat sinCache2a[CACHE_SIZE];
+	GLfloat cosCache2a[CACHE_SIZE];
+	GLfloat sinCache3a[CACHE_SIZE];
+	GLfloat cosCache3a[CACHE_SIZE];
+	GLfloat sinCache1b[CACHE_SIZE];
+	GLfloat cosCache1b[CACHE_SIZE];
+	GLfloat sinCache2b[CACHE_SIZE];
+	GLfloat cosCache2b[CACHE_SIZE];
+	GLfloat sinCache3b[CACHE_SIZE];
+	GLfloat cosCache3b[CACHE_SIZE];
+	GLfloat angle;
+	GLfloat zLow, zHigh;
+	GLfloat sintemp1 = 0.0, sintemp2 = 0.0, sintemp3 = 0.0, sintemp4 = 0.0;
+	GLfloat costemp3 = 0.0, costemp4 = 0.0;
+	GLboolean needCache2, needCache3;
+	GLint start, finish;
+
+	atomsCoords norm1, norm2, norm3;
+	atomsCoords vertex1, vertex2, vertex3;
+
+	if ( slices >= CACHE_SIZE ) slices = CACHE_SIZE - 1;
+	if ( stacks >= CACHE_SIZE ) stacks = CACHE_SIZE - 1;
+	if ( slices < 2 || stacks < 1 || radius < 0.0 )
+	{
+		return;
+	}
+
+	/* Cache is the vertex locations cache */
+	/* Cache2 is the various normals at the vertices themselves */
+	/* Cache3 is the various normals for the faces */
+	needCache2 = needCache3 = GL_FALSE;
+
+	needCache3 = GL_TRUE;
+
+	for ( i = 0; i < slices; i++ )
+	{
+		angle = 2 * PI * i / slices;
+		sinCache1a[i] = SIN( angle );
+		cosCache1a[i] = COS( angle );
+		if ( needCache2 )
+		{
+			sinCache2a[i] = sinCache1a[i];
+			cosCache2a[i] = cosCache1a[i];
+		}
+	}
+
+	for ( j = 0; j <= stacks; j++ )
+	{
+		angle = PI * j / stacks;
+		if ( needCache2 )
+		{
+			sinCache2b[j] = SIN( angle );
+			cosCache2b[j] = COS( angle );
+		}
+		sinCache1b[j] = radius * SIN( angle );
+		cosCache1b[j] = radius * COS( angle );
+	}
+	/* Make sure it comes to a point */
+	sinCache1b[0] = 0;
+	sinCache1b[stacks] = 0;
+
+	if ( needCache3 )
+	{
+		for ( i = 0; i < slices; i++ )
+		{
+			angle = 2 * PI * ( i - 0.5 ) / slices;
+			sinCache3a[i] = SIN( angle );
+			cosCache3a[i] = COS( angle );
+		}
+		for ( j = 0; j <= stacks; j++ )
+		{
+			angle = PI * ( j - 0.5 ) / stacks;
+			sinCache3b[j] = SIN( angle );
+			cosCache3b[j] = COS( angle );
+		}
+	}
+
+	sinCache1a[slices] = sinCache1a[0];
+	cosCache1a[slices] = cosCache1a[0];
+	if ( needCache2 )
+	{
+		sinCache2a[slices] = sinCache2a[0];
+		cosCache2a[slices] = cosCache2a[0];
+	}
+	if ( needCache3 )
+	{
+		sinCache3a[slices] = sinCache3a[0];
+		cosCache3a[slices] = cosCache3a[0];
+	}
+
+	/* Do ends of sphere as TRIANGLE_FAN's (if not texturing)
+	 ** We don't do it when texturing because we need to respecify the
+	 ** texture coordinates of the apex for every adjacent vertex (because
+	 ** it isn't a constant for that point)
+	 */
+	start = 1;
+	finish = stacks - 1;
+
+	/* Low end first (j == 0 iteration) */
+	sintemp2 = sinCache1b[1];
+	zHigh = cosCache1b[1];
+	sintemp3 = sinCache3b[1];
+	costemp3 = cosCache3b[1];
+
+	//GL_TRIANGLE_FAN
+
+	coords3D v1 = { 0.0, 0.0, ( float ) radius };
+	vertex1.push_back( v1 );
+	coords3D nT;
+	normalize( &v1.x, &nT );
+	norm1.push_back( nT );
+	for ( i = slices; i >= 0; i-- )
+	{
+		/*if (i != slices)*/
+		{
+			coords3D n1 = { sinCache3a[i + 1] * sintemp3, cosCache3a[i + 1] * sintemp3, costemp3 };
+			norm1.push_back( n1 );
+		}
+		coords3D v1 = { sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh };
+		vertex1.push_back( v1 );
+	}
+
+	/* High end next (j == stacks-1 iteration) */
+	sintemp2 = sinCache1b[stacks - 1];
+	zHigh = cosCache1b[stacks - 1];
+	sintemp3 = sinCache3b[stacks];
+	costemp3 = cosCache3b[stacks];
+	//GL_TRIANGLE_FAN
+
+	coords3D v2 = { 0.0, 0.0, ( float ) -radius };
+	vertex2.push_back( v2 );
+	normalize( &v2.x, &nT );
+	norm2.push_back( nT );
+	for ( i = 0; i <= slices; i++ )
+	{
+		coords3D n2 = { sinCache3a[i] * sintemp3, cosCache3a[i] * sintemp3, costemp3 };
+		norm2.push_back( n2 );
+		coords3D v2 = { sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh };
+		vertex2.push_back( v2 );
+	}
+
+	for ( j = start; j < finish; j++ )
+	{
+		zLow = cosCache1b[j];
+		zHigh = cosCache1b[j + 1];
+		sintemp1 = sinCache1b[j];
+		sintemp2 = sinCache1b[j + 1];
+		sintemp4 = sinCache3b[j + 1];
+		costemp4 = cosCache3b[j + 1];
+
+		//GL_QUAD_STRIP
+		for ( i = 0; i <= slices; i++ )
+		{
+			coords3D v3 = { sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh };
+			vertex3.push_back( v3 );
+
+			coords3D n3 = { sinCache3a[i] * sintemp4, cosCache3a[i] * sintemp4, costemp4 };
+			norm3.push_back( n3 );
+			norm3.push_back( n3 );
+
+			coords3D v3_ = { sintemp1 * sinCache1a[i], sintemp1 * cosCache1a[i], zLow };
+			vertex3.push_back( v3_ );
+		}
+	}
+	*vSize1 = vertex1.size( );
+
+	glBindBufferARB( GL_ARRAY_BUFFER, 1 );
+	glBufferDataARB( GL_ARRAY_BUFFER, ( vertex1.size( ) + norm1.size( ) )*3 * sizeof (float ), 0, GL_STATIC_DRAW );
+	glBufferSubDataARB( GL_ARRAY_BUFFER, 0, vertex1.size( )*3 * sizeof (float ), &vertex1[0].x );
+	glBufferSubDataARB( GL_ARRAY_BUFFER, vertex1.size( )*3 * sizeof (float ), norm1.size( )*3 * sizeof (float ), &norm1[0].x );
+
+	*vSize2 = vertex2.size( );
+
+	glBindBufferARB( GL_ARRAY_BUFFER, 2 );
+	glBufferDataARB( GL_ARRAY_BUFFER, ( vertex2.size( ) + norm2.size( ) )*3 * sizeof (float ), 0, GL_STATIC_DRAW );
+	glBufferSubDataARB( GL_ARRAY_BUFFER, 0, vertex2.size( )*3 * sizeof (float ), &vertex2[0].x );
+	glBufferSubDataARB( GL_ARRAY_BUFFER, vertex2.size( )*3 * sizeof (float ), norm2.size( )*3 * sizeof (float ), &norm2[0].x );
+
+	*vSize3 = vertex3.size( );
+
+	glBindBufferARB( GL_ARRAY_BUFFER, 3 );
+	glBufferDataARB( GL_ARRAY_BUFFER, ( vertex3.size( ) + norm3.size( ) )*3 * sizeof (float ), 0, GL_STATIC_DRAW );
+	glBufferSubDataARB( GL_ARRAY_BUFFER, 0, vertex3.size( )*3 * sizeof (float ), &vertex3[0].x );
+	glBufferSubDataARB( GL_ARRAY_BUFFER, vertex3.size( )*3 * sizeof (float ), norm3.size( )*3 * sizeof (float ), &norm3[0].x );
+
+	glBindBufferARB( GL_ARRAY_BUFFER, 0 );
+	vertex1.clear( );
+	norm1.clear( );
+	vertex2.clear( );
+	norm2.clear( );
+	vertex3.clear( );
+	norm3.clear( );
+}
+
+void
+createCylinder( GLdouble baseRadius, GLdouble topRadius, GLdouble height, GLint slices, GLint stacks )
+{
+	GLint i, j;
+	GLfloat sinCache[CACHE_SIZE];
+	GLfloat cosCache[CACHE_SIZE];
+	GLfloat sinCache2[CACHE_SIZE];
+	GLfloat cosCache2[CACHE_SIZE];
+	GLfloat sinCache3[CACHE_SIZE];
+	GLfloat cosCache3[CACHE_SIZE];
+	GLfloat angle;
+	GLfloat zLow, zHigh;
+	GLfloat length;
+	GLfloat deltaRadius;
+	GLfloat zNormal;
+	GLfloat xyNormalRatio;
+	GLfloat radiusLow, radiusHigh;
+	int needCache2, needCache3;
+
+	if ( slices >= CACHE_SIZE ) slices = CACHE_SIZE - 1;
+
+	if ( slices < 2 || stacks < 1 || baseRadius < 0.0 || topRadius < 0.0 ||
+		 height < 0.0 )
+	{
+		return;
+	}
+
+	/* Compute length (needed for normal calculations) */
+	deltaRadius = baseRadius - topRadius;
+	length = SQRT( deltaRadius * deltaRadius + height * height );
+	if ( length == 0.0 )
+	{
+		return;
+	}
+
+	/* Cache is the vertex locations cache */
+	/* Cache2 is the various normals at the vertices themselves */
+	/* Cache3 is the various normals for the faces */
+	needCache2 = needCache3 = 0;
+	needCache2 = 1;
+
+	zNormal = deltaRadius / length;
+	xyNormalRatio = height / length;
+
+	for ( i = 0; i < slices; i++ )
+	{
+		angle = 2 * PI * i / slices;
+		if ( needCache2 )
+		{
+			sinCache2[i] = xyNormalRatio * SIN( angle );
+			cosCache2[i] = xyNormalRatio * COS( angle );
+		}
+		sinCache[i] = SIN( angle );
+		cosCache[i] = COS( angle );
+	}
+
+	if ( needCache3 )
+	{
+		for ( i = 0; i < slices; i++ )
+		{
+			angle = 2 * PI * ( i - 0.5 ) / slices;
+			sinCache3[i] = xyNormalRatio * SIN( angle );
+			cosCache3[i] = xyNormalRatio * COS( angle );
+		}
+	}
+
+	sinCache[slices] = sinCache[0];
+	cosCache[slices] = cosCache[0];
+	if ( needCache2 )
+	{
+		sinCache2[slices] = sinCache2[0];
+		cosCache2[slices] = cosCache2[0];
+	}
+	if ( needCache3 )
+	{
+		sinCache3[slices] = sinCache3[0];
+		cosCache3[slices] = cosCache3[0];
+	}
+	/* Note:
+	 ** An argument could be made for using a TRIANGLE_FAN for the end
+	 ** of the cylinder of either radii is 0.0 (a cone).  However, a
+	 ** TRIANGLE_FAN would not work in smooth shading mode (the common
+	 ** case) because the normal for the apex is different for every
+	 ** triangle (and TRIANGLE_FAN doesn't let me respecify that normal).
+	 ** Now, my choice is GL_TRIANGLES, or leave the GL_QUAD_STRIP and
+	 ** just let the GL trivially reject one of the two triangles of the
+	 ** QUAD.  GL_QUAD_STRIP is probably faster, so I will leave this code
+	 ** alone.
+	 */
+	for ( j = 0; j < stacks; j++ )
+	{
+		zLow = j * height / stacks;
+		zHigh = ( j + 1 ) * height / stacks;
+		radiusLow = baseRadius - deltaRadius * ( ( float ) j / stacks );
+		radiusHigh = baseRadius - deltaRadius * ( ( float ) ( j + 1 ) / stacks );
+
+		glBegin( GL_QUAD_STRIP );
+		for ( i = 0; i <= slices; i++ )
+		{
+			glNormal3f( sinCache2[i], cosCache2[i], zNormal );
+			glVertex3f( radiusLow * sinCache[i],
+					 radiusLow * cosCache[i], zLow );
+			glVertex3f( radiusHigh * sinCache[i],
+					 radiusHigh * cosCache[i], zHigh );
+		}
+		glEnd( );
+	}
+}
+
+void
+norm( coords3D in )
+{
+	GLfloat len = sqrt( pow( in.x, 2 ) + pow( in.y, 2 ) + pow( in.z, 2 ) );
+	coords3D temp = { in.x / len, in.y / len, in.z / len };
+	in = temp;
+}
+
+coords3D
+normcrossprod( coords3D v1, coords3D v2 )
+{
+	coords3D out;
+	out.x = v1.y * v2.z - v1.z * v2.y;
+	out.y = v1.z * v2.x - v1.x * v2.z;
+	out.z = v1.x * v2.y - v1.y * v2.x;
+	norm( out );
+	return out;
+}
