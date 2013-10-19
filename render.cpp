@@ -169,14 +169,14 @@ void
 Render::createAtomsAndBonds( surface3D* surface, atomsCoords* cellAts, float xs_, float ys_, float zs_, int z_min, AtomsNames* atN, Bonds* outBonds )
 {
 	int name = 0;
-	for ( unsigned int z = z_min; z < surface->size( ) - 2; ++z )
+	for ( int z = z_min; z < surface->size( ) - 2; ++z )
 		for ( int y = ( *surface )[z].size( ) - 2; --y >= 2; )
 			for ( int x = ( *surface )[z][y].size( ) - 2; --x >= 2; )
 			{
 				float x0 = scaling * x*xs_;
 				float y0 = scaling * y*ys_;
 				float z0 = -scaling * ( z - z_min ) * zs_;
-				for ( char a = ( *surface )[z][y][x].size( ); --a >= 0; )
+				for ( unsigned char a = ( *surface )[z][y][x].size( ); --a >= 0; )
 				{
 
 					if ( ( *surface )[z][y][x][a].fNbCount )
@@ -193,9 +193,7 @@ Render::createAtomsAndBonds( surface3D* surface, atomsCoords* cellAts, float xs_
 						{
 
 							float xNb = scaling * ( xs * ( *surface )[z][y][x][a].neighbours[nb].x + ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].x );
-
 							float yNb = scaling * ( ys * ( *surface )[z][y][x][a].neighbours[nb].y + ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].y );
-
 							float zNb = scaling * ( -zs * ( *surface )[z][y][x][a].neighbours[nb].z - ( *cellAts )[( *surface )[z][y][x][a].neighbours[nb].type].z );
 
 							Bond bondT = { xA, yA, zA,
@@ -443,7 +441,7 @@ Render::draw( )
 			glTranslatef( -5.0 - 2.0 * xs*scaling, -5.0 - 2.0 * ys*scaling, -20.0 );
 			glColor3f( 0.98, 0.625, 0.12 );
 			//sphere( 5,10,10 );
-			int name = 0;
+			
 			if ( !( visualType == ATOMS_SURFACE_AND_BULK || visualType == ATOMS_SURFACE ) || rotating || scribble || moving )
 			{
 				glColor3f( 0, 0, 1.0 );
@@ -455,6 +453,7 @@ Render::draw( )
 
 			if ( !rotating && !scribble && !moving )
 			{
+                                int name = 0;
 				glEnableClientState( GL_VERTEX_ARRAY );
 				glEnableClientState( GL_NORMAL_ARRAY );
 				//t.start();
@@ -714,12 +713,6 @@ Render::sphereTemplate( float R )
 	// glutSolidCube(sR-0.04);
 }
 
-void
-Render::cylinderTemplate( float R ) {/*
-	GLUquadricObj *quadobj;
-	quadobj = gluNewQuadric();
-	gluCylinder( R, 1.1*R, k*sqrt(3/16) )*/ }
-
 QSize
 Render::minimumSizeHint( ) const
 {
@@ -764,8 +757,8 @@ Render::processSelection( int x, int y )
 void
 Render::processAtom( GLuint *pSelectBuff )
 {
-	int id, count;
-	count = pSelectBuff[0];
+	int id;
+	pSelectBuff[0];
 	id = pSelectBuff[3];
 	for ( int i = atNames.size( ); --i >= 0; )
 	{
@@ -805,15 +798,13 @@ Render::view( surface3D *surface, vector<atomType>* surfAt, atomsCoords* atTypes
 	dataInitialized = true;
 	dataChanged = true;
 
-	float W = 10;
-	float H = 10;
+	const float W = 10;
+	const float H = 10;
+        
 	float h = ( SIZE_Y - 4 ) * ys;
 	float w = ( SIZE_X - 4 ) * xs;
-
-	if ( w > h )
-		scaling = W / w;
-	else
-		scaling = H / h;
+        
+        scaling = w > h ? W / w : H / h;
 
 	surfPoints.clear( );
 	coordsOfAtoms.clear( );

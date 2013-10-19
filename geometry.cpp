@@ -109,14 +109,6 @@ createAtomsAndBondes( surface3D* surface, vector<atomType>* surfAtoms, atomsCoor
 }
 
 void
-glVertex3fSoftNormal( float x, float y, float z )
-{
-	const float len = sqrt( ( x * x ) + ( y * y ) + ( z * z ) );
-	glNormal3f( x / len, y / len, z / len );
-	glVertex3f( x, y, z );
-}
-
-void
 normalize( float v[3] )
 {
 	const GLfloat len = sqrt( v[0] * v[0] + v[1] * v[1] + v[2] * v[2] );
@@ -160,8 +152,6 @@ createSphere( GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSi
 	GLfloat cosCache3a[CACHE_SIZE];
 	GLfloat sinCache1b[CACHE_SIZE];
 	GLfloat cosCache1b[CACHE_SIZE];
-	GLfloat sinCache2b[CACHE_SIZE];
-	GLfloat cosCache2b[CACHE_SIZE];
 	GLfloat sinCache3b[CACHE_SIZE];
 	GLfloat cosCache3b[CACHE_SIZE];
 	GLfloat angle;
@@ -203,11 +193,6 @@ createSphere( GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSi
 	for ( j = 0; j <= stacks; j++ )
 	{
 		angle = PI * j / stacks;
-		if ( needCache2 )
-		{
-			sinCache2b[j] = SIN( angle );
-			cosCache2b[j] = COS( angle );
-		}
 		sinCache1b[j] = radius * SIN( angle );
 		cosCache1b[j] = radius * COS( angle );
 	}
@@ -349,116 +334,7 @@ createSphere( GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSi
 }
 
 void
-createCylinder( GLdouble baseRadius, GLdouble topRadius, GLdouble height, GLint slices, GLint stacks )
-{
-	GLint i, j;
-	GLfloat sinCache[CACHE_SIZE];
-	GLfloat cosCache[CACHE_SIZE];
-	GLfloat sinCache2[CACHE_SIZE];
-	GLfloat cosCache2[CACHE_SIZE];
-	GLfloat sinCache3[CACHE_SIZE];
-	GLfloat cosCache3[CACHE_SIZE];
-	GLfloat angle;
-	GLfloat zLow, zHigh;
-	GLfloat length;
-	GLfloat deltaRadius;
-	GLfloat zNormal;
-	GLfloat xyNormalRatio;
-	GLfloat radiusLow, radiusHigh;
-	int needCache2, needCache3;
-
-	if ( slices >= CACHE_SIZE ) slices = CACHE_SIZE - 1;
-
-	if ( slices < 2 || stacks < 1 || baseRadius < 0.0 || topRadius < 0.0 ||
-		 height < 0.0 )
-	{
-		return;
-	}
-
-	/* Compute length (needed for normal calculations) */
-	deltaRadius = baseRadius - topRadius;
-	length = SQRT( deltaRadius * deltaRadius + height * height );
-	if ( length == 0.0 )
-	{
-		return;
-	}
-
-	/* Cache is the vertex locations cache */
-	/* Cache2 is the various normals at the vertices themselves */
-	/* Cache3 is the various normals for the faces */
-	needCache2 = needCache3 = 0;
-	needCache2 = 1;
-
-	zNormal = deltaRadius / length;
-	xyNormalRatio = height / length;
-
-	for ( i = 0; i < slices; i++ )
-	{
-		angle = 2 * PI * i / slices;
-		if ( needCache2 )
-		{
-			sinCache2[i] = xyNormalRatio * SIN( angle );
-			cosCache2[i] = xyNormalRatio * COS( angle );
-		}
-		sinCache[i] = SIN( angle );
-		cosCache[i] = COS( angle );
-	}
-
-	if ( needCache3 )
-	{
-		for ( i = 0; i < slices; i++ )
-		{
-			angle = 2 * PI * ( i - 0.5 ) / slices;
-			sinCache3[i] = xyNormalRatio * SIN( angle );
-			cosCache3[i] = xyNormalRatio * COS( angle );
-		}
-	}
-
-	sinCache[slices] = sinCache[0];
-	cosCache[slices] = cosCache[0];
-	if ( needCache2 )
-	{
-		sinCache2[slices] = sinCache2[0];
-		cosCache2[slices] = cosCache2[0];
-	}
-	if ( needCache3 )
-	{
-		sinCache3[slices] = sinCache3[0];
-		cosCache3[slices] = cosCache3[0];
-	}
-	/* Note:
-	 ** An argument could be made for using a TRIANGLE_FAN for the end
-	 ** of the cylinder of either radii is 0.0 (a cone).  However, a
-	 ** TRIANGLE_FAN would not work in smooth shading mode (the common
-	 ** case) because the normal for the apex is different for every
-	 ** triangle (and TRIANGLE_FAN doesn't let me respecify that normal).
-	 ** Now, my choice is GL_TRIANGLES, or leave the GL_QUAD_STRIP and
-	 ** just let the GL trivially reject one of the two triangles of the
-	 ** QUAD.  GL_QUAD_STRIP is probably faster, so I will leave this code
-	 ** alone.
-	 */
-	for ( j = 0; j < stacks; j++ )
-	{
-		zLow = j * height / stacks;
-		zHigh = ( j + 1 ) * height / stacks;
-		radiusLow = baseRadius - deltaRadius * ( ( float ) j / stacks );
-		radiusHigh = baseRadius - deltaRadius * ( ( float ) ( j + 1 ) / stacks );
-
-		glBegin( GL_QUAD_STRIP );
-		for ( i = 0; i <= slices; i++ )
-		{
-			glNormal3f( sinCache2[i], cosCache2[i], zNormal );
-			glVertex3f( radiusLow * sinCache[i],
-					 radiusLow * cosCache[i], zLow );
-			glVertex3f( radiusHigh * sinCache[i],
-					 radiusHigh * cosCache[i], zHigh );
-		}
-		glEnd( );
-	}
-}
-
-void
-norm( coords3D in )
+norm( coords3D &in )
 {
 	GLfloat len = sqrt( pow( in.x, 2 ) + pow( in.y, 2 ) + pow( in.z, 2 ) );
 	coords3D temp = { in.x / len, in.y / len, in.z / len };

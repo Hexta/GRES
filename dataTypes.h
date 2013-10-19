@@ -12,7 +12,7 @@ struct atomName
 	float x;
 	float y;
 	float z;
-	char type;
+	unsigned char type;
 	int fNbCount;
 };
 	typedef vector<atomName>AtomsNames;

@@ -229,7 +229,7 @@ findCell( int h, int k, int l, float* Xsize, float* Ysize, float* Zsize, coords3
 	for ( unsigned int i = 0; i < ls.size( ); ++i )
 		for ( unsigned int j = i + 1; j < ls.size( ); ++j )
 		{
-			float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, l1;
+			float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, l1, l2;
 			x1 = ls[i].x1;
 			y1 = ls[i].y1;
 			z1 = ls[i].z1;
@@ -243,7 +243,8 @@ findCell( int h, int k, int l, float* Xsize, float* Ysize, float* Zsize, coords3
 			y4 = ls[j].y2;
 			z4 = ls[j].z2;
 			l1 = ls[i].length;
-			if ( fabs( ls[i].length - ls[j].length ) < 0.01 )
+                        l2 = ls[j].length;
+			if ( fabs( l1 - l2 ) < 0.01 )
 			{
 				if ( fabs( x4 - x3 ) > 0.01 )
 					kx = ( x2 - x1 ) / ( x4 - x3 );
@@ -263,7 +264,7 @@ findCell( int h, int k, int l, float* Xsize, float* Ysize, float* Zsize, coords3
 					 !( ( x2 - x1 )*( x4 - x2 ) + ( y2 - y1 )*( y4 - y2 ) + ( z2 - z1 )*( z4 - z2 ) ) )
 				{
 					rectangle rect = { x1, y1, z1, x2, y2, z2,
-									  x3, y3, z3, x4, y4, z4, ls.at( i ).length };
+									  x3, y3, z3, x4, y4, z4, l1 };
 					rectanglesP1.push_back( rect );
 
 					//удаляем дубли
@@ -327,15 +328,13 @@ findCell( int h, int k, int l, float* Xsize, float* Ysize, float* Zsize, coords3
 
 	for ( unsigned int i = 0; i < allCells.size( ); ++i )
 	{
-		bool happy = false;
-
 		//считаем векторы координат
 		coords3D P1 = allCells[i][allCells[i].size( ) - 4];
 		coords3D Vx = allCells[i][allCells[i].size( ) - 3];
 		coords3D Vy = allCells[i][allCells[i].size( ) - 2];
 		coords3D Vz = allCells[i][allCells[i].size( ) - 1];
 		//транслируем по OX
-		happy = compareTranslCell( allCells[i], &allAtoms, Vx );
+		bool happy = compareTranslCell( allCells[i], &allAtoms, Vx );
 
 		//транслируем по OY
 		if ( happy )
