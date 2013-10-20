@@ -10,6 +10,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include "geometry.h"
+#include "QDebug"
 
 #define BUFFER_OFFSET(i) ((char*)NULL + (i))
 #ifdef _WIN32
@@ -87,7 +88,8 @@ Render::changeVizType(vizType* type) {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
-                    createAtomsAndBonds(&surfaceXYZ, &cellAtoms, xs, ys, zs, z_min, &atNames, &bonds);
+                    createAtomsAndBonds(surfaceXYZ, cellAtoms, xs, ys, zs, z_min,
+                                        atNames, bonds);
                     createSphere(0.09 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
                     buffers.clear();
                     buffers.push_back(1);
@@ -101,9 +103,9 @@ Render::changeVizType(vizType* type) {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
-                    createAtomsAndBondes(&surfaceXYZ, &surfAtoms, &cellAtoms,
-                                         xs, ys, zs, z_min, scaling, &atNames,
-                                         &bonds);
+                    createAtomsAndBondes(surfaceXYZ, surfAtoms, cellAtoms,
+                                         xs, ys, zs, z_min, scaling, atNames,
+                                         bonds);
                     createSphere(0.09 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
                     buffers.clear();
                     buffers.push_back(1);
@@ -117,8 +119,8 @@ Render::changeVizType(vizType* type) {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
-                    createAtomsAndBonds(&surfaceXYZ, &cellAtoms, xs, ys, zs,
-                                        z_min, &atNames, &bonds);
+                    createAtomsAndBonds(surfaceXYZ, cellAtoms, xs, ys, zs,
+                                        z_min, atNames, bonds);
                     createSphere(0.2 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
                     buffers.clear();
                     buffers.push_back(1);
@@ -134,9 +136,9 @@ Render::changeVizType(vizType* type) {
 
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
-                    createAtomsAndBondes(&surfaceXYZ, &surfAtoms, &cellAtoms,
-                                         xs, ys, zs, z_min, scaling, &atNames,
-                                         &bonds);
+                    createAtomsAndBondes(surfaceXYZ, surfAtoms, cellAtoms,
+                                         xs, ys, zs, z_min, scaling, atNames,
+                                         bonds);
                     createSphere(0.2 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
                     buffers.clear();
                     buffers.push_back(1);
@@ -161,40 +163,39 @@ Render::createActions() {
 }
 
 void
-Render::createAtomsAndBonds(surface3D* surface, atomsCoords* cellAts, float xs_,
-                            float ys_, float zs_, int z_min, AtomsNames* atN,
-                            Bonds* outBonds) {
+Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
+                            float ys_, float zs_, int z_min, AtomsNames &atN,
+                            Bonds &outBonds) {
+
     int name = 0;
-    for (int z = z_min; z < surface->size() - 2; ++z)
-        for (int y = (*surface)[z].size() - 2; --y >= 2;)
-            for (int x = (*surface)[z][y].size() - 2; --x >= 2;) {
+    for (int z = z_min; z < surface.size() - 2; ++z)
+        for (int y = surface[z].size() - 2; --y >= 2;)
+            for (int x = surface[z][y].size() - 2; --x >= 2;) {
                 float x0 = scaling * x*xs_;
                 float y0 = scaling * y*ys_;
                 float z0 = -scaling * (z - z_min) * zs_;
-                for (unsigned char a = (*surface)[z][y][x].size(); --a >= 0;) {
+                const auto atomsCount = surface[z][y][x].size();
+                for (unsigned char a = atomsCount; --a > 0;) {
 
-                    if ((*surface)[z][y][x][a].fNbCount) {
-                        float xA = x0 + scaling * (*cellAts)[a].x;
-                        float yA = y0 + scaling * (*cellAts)[a].y;
-                        float zA = z0 - scaling * (*cellAts)[a].z;
+                    if (surface[z][y][x][a].fNbCount) {
+                        float xA = x0 + scaling * cellAts[a].x;
+                        float yA = y0 + scaling * cellAts[a].y;
+                        float zA = z0 - scaling * cellAts[a].z;
 
                         ++name;
                         atomName temp = {name, x, y, z, xA, yA, zA, a,
-                                         (int) (*surface)[z][y][x][a].neighbours.size()};
-                        atN->push_back(temp);
+                                         (int) atomsCount};
+                        atN.push_back(temp);
 
-                        for (int nb = (*surface)[z][y][x][a].neighbours.size(); --nb >= 0;) {
+                        for (auto &nb : surface[z][y][x][a].neighbours) {
+                            float xNb = scaling * (xs * nb.x + cellAts[nb.type].x);
+                            float yNb = scaling * (ys * nb.y + cellAts[nb.type].y);
+                            float zNb = scaling * (-zs * nb.z - cellAts[nb.type].z);
 
-                            float xNb = scaling * (xs * (*surface)[z][y][x][a].neighbours[nb].x + (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].x);
-                            float yNb = scaling * (ys * (*surface)[z][y][x][a].neighbours[nb].y + (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].y);
-                            float zNb = scaling * (-zs * (*surface)[z][y][x][a].neighbours[nb].z - (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].z);
-
-                            Bond bondT = {xA, yA, zA,
-                                          xNb, yNb, zNb};
-                            outBonds -> push_back(bondT);
+                            Bond bondT = {xA, yA, zA, xNb, yNb, zNb};
+                            outBonds . push_back(bondT);
                         }
                     }
-
                 }
             }
 }
@@ -712,16 +713,16 @@ Render::processAtom(GLuint *pSelectBuff) {
     int id;
     pSelectBuff[0];
     id = pSelectBuff[3];
-    for (int i = atNames.size(); --i >= 0;) {
-        if (atNames[i].name == id) {
-            selAtomType.xC = atNames[i].xC;
-            selAtomType.yC = atNames[i].yC;
-            selAtomType.zC = atNames[i].zC;
-            selAtomType.x = atNames[i].x;
-            selAtomType.y = atNames[i].y;
-            selAtomType.z = atNames[i].z;
-            selAtomType.type = atNames[i].type;
-            selAtomType.fNbCount = atNames[i].fNbCount;
+    for (auto &atName : atNames) {
+        if (atName.name == id) {
+            selAtomType.xC = atName.xC;
+            selAtomType.yC = atName.yC;
+            selAtomType.zC = atName.zC;
+            selAtomType.x = atName.x;
+            selAtomType.y = atName.y;
+            selAtomType.z = atName.z;
+            selAtomType.type = atName.type;
+            selAtomType.fNbCount = atName.fNbCount;
             break;
         }
     }

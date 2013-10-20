@@ -11,7 +11,7 @@ find_package(OpenGL REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR})
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -ggdb")
 
 set(${project}_SRC
     etchingMenu.cpp

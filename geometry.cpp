@@ -3,6 +3,7 @@
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <GL/gl.h>
+#include "QDebug"
 #include "geometry.h"
 
 #define CACHE_SIZE 240
@@ -20,87 +21,81 @@
 #endif
 
 void
-createAtomsAndBondes(surface3D* surface, vector<atomType>* surfAtoms, atomsCoords* cellAts, float xs, float ys, float zs, int z_min, float scaling, vector<atomName>* atNames_, Bonds* outBonds) {
+createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
+                     atomsCoords &cellAts, float xs, float ys, float zs,
+                     int z_min, float scaling, vector<atomName> &atNames_,
+                     Bonds &outBonds) {
+    qDebug() << "asdasd" << endl;
     int name = 0;
-    for (unsigned int i = 0; i < surfAtoms->size(); ++i) {
+    for (unsigned int i = 0; i < surfAtoms.size(); ++i) {
 
-        int x = (*surfAtoms)[i].x;
-        int y = (*surfAtoms)[i].y;
-        int z = (*surfAtoms)[i].z;
-        unsigned char a = (*surfAtoms)[i].type;
+        int x = surfAtoms[i].x;
+        int y = surfAtoms[i].y;
+        int z = surfAtoms[i].z;
+        unsigned char a = surfAtoms[i].type;
 
-        if ((*surface)[z][y][x][a].neighbours.size()) {
+        if (!surface[z][y][x][a].neighbours.empty()) {
             float x0 = scaling * x*xs;
             float y0 = scaling * y*ys;
             float z0 = -scaling * (z - z_min) * zs;
 
-            float xA = x0 + scaling * (*cellAts)[a].x;
-            float yA = y0 + scaling * (*cellAts)[a].y;
-            float zA = z0 - scaling * (*cellAts)[a].z;
+            float xA = x0 + scaling * cellAts[a].x;
+            float yA = y0 + scaling * cellAts[a].y;
+            float zA = z0 - scaling * cellAts[a].z;
 
             ++name;
-            atomName temp = {name, x, y, z, xA, yA, zA, a, (short) (*surface)[z][y][x][a].neighbours.size()};
-            atNames_->push_back(temp);
+            atomName temp = {name, x, y, z, xA, yA, zA, a, (short) surface[z][y][x][a].neighbours.size()};
+            atNames_.push_back(temp);
 
-            for (int nb = (*surface)[z][y][x][a].neighbours.size(); --nb >= 0;) {
-                float xNb = scaling * (xs * (*surface)[z][y][x][a].neighbours[nb].x
-                                       + (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].x);
+            for (auto &nb : surface[z][y][x][a].neighbours) {
+                float xNb = scaling * (xs * nb.x + cellAts[nb.type].x);
+                float yNb = scaling * (ys * nb.y + cellAts[nb.type].y);
+                float zNb = scaling * (-zs * nb.z - cellAts[nb.type].z);
 
-                float yNb = scaling * (ys * (*surface)[z][y][x][a].neighbours[nb].y
-                                       + (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].y);
-
-                float zNb = scaling * (-zs * (*surface)[z][y][x][a].neighbours[nb].z
-                                       - (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].z);
-
-                Bond bondT = {xA, yA, zA,
-                              xNb, yNb, zNb};
-                outBonds -> push_back(bondT);
+                Bond bondT = {xA, yA, zA, xNb, yNb, zNb};
+                outBonds . push_back(bondT);
             }
         }
     }
 
-    for (unsigned int i = 0; i < surfAtoms->size(); ++i) {
-        short x_ = (*surfAtoms)[i].x;
-        short y_ = (*surfAtoms)[i].y;
-        unsigned short z_ = (*surfAtoms)[i].z;
-        unsigned char a_ = (*surfAtoms)[i].type;
-        for (int nb = (*surface)[z_][y_][x_][a_].neighbours.size(); --nb >= 0;) {
+    for (auto &surfAtom : surfAtoms) {
+        short x_ = surfAtom.x;
+        short y_ = surfAtom.y;
+        unsigned short z_ = surfAtom.z;
+        unsigned char a_ = surfAtom.type;
+
+        for (auto &nb : surface[z_][y_][x_][a_].neighbours) {
             //unsigned short a = (*surfAtoms)[i].type;
 
-            short x = (*surface)[z_][y_][x_][a_].neighbours[nb].x;
-            short y = (*surface)[z_][y_][x_][a_].neighbours[nb].y;
-            short z = (*surface)[z_][y_][x_][a_].neighbours[nb].z;
-            unsigned char a = (*surface)[z_][y_][x_][a_].neighbours[nb].type;
+            short x = nb.x;
+            short y = nb.y;
+            short z = nb.z;
+            unsigned char a = nb.type;
 
-            if (x > 1 && x < (*surface)[z_][y_].size() - 2 && y > 1 && y < (*surface)[z_].size() - 2)
-                if (!(*surface)[z][y][x][a].deleted) {
+            if (x > 1 && x < surface[z_][y_].size() - 2 && y > 1 && y < surface[z_].size() - 2)
+                if (!surface[z][y][x][a].deleted) {
 
                     float x0 = scaling * x*xs;
                     float y0 = scaling * y*ys;
                     float z0 = -scaling * (z - z_min) * zs;
 
-                    float xA = x0 + scaling * (*cellAts)[a].x;
-                    float yA = y0 + scaling * (*cellAts)[a].y;
-                    float zA = z0 - scaling * (*cellAts)[a].z;
+                    float xA = x0 + scaling * cellAts[a].x;
+                    float yA = y0 + scaling * cellAts[a].y;
+                    float zA = z0 - scaling * cellAts[a].z;
 
                     ++name;
                     atomName temp = {name, x, y, z, xA, yA, zA, a,
-                                     (short) (*surface)[z][y][x][a].neighbours.size()};
-                    atNames_->push_back(temp);
+                                     (short) surface[z][y][x][a].neighbours.size()};
+                    atNames_.push_back(temp);
 
-                    for (int nb = (*surface)[z][y][x][a].neighbours.size(); --nb >= 0;) {
-                        float xNb = scaling * (xs * (*surface)[z][y][x][a].neighbours[nb].x
-                                               + (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].x);
-
-                        float yNb = scaling * (ys * (*surface)[z][y][x][a].neighbours[nb].y
-                                               + (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].y);
-
-                        float zNb = scaling * (-zs * (*surface)[z][y][x][a].neighbours[nb].z
-                                               - (*cellAts)[(*surface)[z][y][x][a].neighbours[nb].type].z);
+                    for (auto &nb_int : surface[z][y][x][a].neighbours) {
+                        float xNb = scaling * (xs * nb_int.x + cellAts[nb_int.type].x);
+                        float yNb = scaling * (ys * nb_int.y + cellAts[nb_int.type].y);
+                        float zNb = scaling * (-zs * nb_int.z - cellAts[nb_int.type].z);
 
                         Bond bondT = {xA, yA, zA,
                                       xNb, yNb, zNb};
-                        outBonds -> push_back(bondT);
+                        outBonds . push_back(bondT);
                     }
                 }
         }

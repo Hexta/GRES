@@ -25,13 +25,13 @@ addLayer(surface3D &surface, allSoseds &sosedi, int sX, int sY, int sZ) {
         surface1D surfaceX;
         for (int x = 0; x < sX; ++x) {
             cell cell;
-            for (unsigned int a = 0; a < sosedi.size(); ++a) {
+            for (auto &sosed : sosedi) {
                 soseds neighbs;
                 char numberNeighbs = 0; //Число первых соседей
                 for (int nb = 0; nb < 4; ++nb) {
-                    if (x + sosedi[a][nb].x >= 0 && y + sosedi[a][nb].y >= 0 && x + sosedi[a][nb].x < sX && y + sosedi[a][nb].y < sY) {
+                    if (x + sosed[nb].x >= 0 && y + sosed[nb].y >= 0 && x + sosed[nb].x < sX && y + sosed[nb].y < sY) {
                         ++numberNeighbs;
-                        atomType neighb = {x + sosedi[a][nb].x, y + sosedi[a][nb].y, sZ + sosedi[a][nb].z, sosedi[a][nb].type, false};
+                        atomType neighb = {x + sosed[nb].x, y + sosed[nb].y, sZ + sosed[nb].z, sosed[nb].type, false};
                         neighbs.push_back(neighb);
                     }
                 }
@@ -52,10 +52,11 @@ atomsInBox(atomsCoords &atoms, const coords3D &Vx, const coords3D &Vy,
 определяет атомы лежащие внутри прямоугольного параллелипипеда
  */ {
     atomsCoords cellAts;
-    for (unsigned int v = 0; v < atoms.size(); ++v) {
-        const float x = atoms[v].x;
-        const float y = atoms[v].y;
-        const float z = atoms[v].z;
+
+    for (auto &atom : atoms) {
+        const float x = atom.x;
+        const float y = atom.y;
+        const float z = atom.z;
         coords3D X = {x, y, z};
         coords3D V = pointShifting(P1, X);
 
@@ -197,10 +198,12 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
     ls.reserve(50000);
     for (unsigned int i = 0; i < atomsP1.size(); ++i)
         for (unsigned int j = i + 1; j < atomsP1.size(); ++j) {
-            float l1 = distance(atomsP1[i].x, atomsP1[i].y, atomsP1[i].z,
-                                atomsP1[j].x, atomsP1[j].y, atomsP1[j].z);
-            length L = {atomsP1[i].x, atomsP1[i].y, atomsP1[i].z, atomsP1[j].x,
-                        atomsP1[j].y, atomsP1[j].z, l1};
+            const auto atomP1A = atomsP1[i];
+            const auto atomP1B = atomsP1[j];
+            float l1 = distance(atomP1A.x, atomP1A.y, atomP1A.z,
+                                atomP1B.x, atomP1B.y, atomP1B.z);
+            length L = {atomP1A.x, atomP1A.y, atomP1A.z,
+                        atomP1B.x, atomP1B.y, atomP1B.z, l1};
             ls.push_back(L);
         }
     float kx = -1;
@@ -551,10 +554,11 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
     bool result = false;
 
     for (unsigned int i = 0; i < surfAtoms.size(); ++i) {
-        short x = surfAtoms[i].x;
-        short y = surfAtoms[i].y;
-        unsigned short z = surfAtoms[i].z;
-        unsigned short a = surfAtoms[i].type;
+        const auto surfAtom = surfAtoms[i];
+        short x = surfAtom.x;
+        short y = surfAtom.y;
+        unsigned short z = surfAtom.z;
+        unsigned short a = surfAtom.type;
         if (((!mask.empty()) && (((z + tA[a].z < 0.5) && !mask[ (y - 2)*(surface[z][y].size() - 4) + x - 2 ])
                                  || (z + tA[a].z >= 0.5)))
             || (mask.empty())) {
@@ -578,10 +582,11 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
 
     for (unsigned int i = 0; i < surfAtoms.size(); ++i) {
         if (surfAtoms[i].toDel) {
-            short x = surfAtoms[i].x;
-            short y = surfAtoms[i].y;
-            unsigned short z = surfAtoms[i].z;
-            unsigned short a = surfAtoms[i].type;
+            const auto surfAtom = surfAtoms[i];
+            short x = surfAtom.x;
+            short y = surfAtom.y;
+            unsigned short z = surfAtom.z;
+            unsigned short a = surfAtom.type;
             delAtom(surface, surfAtoms, x, y, z, a, i);
 
             if (x == 4 || x == 5) {
