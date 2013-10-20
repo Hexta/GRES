@@ -26,9 +26,9 @@ createAtomsAndBondes( surface3D* surface, vector<atomType>* surfAtoms, atomsCoor
 	for ( unsigned int i = 0; i < surfAtoms->size( ); ++i )
 	{
 
-		short x = ( *surfAtoms )[i].x;
-		short y = ( *surfAtoms )[i].y;
-		unsigned short z = ( *surfAtoms )[i].z;
+		int x = ( *surfAtoms )[i].x;
+		int y = ( *surfAtoms )[i].y;
+		int z = ( *surfAtoms )[i].z;
 		unsigned char a = ( *surfAtoms )[i].type;
 
 		if ( ( *surface )[z][y][x][a].neighbours.size( ) )

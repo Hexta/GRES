@@ -173,19 +173,19 @@ MainW::etch( int simType_, int* IterCount, float* rates )
 	for ( int n = 0; n < count; ++n )
 	{
 		if ( sT == KMC )
-			perfect = selAtom( &surfaceXYZ, &surfAtoms, &sosedi, z_min, &cellAtoms, &mask, rates );
+			perfect = selAtom( surfaceXYZ, surfAtoms, sosedi, z_min, cellAtoms, mask, rates );
 		else if ( sT == CA )
-			perfect = selAtomCA( &surfaceXYZ, &surfAtoms, z_min, &cellAtoms, &mask, rates );
+			perfect = selAtomCA( surfaceXYZ, surfAtoms, z_min, cellAtoms, mask, rates );
 
 		if ( perfect )
 		{
 			t.start( );
-			addLayer( &surfaceXYZ, &sosedi, SIZE_X, SIZE_Y, SIZE_Z );
+			addLayer( surfaceXYZ, sosedi, SIZE_X, SIZE_Y, SIZE_Z );
 			++SIZE_Z;
 			perfect = true;
 		}
-		findZmin( &surfaceXYZ, &z_min );
-		optimizeSurface( &surfaceXYZ, z_min );
+		findZmin( surfaceXYZ, z_min );
+		optimizeSurface( surfaceXYZ, z_min );
 	}
 	z_center = 0.5 * ( SIZE_Z - 2 + z_min );
 	drawResult( );
@@ -217,9 +217,9 @@ MainW::newDocument( )
 	int zMax = SIZE_Z;
 	z_center = z_min + 0.5 * ( zMax - 2 - z_min );
 
-	cellAtoms = findCell( h, k, l, &Xsize, &Ysize, &Zsize, &Vx, &Vy, &Vz );
+	cellAtoms = findCell( h, k, l, Xsize, Ysize, Zsize, Vx, Vy, Vz );
 	const unsigned int NUMBER_OF_ATOMS_IN_CELL = cellAtoms.size( );
-	findSoseds( &sosedi, &cellAtoms, &Xsize, &Ysize, &Zsize );
+	findSoseds( sosedi, cellAtoms, Xsize, Ysize, Zsize );
 
 	surfaceXYZ.clear( );
 	surfAtoms.clear( );
@@ -235,7 +235,7 @@ MainW::newDocument( )
 			for ( int x = 0; x < SIZE_X; ++x )
 			{
 				cell cell;
-				for ( char a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a )
+				for ( unsigned char a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a )
 				{
 					soseds neighbs;
 					char numberNeighbs = 0; //Число первых соседей
