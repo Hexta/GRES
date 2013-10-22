@@ -76,10 +76,11 @@ atomsInBox(atomsCoords &atoms, const coords3D &Vx, const coords3D &Vy,
 void
 cellOptim(atomsCoords &ca, float &xs, float &ys, float &zs) {
     atomsCoords newCell;
-    for (unsigned int i = 0; i < ca.size() - 4; ++i) {
-        const float x = ca[i].x;
-        const float y = ca[i].y;
-        const float z = ca[i].z;
+
+    for (auto i = ca.begin(); i < ca.end() - 4; ++i) {
+        const float x = i->x;
+        const float y = i->y;
+        const float z = i->z;
 
         if (x > 0.01 && y > 0.01 && z > 0.01) {
             coords3D atom = {x, y, z};
@@ -87,9 +88,11 @@ cellOptim(atomsCoords &ca, float &xs, float &ys, float &zs) {
         }
     }
 
-    xs = distance(ca[ ca.size() - 3 ]);
-    ys = distance(ca[ ca.size() - 2 ]);
-    zs = distance(ca[ ca.size() - 1 ]);
+    const size_t ca_last_index = ca.size() - 1;
+
+    xs = distance(ca[ ca_last_index ]);
+    ys = distance(ca[ ca_last_index ]);
+    zs = distance(ca[ ca_last_index ]);
     ca = newCell;
 }
 
@@ -102,12 +105,14 @@ bool
 compareTranslCell(const atomsCoords &cellAtoms, const atomsCoords &allAtoms,
                   const coords3D &V) {
     bool happy = false;
-    for (unsigned int j = 0; j < cellAtoms.size() - 4; ++j) {
+    for (auto cell_atom_it = cellAtoms.begin();
+         cell_atom_it < cellAtoms.end() - 4; ++cell_atom_it) {
+
         happy = false;
-        coords3D A0 = cellAtoms[j]; //исходный атом
-        coords3D At = pointShift(A0, V);
-        for (unsigned int v = 0; v < allAtoms.size(); ++v) {
-            if (coords3Dcompare(At, allAtoms[v])) {
+        coords3D At = pointShift(*cell_atom_it, V);
+
+        for (auto &atom : allAtoms) {
+            if (coords3Dcompare(At, atom)) {
                 happy = true;
                 break;
             }
@@ -115,6 +120,7 @@ compareTranslCell(const atomsCoords &cellAtoms, const atomsCoords &allAtoms,
         if (!happy)
             break;
     }
+
     return happy;
 }
 
@@ -127,13 +133,14 @@ coords3Dcompare(const coords3D &coords1, const coords3D &coords2) {
 void
 coordsMove(atomsCoords &ca, const coords3D &O, const coords3D &Vx,
            const coords3D &Vy, const coords3D &Vz) {
-    for (unsigned int i = 0; i < ca.size() - 4; ++i) {
-        const double x = ScalarMult(pointShifting(O, ca[i]), Vx) / distance(Vx);
-        const double y = ScalarMult(pointShifting(O, ca[i]), Vy) / distance(Vy);
-        const double z = ScalarMult(pointShifting(O, ca[i]), Vz) / distance(Vz);
-        ca[i].x = x;
-        ca[i].y = y;
-        ca[i].z = z;
+    for (auto atom_coords_it = ca.begin(); atom_coords_it < ca.end() - 4; ++atom_coords_it) {
+        const double x = ScalarMult(pointShifting(O, *atom_coords_it), Vx) / distance(Vx);
+        const double y = ScalarMult(pointShifting(O, *atom_coords_it), Vy) / distance(Vy);
+        const double z = ScalarMult(pointShifting(O, *atom_coords_it), Vz) / distance(Vz);
+
+        atom_coords_it->x = x;
+        atom_coords_it->y = y;
+        atom_coords_it->z = z;
     }
 }
 
@@ -249,15 +256,16 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
                     rectanglesP1.push_back(rect);
 
                     //удаляем дубли
-                    for (unsigned int v = j + 1; v < ls.size(); ++v)
-                        if ((ls[v].x1 == x1 && ls[v].x2 == x3 && ls[v].y1 == y1
-                             && ls[v].y2 == y3 && ls[v].z1 == z1
-                             && ls[v].z2 == z3)
-                            || (ls[v].x1 == x2 && ls[v].x2 == x4
-                                && ls[v].y1 == y2 && ls[v].y2 == y4
-                                && ls[v].z1 == z2 && ls[v].z2 == z4)) {
-                            ls.erase(ls.begin() + v);
-                            --v;
+                    for (auto v = ls.begin() + j + 1; v < ls.end(); ++v)
+                        if ((v->x1 == x1 && v->x2 == x3 && v->y1 == y1
+                             && v->y2 == y3 && v->z1 == z1
+                             && v->z2 == z3)
+                            || (v->x1 == x2 && v->x2 == x4
+                                && v->y1 == y2 && v->y2 == y4
+                                && v->z1 == z2 && v->z2 == z4)) {
+                            const size_t n = v - ls.begin();
+                            ls.erase(v);
+                            v = ls.begin() + n - 1;
                         }
                 }
             }
@@ -309,11 +317,13 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
     stable_sort(allCells.begin(), allCells.end(), cells_comp);
 
     for (auto &cell : allCells) {
+        const size_t cell_size = cell.size();
+
         //считаем векторы координат
-        coords3D P1 = cell[cell.size() - 4];
-        coords3D Vx = cell[cell.size() - 3];
-        coords3D Vy = cell[cell.size() - 2];
-        coords3D Vz = cell[cell.size() - 1];
+        coords3D P1 = cell[cell_size - 4];
+        coords3D Vx = cell[cell_size - 3];
+        coords3D Vy = cell[cell_size - 2];
+        coords3D Vz = cell[cell_size - 1];
         //транслируем по OX
         bool happy = compareTranslCell(cell, allAtoms, Vx);
 
@@ -337,42 +347,41 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
                                                 pointShift(P1, Vx));
-            happy = (cell.size() - 4 == translCell.size());
+            happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
                                                 pointShift(P1, Vy));
-            happy = (cell.size() - 4 == translCell.size());
+            happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
                                                 pointShift(P1, Vz));
-            happy = (cell.size() - 4 == translCell.size());
+            happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
                                                 pointShift(P1, -1 * Vx));
-            happy = (cell.size() - 4 == translCell.size());
+            happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
                                                 pointShift(P1, -1 * Vy));
-            happy = (cell.size() - 4 == translCell.size());
+            happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
                                                 pointShift(P1, -1 * Vz));
-            happy = (cell.size() - 4 == translCell.size());
+            happy = (cell_size - 4 == translCell.size());
         }
         if (happy) {
-            atomsCoords tempCell = cell;
             allCells.clear();
-            allCells.push_back(tempCell);
+            allCells.push_back(cell);
             vX = Vx;
             vY = Vy;
             vZ = Vz;
@@ -621,6 +630,7 @@ delAtom(surface3D &surface, vector<atomType> &surfAtoms, int x, int y, int z,
 double
 VectorQuad(const coords3D &V) {
     //Возведение вектора в квадрат
+    //    qDebug() << "x: " << V.x << "y: " << V.y << "z: " << V.z;
     return pow(V.x, 2) + pow(V.y, 2) + pow(V.z, 2);
 }
 
