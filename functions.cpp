@@ -320,10 +320,10 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
         const size_t cell_size = cell.size();
 
         //считаем векторы координат
-        coords3D P1 = cell[cell_size - 4];
-        coords3D Vx = cell[cell_size - 3];
-        coords3D Vy = cell[cell_size - 2];
-        coords3D Vz = cell[cell_size - 1];
+        const coords3D &P1 = *(cell.end() - 4);
+        const coords3D &Vx = *(cell.end() - 3);
+        const coords3D &Vy = *(cell.end() - 2);
+        const coords3D &Vz = *(cell.end() - 1);
         //транслируем по OX
         bool happy = compareTranslCell(cell, allAtoms, Vx);
 
@@ -391,12 +391,12 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
 
     auto &firstCell = allCells[0];
 
-    coordsMove(firstCell, firstCell[firstCell.size() - 4],
-               firstCell[firstCell.size() - 3], firstCell[firstCell.size() - 2], firstCell[firstCell.size() - 1]);
+    coordsMove(firstCell, *(firstCell.end() - 4), *(firstCell.end() - 3),
+               *(firstCell.end() - 2), *(firstCell.end() - 1));
 
     cellOptim(firstCell, Xsize, Ysize, Zsize);
 
-    return allCells[0];
+    return firstCell;
 }
 
 void

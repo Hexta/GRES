@@ -3,7 +3,6 @@
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <GL/gl.h>
-#include "QDebug"
 #include "geometry.h"
 
 #define CACHE_SIZE 240
@@ -25,7 +24,7 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
                      atomsCoords &cellAts, float xs, float ys, float zs,
                      int z_min, float scaling, vector<atomName> &atNames_,
                      Bonds &outBonds) {
-    qDebug() << "asdasd" << endl;
+
     int name = 0;
     for (unsigned int i = 0; i < surfAtoms.size(); ++i) {
 
