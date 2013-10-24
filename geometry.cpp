@@ -26,12 +26,12 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
                      Bonds &outBonds) {
 
     int name = 0;
-    for (unsigned int i = 0; i < surfAtoms.size(); ++i) {
+    for (auto &surfAtom : surfAtoms) {
 
-        int x = surfAtoms[i].x;
-        int y = surfAtoms[i].y;
-        int z = surfAtoms[i].z;
-        unsigned char a = surfAtoms[i].type;
+        const int x = surfAtom.x;
+        const int y = surfAtom.y;
+        const int z = surfAtom.z;
+        const unsigned char a = surfAtom.type;
 
         if (!surface[z][y][x][a].neighbours.empty()) {
             float x0 = scaling * x*xs;
@@ -52,7 +52,7 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
                 float zNb = scaling * (-zs * nb.z - cellAts[nb.type].z);
 
                 Bond bondT = {xA, yA, zA, xNb, yNb, zNb};
-                outBonds . push_back(bondT);
+                outBonds.push_back(bondT);
             }
         }
     }

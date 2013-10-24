@@ -155,8 +155,8 @@ MainW::createToolBars() {
 
 void
 MainW::drawResult() {
-    result->view(&surfaceXYZ, &surfAtoms, &cellAtoms, &Xsize, &Ysize, &Zsize,
-                 z_center, z_min, SIZE_X, SIZE_Y, &Vx, &Vy, &Vz, vizualType);
+    result->view(surfaceXYZ, surfAtoms, cellAtoms, Xsize, Ysize, Zsize,
+                 z_center, z_min, SIZE_X, SIZE_Y, Vx, Vy, Vz, vizualType);
 }
 
 void

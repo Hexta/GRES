@@ -77,7 +77,8 @@ Render::changeVizType(vizType* type) {
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
 
-                    createSurfacePoints(&surfaceXYZ, xs, ys, zs, z_min, &surfVertex, &surfNormals);
+                    createSurfacePoints(*surfaceXYZ, xs, ys, zs, z_min,
+                                        surfVertex, surfNormals);
                     buffers.clear();
                     buffers.push_back(1);
                 }
@@ -88,7 +89,7 @@ Render::changeVizType(vizType* type) {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
-                    createAtomsAndBonds(surfaceXYZ, cellAtoms, xs, ys, zs, z_min,
+                    createAtomsAndBonds(*surfaceXYZ, *cellAtoms, xs, ys, zs, z_min,
                                         atNames, bonds);
                     createSphere(0.09 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
                     buffers.clear();
@@ -103,7 +104,7 @@ Render::changeVizType(vizType* type) {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
-                    createAtomsAndBondes(surfaceXYZ, surfAtoms, cellAtoms,
+                    createAtomsAndBondes(*surfaceXYZ, *surfAtoms, *cellAtoms,
                                          xs, ys, zs, z_min, scaling, atNames,
                                          bonds);
                     createSphere(0.09 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
@@ -119,7 +120,7 @@ Render::changeVizType(vizType* type) {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
-                    createAtomsAndBonds(surfaceXYZ, cellAtoms, xs, ys, zs,
+                    createAtomsAndBonds(*surfaceXYZ, *cellAtoms, xs, ys, zs,
                                         z_min, atNames, bonds);
                     createSphere(0.2 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
                     buffers.clear();
@@ -136,7 +137,7 @@ Render::changeVizType(vizType* type) {
 
                     if (!buffers.empty())
                         glDeleteBuffersARB(1, &buffers[0]);
-                    createAtomsAndBondes(surfaceXYZ, surfAtoms, cellAtoms,
+                    createAtomsAndBondes(*surfaceXYZ, *surfAtoms, *cellAtoms,
                                          xs, ys, zs, z_min, scaling, atNames,
                                          bonds);
                     createSphere(0.2 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
@@ -201,18 +202,19 @@ Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
 }
 
 void
-Render::createSurfacePoints(surface3D* surface, float xs_, float ys_, float zs_, int z_min, atomsCoords* surfV, atomsCoords* surfN) {
-    const int dX = (*surface)[z_min][0].size() - 3;
-    const int dY = (*surface)[z_min].size() - 3;
+Render::createSurfacePoints(surface3D &surface, float xs_, float ys_, float zs_,
+                            int z_min, atomsCoords &surfV, atomsCoords &surfN) {
+    const int dX = surface[z_min][0].size() - 3;
+    const int dY = surface[z_min].size() - 3;
 
     coords3D emptyP = {-1.0, -1.0, -1.0};
     cells points(dY, atomsCoords(dX, emptyP));
 
-    for (unsigned int z = z_min; z < surface->size() - 2; ++z)
-        for (int y = (*surface)[z].size() - 2; --y >= 2;)
-            for (int x = (*surface)[z][y].size() - 2; --x >= 2;)
-                for (int a = (*surface)[z][y][x].size(); --a >= 0;)
-                    if (!(*surface)[z][y][x][a].deleted)
+    for (unsigned int z = z_min; z < surface.size() - 2; ++z)
+        for (int y = surface[z].size() - 2; --y >= 2;)
+            for (int x = surface[z][y].size() - 2; --x >= 2;)
+                for (int a = surface[z][y][x].size(); --a >= 0;)
+                    if (!surface[z][y][x][a].deleted)
                         if (points[y - 2][x - 2].x == -1.0) {
                             points[y - 2][x - 2].x = scaling * (x - 2) * xs_;
                             points[y - 2][x - 2].z = -scaling * z*zs_;
@@ -230,8 +232,8 @@ Render::createSurfacePoints(surface3D* surface, float xs_, float ys_, float zs_,
         points[dY - 1][i].y = points[dY - 2][i].y + scaling*ys_;
         points[dY - 1][i].z = points[dY - 2][i].z;
     }
-    surfV->reserve((SIZE_Y - 4)*(SIZE_X - 4));
-    surfN->reserve((SIZE_Y - 4)*(SIZE_X - 4));
+    surfV.reserve((SIZE_Y - 4)*(SIZE_X - 4));
+    surfN.reserve((SIZE_Y - 4)*(SIZE_X - 4));
 
     for (int i = 0; i < SIZE_Y - 4; i++)
         for (int j = 0; j < SIZE_X - 4; j++) {
@@ -246,12 +248,12 @@ Render::createSurfacePoints(surface3D* surface, float xs_, float ys_, float zs_,
                 coords3D v7 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j + 1].z};
                 coords3D v8 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
 
-                surfN->insert(surfNormals.end(), 4, normcrossprod(v6 + -1 * v5, v7 + -1 * v5));
+                surfN.insert(surfNormals.end(), 4, normcrossprod(v6 + -1 * v5, v7 + -1 * v5));
 
-                surfV -> push_back(v5);
-                surfV -> push_back(v6);
-                surfV -> push_back(v7);
-                surfV -> push_back(v8);
+                surfV.push_back(v5);
+                surfV.push_back(v6);
+                surfV.push_back(v7);
+                surfV.push_back(v8);
             }
             if (points[i][j].z != points[i + 1][j].z) {
 
@@ -260,26 +262,26 @@ Render::createSurfacePoints(surface3D* surface, float xs_, float ys_, float zs_,
                 coords3D v11 = {points[i + 1][j].x, points[i + 1][j].y, points[i + 1][j].z};
                 coords3D v12 = {points[i + 1][j].x, points[i + 1][j].y, points[i][j].z};
 
-                surfN->insert(surfNormals.end(), 4, normcrossprod(v10 + -1 * v9, v11 + -1 * v9));
+                surfN.insert(surfNormals.end(), 4, normcrossprod(v10 + -1 * v9, v11 + -1 * v9));
 
-                surfV -> push_back(v9);
-                surfV -> push_back(v10);
-                surfV -> push_back(v11);
-                surfV -> push_back(v12);
+                surfV.push_back(v9);
+                surfV.push_back(v10);
+                surfV.push_back(v11);
+                surfV.push_back(v12);
             }
-            surfV -> push_back(v1);
-            surfV -> push_back(v2);
-            surfV -> push_back(v3);
-            surfV -> push_back(v4);
-            surfN->insert(surfNormals.end(), 4, normcrossprod(v2 + -1 * v1, v3 + -1 * v1));
+            surfV.push_back(v1);
+            surfV.push_back(v2);
+            surfV.push_back(v3);
+            surfV.push_back(v4);
+            surfN.insert(surfNormals.end(), 4, normcrossprod(v2 + -1 * v1, v3 + -1 * v1));
         }
     glBindBufferARB(GL_ARRAY_BUFFER, 1);
-    glBufferDataARB(GL_ARRAY_BUFFER, (surfV->size() + surfN->size())*3 * sizeof (float),
+    glBufferDataARB(GL_ARRAY_BUFFER, (surfV.size() + surfN.size())*3 * sizeof (float),
                     0, GL_STATIC_DRAW);
-    glBufferSubDataARB(GL_ARRAY_BUFFER, 0, surfV->size()*3 * sizeof (float),
-                       &(*surfV)[0].x);
-    glBufferSubDataARB(GL_ARRAY_BUFFER, surfV->size()*3 * sizeof (float),
-                       surfN->size()*3 * sizeof (float), &(*surfN)[0].x);
+    glBufferSubDataARB(GL_ARRAY_BUFFER, 0, surfV.size()*3 * sizeof (float),
+                       &surfV[0].x);
+    glBufferSubDataARB(GL_ARRAY_BUFFER, surfV.size()*3 * sizeof (float),
+                       surfN.size()*3 * sizeof (float), &surfN[0].x);
     glBindBufferARB(GL_ARRAY_BUFFER, 0);
 }
 
@@ -312,9 +314,12 @@ Render::drawAxis() {
     glDisable(GL_BLEND);
 
     glColor3f(1.0, 1.0, 0.0);
-    QString xText = "x (" + QString::number(Vx.x) + "," + QString::number(Vx.y) + "," + QString::number(Vx.z) + ")";
-    QString yText = "y (" + QString::number(Vy.x) + "," + QString::number(Vy.y) + "," + QString::number(Vy.z) + ")";
-    QString zText = "z (" + QString::number(Vz.x) + "," + QString::number(Vz.y) + "," + QString::number(Vz.z) + ")";
+    QString xText = "x (" + QString::number(Vx->x)
+            + "," + QString::number(Vx->y) + "," + QString::number(Vx->z) + ")";
+    QString yText = "y (" + QString::number(Vy->x)
+            + "," + QString::number(Vy->y) + "," + QString::number(Vy->z) + ")";
+    QString zText = "z (" + QString::number(Vz->x)
+            + "," + QString::number(Vz->y) + "," + QString::number(Vz->z) + ")";
     this->renderText(4.2, -0.1, 0.0, xText);
     glColor3f(1.0, 0.0, 1.0);
     this->renderText(0.0, -0.1, -4.3, zText);
@@ -729,25 +734,25 @@ Render::processAtom(GLuint *pSelectBuff) {
 }
 
 void
-Render::view(surface3D *surface, vector<atomType>* surfAt, atomsCoords* atTypes,
-             float* Xsize, float* Ysize, float* Zsize, int center, int min,
-             int width, int height, coords3D* vX, coords3D* vY, coords3D* vZ,
+Render::view(surface3D &surface, vector<atomType> &surfAt, atomsCoords &atTypes,
+             float Xsize, float Ysize, float Zsize, int center, int min,
+             int width, int height, coords3D &vX, coords3D &vY, coords3D &vZ,
              vizType vT) {
     visualType = vT;
-    surfAtoms = *surfAt;
+    surfAtoms = &surfAt;
 
-    xs = *Xsize;
-    ys = *Ysize;
-    zs = *Zsize;
-    surfaceXYZ = *surface;
+    xs = Xsize;
+    ys = Ysize;
+    zs = Zsize;
+    surfaceXYZ = &surface;
     z_min = min;
     z_center = center;
-    cellAtoms = *atTypes;
+    cellAtoms = &atTypes;
     SIZE_X = width;
     SIZE_Y = height;
-    Vx = *vX;
-    Vy = *vY;
-    Vz = *vZ;
+    Vx = &vX;
+    Vy = &vY;
+    Vz = &vZ;
     dataInitialized = true;
     dataChanged = true;
 

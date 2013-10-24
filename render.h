@@ -28,7 +28,9 @@ public:
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 public slots:
-    void view(surface3D* surface, vector<atomType>*, atomsCoords*, float* Xsize, float* Ysize, float* Zsize, int z_min, int z_center, int width, int height, coords3D* Vx, coords3D* Vy, coords3D* Vz, vizType vizualType);
+    void view(surface3D &surface, vector<atomType>&, atomsCoords&, float Xsize,
+            float Ysize, float Zsize, int z_min, int z_center, int width,
+            int height, coords3D &Vx, coords3D &Vy, coords3D &Vz, vizType vizualType);
     void changeVizType(vizType* type);
     void saveResult();
 signals:
@@ -76,11 +78,11 @@ private:
     float sR;
     void sphereTemplate(float);
     void cylinderTemplate(float);
-    coords3D Vx, Vy, Vz;
+    coords3D *Vx, *Vy, *Vz;
     GLuint theSphere;
     QColor clearColor;
-    atomsCoords cellAtoms;
-    surface3D surfaceXYZ;
+    atomsCoords *cellAtoms;
+    surface3D *surfaceXYZ;
     float xs, ys, zs;
     int z_center, z_min;
     int SIZE_X, SIZE_Y;
@@ -107,11 +109,12 @@ private:
     vector<GLfloat> matrix;
     void createAtomsAndBonds(surface3D &surface, atomsCoords&, float Xsize,
             float Ysize, float Zsize, int z_min, AtomsNames&, Bonds&);
-    void createSurfacePoints(surface3D* surface, float Xsize, float Ysize, float Zsize, int z_min, atomsCoords* surfV, atomsCoords* surfN);
+    void createSurfacePoints(surface3D &surface, float Xsize, float Ysize,
+            float Zsize, int z_min, atomsCoords &surfV, atomsCoords &surfN);
     void initMatrix(vector<GLfloat>*);
     void drawAxis();
     void setGeometry(GLfloat zCenter = 0);
-    vector<atomType> surfAtoms;
+    vector<atomType> *surfAtoms;
 
 #ifdef _WIN32
     PFNGLBINDBUFFERARBPROC pglBindBufferARB;

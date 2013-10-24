@@ -88,11 +88,9 @@ cellOptim(atomsCoords &ca, float &xs, float &ys, float &zs) {
         }
     }
 
-    const size_t ca_last_index = ca.size() - 1;
-
-    xs = distance(ca[ ca_last_index ]);
-    ys = distance(ca[ ca_last_index ]);
-    zs = distance(ca[ ca_last_index ]);
+    xs = distance(*(ca.end() - 3));
+    ys = distance(*(ca.end() - 2));
+    zs = distance(*(ca.end() - 1));
     ca = newCell;
 }
 
