@@ -111,17 +111,20 @@ normalize(float v[3]) {
 }
 
 void
-normalize(float v[3], coords3D* out) {
-    const GLfloat len = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    coords3D temp = {v[0] / len, v[1] / len, v[2] / len};
-    *out = temp;
+normalize(float v[3], coords3D &out) {
+    const GLfloat len = sqrt(pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2));
+    out.x = v[0] / len;
+    out.y = v[1] / len;
+    out.z = v[2] / len;
 }
 
 coords3D
 normalize(coords3D in) {
     GLfloat len = sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2));
-    coords3D temp = {in.x / len, in.y / len, in.z / len};
-    return temp;
+    return
+    {
+        in.x / len, in.y / len, in.z / len
+    };
 }
 
 void
@@ -166,7 +169,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
 
     needCache3 = GL_TRUE;
 
-    for (i = 0; i < slices; i++) {
+    for (i = 0; i < slices; ++i) {
         angle = 2 * PI * i / slices;
         sinCache1a[i] = SIN(angle);
         cosCache1a[i] = COS(angle);
@@ -176,7 +179,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
         }
     }
 
-    for (j = 0; j <= stacks; j++) {
+    for (j = 0; j <= stacks; ++j) {
         angle = PI * j / stacks;
         sinCache1b[j] = radius * SIN(angle);
         cosCache1b[j] = radius * COS(angle);
@@ -186,12 +189,12 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
     sinCache1b[stacks] = 0;
 
     if (needCache3) {
-        for (i = 0; i < slices; i++) {
+        for (i = 0; i < slices; ++i) {
             angle = 2 * PI * (i - 0.5) / slices;
             sinCache3a[i] = SIN(angle);
             cosCache3a[i] = COS(angle);
         }
-        for (j = 0; j <= stacks; j++) {
+        for (j = 0; j <= stacks; ++j) {
             angle = PI * (j - 0.5) / stacks;
             sinCache3b[j] = SIN(angle);
             cosCache3b[j] = COS(angle);
@@ -228,9 +231,9 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
     coords3D v1 = {0.0, 0.0, (float) radius};
     vertex1.push_back(v1);
     coords3D nT;
-    normalize(&v1.x, &nT);
+    normalize(&v1.x, nT);
     norm1.push_back(nT);
-    for (i = slices; i >= 0; i--) {
+    for (i = slices; i >= 0; --i) {
         /*if (i != slices)*/
         {
             coords3D n1 = {sinCache3a[i + 1] * sintemp3,
@@ -250,16 +253,16 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
 
     coords3D v2 = {0.0, 0.0, (float) -radius};
     vertex2.push_back(v2);
-    normalize(&v2.x, &nT);
+    normalize(&v2.x, nT);
     norm2.push_back(nT);
-    for (i = 0; i <= slices; i++) {
+    for (i = 0; i <= slices; ++i) {
         coords3D n2 = {sinCache3a[i] * sintemp3, cosCache3a[i] * sintemp3, costemp3};
         norm2.push_back(n2);
         coords3D v2 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
         vertex2.push_back(v2);
     }
 
-    for (j = start; j < finish; j++) {
+    for (j = start; j < finish; ++j) {
         zLow = cosCache1b[j];
         zHigh = cosCache1b[j + 1];
         sintemp1 = sinCache1b[j];
@@ -268,7 +271,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
         costemp4 = cosCache3b[j + 1];
 
         //GL_QUAD_STRIP
-        for (i = 0; i <= slices; i++) {
+        for (i = 0; i <= slices; ++i) {
             coords3D v3 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
             vertex3.push_back(v3);
 

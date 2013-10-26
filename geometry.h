@@ -11,7 +11,7 @@ void createAtomsAndBondes(surface3D &surface, vector<atomType>&,
 void createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1,
         int* vSize2, int* vSize3);
 void normalize(float v[3]);
-void normalize(float v[3], coords3D*);
+void normalize(float v[3], coords3D&);
 coords3D normalize(coords3D);
 void norm(coords3D &in);
 coords3D normcrossprod(coords3D in1, coords3D in2);

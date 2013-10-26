@@ -646,8 +646,7 @@ void
 optimizeSurface(surface3D &surface, int z_min) {
     if (z_min > 1)
         surface[z_min - 2].clear();
-    surface . swap(surface);
-
+    surface.swap(surface);
 }
 
 bool operator==(const atomType &a1, const atomType &a2) {
