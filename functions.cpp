@@ -1,5 +1,6 @@
 #include "functions.h"
 #include <QTime>
+#include "QDebug"
 
 float P1 = 1.0;
 float P2 = 0.030;
@@ -21,10 +22,15 @@ coords3D atomTypes[] = {
 void
 addLayer(surface3D &surface, allSoseds &sosedi, int sX, int sY, int sZ) {
     surface2D surfaceXY;
+    surfaceXY.reserve(sY);
+
     for (int y = 0; y < sY; ++y) {
         surface1D surfaceX;
+        surfaceX.reserve(sX);
+
         for (int x = 0; x < sX; ++x) {
             cell cell;
+            cell.reserve(sosedi.size());
             for (auto &sosed : sosedi) {
                 soseds neighbs;
                 char numberNeighbs = 0; //Число первых соседей
@@ -429,14 +435,17 @@ findSoseds(allSoseds &allSosedi, atomsCoords &atom_Types, float xs, float ys, fl
 
 void
 findZmin(const surface3D &surface, int &zm) {
-    for (unsigned int z = zm; z < surface.size() - 1; ++z)
-        for (int y = surface[z].size() - 2; --y >= 2;)
-            for (int x = surface[z][y].size() - 2; --x >= 2;)
-                for (int a = surface[z][y][x].size(); --a >= 0;)
-                    if (!(surface[z][y][x][a].deleted)) {
-                        zm = z;
+    for (auto z = surface.begin() + zm; z != surface.end(); ++z)
+        for (auto y = z->begin() + 2; y != z->end() - 1; ++y) {
+            const auto yEnd = y->end();
+            for (auto x = y->begin() + 2; x != yEnd - 1; ++x)
+
+                for (auto &atom : *x)
+                    if (!atom.deleted) {
+                        zm = z - surface.begin();
                         return;
                     }
+        }
 }
 
 void
@@ -499,82 +508,88 @@ selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
     const int yC = surface[z_min].size();
     const int xC = surface[z_min][0].size();
     bool result = false;
+    bool maskON = !mask.empty();
 
     int i = rand() * surfAtoms.size() / RAND_MAX;
-    {
-        short x = surfAtoms[i].x;
-        short y = surfAtoms[i].y;
-        unsigned short z = surfAtoms[i].z;
-        unsigned short a = surfAtoms[i].type;
-        if ((!mask.empty() && ((z == 0
-                                && !mask[ (y - 2)*(surface[z][y].size() - 4) + x - 2 ])
-                               || (z + tA[a].z >= 0.5)))
-            || (mask.empty())) {
-            float randN = (float) rand() / RAND_MAX;
-            int bonds = surface[z][y][x][a].fNbCount;
-            if (!bonds) {
-                surfAtoms.erase(surfAtoms.begin() + i);
-                --i;
-                //continue;
-                return false;
+
+    auto &surfAtom = surfAtoms[i];
+    short x = surfAtom.x;
+    short y = surfAtom.y;
+    unsigned short z = surfAtom.z;
+    unsigned short a = surfAtom.type;
+    auto &surfaceZY = surface[z][y];
+    if ((maskON && ((z == 0
+                     && !mask[ (y - 2)*(surfaceZY.size() - 4) + x - 2 ])
+                    || (z + tA[a].z >= 0.5)))
+        || !maskON) {
+        float randN = (float) rand() / RAND_MAX;
+        int bonds = surfaceZY[x][a].fNbCount;
+        if (!bonds) {
+            surfAtoms.erase(surfAtoms.begin() + i);
+            --i;
+            //continue;
+            return false;
+        }
+
+        if ((bonds == 1 && randN < P1)
+            || (bonds == 2 && randN < P2)
+            || (bonds == 3 && randN < P3)) {
+            delAtom(surface, surfAtoms, x, y, z, a, i);
+            result = true;
+            /*
+            удалим и соостветсвенный краевой атом
+             */
+            if (x == 4 || x == 5) {
+                delAtom(surface, surfAtoms, 5 - x, y, z, a, -1);
             }
-
-            if ((bonds == 1 && randN < P1)
-                || (bonds == 2 && randN < P2)
-                || (bonds == 3 && randN < P3)) {
-                delAtom(surface, surfAtoms, x, y, z, a, i);
-                /*
-                удалим и соостветсвенный краевой атом
-                 */
-                if (x == 4 || x == 5) {
-                    delAtom(surface, surfAtoms, 5 - x, y, z, a, -1);
-                }
-                if (x == xC - 6 || x == xC - 5) {
-                    delAtom(surface, surfAtoms, 2 * (xC - 1) - 5 - x, y, z, a, -1);
-                }
-                if (y == 4 || y == 5) {
-                    delAtom(surface, surfAtoms, x, 5 - y, z, a, -1);
-                }
-                if (y == yC - 6 || y == yC - 5) {
-                    delAtom(surface, surfAtoms, x, 2 * yC - 7 - y, z, a, -1);
-                }
-                if (z >= surface.size() - 3) {
-                    addLayer(surface, sosedi, xC, yC, surface.size());
-                }
-
+            if (x == xC - 6 || x == xC - 5) {
+                delAtom(surface, surfAtoms, 2 * (xC - 1) - 5 - x, y, z, a, -1);
+            }
+            if (y == 4 || y == 5) {
+                delAtom(surface, surfAtoms, x, 5 - y, z, a, -1);
+            }
+            if (y == yC - 6 || y == yC - 5) {
+                delAtom(surface, surfAtoms, x, 2 * yC - 7 - y, z, a, -1);
+            }
+            if (z >= surface.size() - 3) {
+                addLayer(surface, sosedi, xC, yC, surface.size());
             }
         }
     }
+
     return result;
 }
 
 bool
 selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
           atomsCoords &tA, vector<bool> &mask, float* rates) {
-    vector<atomType> atoms2del;
-    atoms2del.reserve(surfAtoms.size() / 2);
     P1 = rates[0];
     P2 = rates[1];
     P3 = rates[2];
     const int yC = surface[z_min].size();
     const int xC = surface[z_min][0].size();
     bool result = false;
+    bool maskON = !mask.empty();
 
-    for (unsigned int i = 0; i < surfAtoms.size(); ++i) {
-        const auto surfAtom = surfAtoms[i];
+    size_t surfAtomsSize = surfAtoms.size();
+
+    for (unsigned int i = 0; i < surfAtomsSize; ++i) {
+        const auto &surfAtom = surfAtoms[i];
         short x = surfAtom.x;
         short y = surfAtom.y;
         unsigned short z = surfAtom.z;
         unsigned short a = surfAtom.type;
-        if (((!mask.empty()) && (((z + tA[a].z < 0.5) && !mask[ (y - 2)*(surface[z][y].size() - 4) + x - 2 ])
-                                 || (z + tA[a].z >= 0.5)))
-            || (mask.empty())) {
+        const auto &tAz = tA[a].z;
+        auto &surfaceZY = surface[z][y];
+        if ((maskON && (((z + tAz < 0.5) && !mask[ (y - 2)*(surfaceZY.size() - 4) + x - 2 ])
+                        || (z + tAz >= 0.5)))
+            || !maskON) {
             float randN = (float) rand() / RAND_MAX;
-            int bonds = surface[z][y][x][a].fNbCount;
+            int bonds = surfaceZY[x][a].fNbCount;
             if (!bonds) {
                 surfAtoms.erase(surfAtoms.begin() + i--);
+                --surfAtomsSize;
                 continue;
-                return false;
             }
 
             if ((bonds == 1 && randN < P1)
@@ -587,13 +602,16 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
         }
     }
 
-    for (unsigned int i = 0; i < surfAtoms.size(); ++i) {
-        if (surfAtoms[i].toDel) {
-            const auto surfAtom = surfAtoms[i];
-            short x = surfAtom.x;
-            short y = surfAtom.y;
-            unsigned short z = surfAtom.z;
-            unsigned short a = surfAtom.type;
+    size_t i = 0;
+    auto surfAtomsEnd = surfAtoms.end();
+    for (auto surfAtomIter = surfAtoms.begin(); surfAtomIter != surfAtomsEnd;
+         ++surfAtomIter) {
+        if (surfAtomIter->toDel) {
+            short x = surfAtomIter->x;
+            short y = surfAtomIter->y;
+            unsigned short z = surfAtomIter->z;
+            unsigned short a = surfAtomIter->type;
+
             delAtom(surface, surfAtoms, x, y, z, a, i);
 
             if (x == 4 || x == 5) {
@@ -608,8 +626,11 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
             if (y == yC - 6 || y == yC - 5) {
                 delAtom(surface, surfAtoms, x, 2 * yC - 7 - y, z, a, -1);
             }
-            --i;
+
+            surfAtomIter = surfAtoms.begin() + --i;
+            surfAtomsEnd = surfAtoms.end();
         }
+        ++i;
     }
     return result;
 }
@@ -617,8 +638,12 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
 void
 delAtom(surface3D &surface, vector<atomType> &surfAtoms, int x, int y, int z,
         int type, int i) {
-    if (i != -1)
-        surfAtoms.erase(surfAtoms.begin() + i);
+    if (i != -1) {
+        swap(surfAtoms[i], surfAtoms.back());
+        surfAtoms.pop_back();
+        swap(surfAtoms[i], surfAtoms.back());
+        //        surfAtoms.erase(surfAtoms.begin() + i);
+    }
     recallNeighbours(surface, surfAtoms, x, y, z, type);
     surface[z][y][x][type].fNbCount = 0;
     surface[z][y][x][type].deleted = true;
@@ -628,8 +653,21 @@ delAtom(surface3D &surface, vector<atomType> &surfAtoms, int x, int y, int z,
 double
 VectorQuad(const coords3D &V) {
     //Возведение вектора в квадрат
-    //    qDebug() << "x: " << V.x << "y: " << V.y << "z: " << V.z;
-    return pow(V.x, 2) + pow(V.y, 2) + pow(V.z, 2);
+
+    static auto xPrev = V.x;
+    static auto yPrev = V.y;
+    static auto zPrev = V.z;
+
+    static auto resultPrev = pow(xPrev, 2) + pow(yPrev, 2) + pow(zPrev, 2);
+    if (xPrev == V.x && yPrev == V.y && zPrev == V.z)
+        return resultPrev;
+
+    xPrev = V.x;
+    yPrev = V.y;
+    zPrev = V.z;
+    resultPrev = pow(xPrev, 2) + pow(yPrev, 2) + pow(zPrev, 2);
+
+    return resultPrev;
 }
 
 coords3D operator +(const coords3D& v1, const coords3D& v2) {
@@ -646,7 +684,7 @@ void
 optimizeSurface(surface3D &surface, int z_min) {
     if (z_min > 1)
         surface[z_min - 2].clear();
-    surface.swap(surface);
+    surface.shrink_to_fit();
 }
 
 bool operator==(const atomType &a1, const atomType &a2) {
