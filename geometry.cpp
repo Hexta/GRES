@@ -33,7 +33,9 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
         const int z = surfAtom.z;
         const unsigned char a = surfAtom.type;
 
-        if (!surface[z][y][x][a].neighbours.empty()) {
+        auto &neighbours = surface[z][y][x][a].neighbours;
+
+        if (!neighbours.empty()) {
             float x0 = scaling * x*xs;
             float y0 = scaling * y*ys;
             float z0 = -scaling * (z - z_min) * zs;
@@ -43,10 +45,10 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
             float zA = z0 - scaling * cellAts[a].z;
 
             ++name;
-            atomName temp = {name, x, y, z, xA, yA, zA, a, (short) surface[z][y][x][a].neighbours.size()};
+            atomName temp = {name, x, y, z, xA, yA, zA, a, (short) neighbours.size()};
             atNames_.push_back(temp);
 
-            for (auto &nb : surface[z][y][x][a].neighbours) {
+            for (auto &nb : neighbours) {
                 float xNb = scaling * (xs * nb.x + cellAts[nb.type].x);
                 float yNb = scaling * (ys * nb.y + cellAts[nb.type].y);
                 float zNb = scaling * (-zs * nb.z - cellAts[nb.type].z);
@@ -64,15 +66,15 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
         unsigned char a_ = surfAtom.type;
 
         for (auto &nb : surface[z_][y_][x_][a_].neighbours) {
-            //unsigned short a = (*surfAtoms)[i].type;
-
             short x = nb.x;
             short y = nb.y;
             short z = nb.z;
             unsigned char a = nb.type;
 
+            auto &surfaceZYXA = surface[z][y][x][a];
+
             if (x > 1 && x < surface[z_][y_].size() - 2 && y > 1 && y < surface[z_].size() - 2)
-                if (!surface[z][y][x][a].deleted) {
+                if (!surfaceZYXA.deleted) {
 
                     float x0 = scaling * x*xs;
                     float y0 = scaling * y*ys;
@@ -84,10 +86,10 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
 
                     ++name;
                     atomName temp = {name, x, y, z, xA, yA, zA, a,
-                                     (short) surface[z][y][x][a].neighbours.size()};
+                                     (short) surfaceZYXA.neighbours.size()};
                     atNames_.push_back(temp);
 
-                    for (auto &nb_int : surface[z][y][x][a].neighbours) {
+                    for (auto &nb_int : surfaceZYXA.neighbours) {
                         float xNb = scaling * (xs * nb_int.x + cellAts[nb_int.type].x);
                         float yNb = scaling * (ys * nb_int.y + cellAts[nb_int.type].y);
                         float zNb = scaling * (-zs * nb_int.z - cellAts[nb_int.type].z);
@@ -128,13 +130,16 @@ normalize(coords3D in) {
 }
 
 void
-createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSize2, int* vSize3) {
+createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
+             int &vSize2, int &vSize3) {
 #ifdef _WIN32
     PFNGLBINDBUFFERARBPROC pglBindBufferARB = (PFNGLBINDBUFFERARBPROC) wglGetProcAddress("glBindBufferARB");
     PFNGLDELETEBUFFERSARBPROC pglDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC) wglGetProcAddress("glDeleteBuffersARB");
     PFNGLBUFFERDATAARBPROC pglBufferDataARB = (PFNGLBUFFERDATAARBPROC) wglGetProcAddress("glBufferDataARB");
     PFNGLBUFFERSUBDATAARBPROC pglBufferSubDataARB = (PFNGLBUFFERSUBDATAARBPROC) wglGetProcAddress("glBufferSubDataARB");
 #endif
+    const auto SIZE_OF_FLOAT = sizeof (float);
+
     GLint i, j;
     GLfloat sinCache1a[CACHE_SIZE];
     GLfloat cosCache1a[CACHE_SIZE];
@@ -152,9 +157,6 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
     GLfloat costemp3 = 0.0, costemp4 = 0.0;
     GLboolean needCache2, needCache3;
     GLint start, finish;
-
-    atomsCoords norm1, norm2, norm3;
-    atomsCoords vertex1, vertex2, vertex3;
 
     if (slices >= CACHE_SIZE) slices = CACHE_SIZE - 1;
     if (stacks >= CACHE_SIZE) stacks = CACHE_SIZE - 1;
@@ -228,6 +230,12 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
 
     //GL_TRIANGLE_FAN
 
+    atomsCoords norm1;
+    atomsCoords vertex1;
+
+    vertex1.reserve(slices + 1);
+    norm1.reserve(slices + 1);
+
     coords3D v1 = {0.0, 0.0, (float) radius};
     vertex1.push_back(v1);
     coords3D nT;
@@ -251,6 +259,12 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
     costemp3 = cosCache3b[stacks];
     //GL_TRIANGLE_FAN
 
+    atomsCoords norm2;
+    atomsCoords vertex2;
+
+    vertex2.reserve(slices + 1);
+    norm2.reserve(slices + 1);
+
     coords3D v2 = {0.0, 0.0, (float) -radius};
     vertex2.push_back(v2);
     normalize(&v2.x, nT);
@@ -261,6 +275,12 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
         coords3D v2 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
         vertex2.push_back(v2);
     }
+
+    atomsCoords norm3;
+    atomsCoords vertex3;
+
+    vertex3.reserve(2 * (finish - start) * slices);
+    norm3.reserve(2 * (finish - start) * slices);
 
     for (j = start; j < finish; ++j) {
         zLow = cosCache1b[j];
@@ -283,32 +303,33 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int* vSize1, int* vSiz
             vertex3.push_back(v3_);
         }
     }
-    *vSize1 = vertex1.size();
+    vSize1 = vertex1.size();
 
     glBindBufferARB(GL_ARRAY_BUFFER, 1);
-    glBufferDataARB(GL_ARRAY_BUFFER, (vertex1.size() + norm1.size())*3 * sizeof (float), 0, GL_STATIC_DRAW);
-    glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vertex1.size()*3 * sizeof (float), &vertex1[0].x);
-    glBufferSubDataARB(GL_ARRAY_BUFFER, vertex1.size()*3 * sizeof (float), norm1.size()*3 * sizeof (float), &norm1[0].x);
+    glBufferDataARB(GL_ARRAY_BUFFER, (vSize1 + norm1.size())*3 * SIZE_OF_FLOAT, 0, GL_STATIC_DRAW);
+    glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize1 * 3 * SIZE_OF_FLOAT, &vertex1[0].x);
+    glBufferSubDataARB(GL_ARRAY_BUFFER, vSize1 * 3 * SIZE_OF_FLOAT,
+                       norm1.size()*3 * SIZE_OF_FLOAT, &norm1[0].x);
 
-    *vSize2 = vertex2.size();
+    vSize2 = vertex2.size();
 
     glBindBufferARB(GL_ARRAY_BUFFER, 2);
-    glBufferDataARB(GL_ARRAY_BUFFER, (vertex2.size() + norm2.size())*3 * sizeof (float),
+    glBufferDataARB(GL_ARRAY_BUFFER, (vSize2 + norm2.size())*3 * SIZE_OF_FLOAT,
                     0, GL_STATIC_DRAW);
-    glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vertex2.size()*3 * sizeof (float),
+    glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize2 * 3 * SIZE_OF_FLOAT,
                        &vertex2[0].x);
-    glBufferSubDataARB(GL_ARRAY_BUFFER, vertex2.size()*3 * sizeof (float),
-                       norm2.size()*3 * sizeof (float), &norm2[0].x);
+    glBufferSubDataARB(GL_ARRAY_BUFFER, vSize2 * 3 * SIZE_OF_FLOAT,
+                       norm2.size()*3 * SIZE_OF_FLOAT, &norm2[0].x);
 
-    *vSize3 = vertex3.size();
+    vSize3 = vertex3.size();
 
     glBindBufferARB(GL_ARRAY_BUFFER, 3);
-    glBufferDataARB(GL_ARRAY_BUFFER, (vertex3.size() + norm3.size())*3 * sizeof (float),
+    glBufferDataARB(GL_ARRAY_BUFFER, (vSize3 + norm3.size())*3 * SIZE_OF_FLOAT,
                     0, GL_STATIC_DRAW);
-    glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vertex3.size()*3 * sizeof (float),
+    glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize3 * 3 * SIZE_OF_FLOAT,
                        &vertex3[0].x);
-    glBufferSubDataARB(GL_ARRAY_BUFFER, vertex3.size()*3 * sizeof (float),
-                       norm3.size()*3 * sizeof (float), &norm3[0].x);
+    glBufferSubDataARB(GL_ARRAY_BUFFER, vSize3 * 3 * SIZE_OF_FLOAT,
+                       norm3.size()*3 * SIZE_OF_FLOAT, &norm3[0].x);
 
     glBindBufferARB(GL_ARRAY_BUFFER, 0);
     vertex1.clear();

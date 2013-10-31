@@ -31,7 +31,7 @@ public slots:
     void view(surface3D &surface, vector<atomType>&, atomsCoords&, float Xsize,
             float Ysize, float Zsize, int z_min, int z_center, int width,
             int height, coords3D &Vx, coords3D &Vy, coords3D &Vz, vizType vizualType);
-    void changeVizType(vizType* type);
+    void changeVizType(vizType type);
     void saveResult();
 signals:
     void etching(void);

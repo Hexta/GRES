@@ -195,7 +195,7 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
     int C = 0.5 * (h * (SIZE_X - 1) + k * (SIZE_Y - 1) + l * (SIZE_Z - 1)) + 1;
     //Найдем атомы, лежащие на плоскости №1
 
-    atomsP1.reserve(10000);
+    atomsP1.reserve(SIZE_Z * SIZE_Y * SIZE_X * NUMBER_OF_ATOMS_IN_CELL);
     for (int z = 0; z < SIZE_Z; ++z)
         for (int y = 0; y < SIZE_Y; ++y)
             for (int x = 0; x < SIZE_X; ++x)
@@ -206,9 +206,10 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
                     }
 
     //Найдем прямоугольники, лежащие на плоскости №1
-    ls.reserve(50000);
-    for (unsigned int i = 0; i < atomsP1.size(); ++i)
-        for (unsigned int j = i + 1; j < atomsP1.size(); ++j) {
+    const size_t atomsP1Size = atomsP1.size();
+    ls.reserve(0.5 * atomsP1Size * atomsP1Size);
+    for (unsigned int i = 0; i < atomsP1Size; ++i)
+        for (unsigned int j = i + 1; j < atomsP1Size; ++j) {
             const auto atomP1A = atomsP1[i];
             const auto atomP1B = atomsP1[j];
             float l1 = distance(atomP1A.x, atomP1A.y, atomP1A.z,

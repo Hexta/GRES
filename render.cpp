@@ -62,8 +62,8 @@ Render::Render(QWidget *parent) : QGLWidget(parent) {
 }
 
 void
-Render::changeVizType(vizType* type) {
-    visualType = *type;
+Render::changeVizType(vizType type) {
+    visualType = type;
     if (dataInitialized) {
         atNames.clear();
         bonds.clear();
@@ -91,7 +91,7 @@ Render::changeVizType(vizType* type) {
                         glDeleteBuffersARB(1, &buffers[0]);
                     createAtomsAndBonds(*surfaceXYZ, *cellAtoms, xs, ys, zs, z_min,
                                         atNames, bonds);
-                    createSphere(0.09 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
+                    createSphere(0.09 * scaling, 10, 10, vSize1, vSize2, vSize3);
                     buffers.clear();
                     buffers.push_back(1);
                     buffers.push_back(2);
@@ -107,7 +107,7 @@ Render::changeVizType(vizType* type) {
                     createAtomsAndBondes(*surfaceXYZ, *surfAtoms, *cellAtoms,
                                          xs, ys, zs, z_min, scaling, atNames,
                                          bonds);
-                    createSphere(0.09 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
+                    createSphere(0.09 * scaling, 10, 10, vSize1, vSize2, vSize3);
                     buffers.clear();
                     buffers.push_back(1);
                     buffers.push_back(2);
@@ -122,7 +122,7 @@ Render::changeVizType(vizType* type) {
                         glDeleteBuffersARB(1, &buffers[0]);
                     createAtomsAndBonds(*surfaceXYZ, *cellAtoms, xs, ys, zs,
                                         z_min, atNames, bonds);
-                    createSphere(0.2 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
+                    createSphere(0.2 * scaling, 10, 10, vSize1, vSize2, vSize3);
                     buffers.clear();
                     buffers.push_back(1);
                     buffers.push_back(2);
@@ -140,7 +140,7 @@ Render::changeVizType(vizType* type) {
                     createAtomsAndBondes(*surfaceXYZ, *surfAtoms, *cellAtoms,
                                          xs, ys, zs, z_min, scaling, atNames,
                                          bonds);
-                    createSphere(0.2 * scaling, 10, 10, &vSize1, &vSize2, &vSize3);
+                    createSphere(0.2 * scaling, 10, 10, vSize1, vSize2, vSize3);
                     buffers.clear();
                     buffers.push_back(1);
                     buffers.push_back(2);
@@ -771,5 +771,5 @@ Render::view(surface3D &surface, vector<atomType> &surfAt, atomsCoords &atTypes,
     surfVertex.clear();
     surfNormals.clear();
     initMatrix(&matrix);
-    changeVizType(&vT);
+    changeVizType(vT);
 }

@@ -65,7 +65,7 @@ MainW::changeVizType(QAction* type) {
     else if (type == viewAsCellsSurface)
         vizualType = CELLS_SURFACE;
 
-    result->changeVizType(&vizualType);
+    result->changeVizType(vizualType);
 }
 
 void
@@ -227,12 +227,14 @@ MainW::newDocument() {
                     soseds neighbs;
                     char numberNeighbs = 0; //Число первых соседей
                     for (int nb = 0; nb < 4; ++nb) {
-                        if (x + sosedi[a][nb].x >= 0 && y + sosedi[a][nb].y >= 0
-                            && z + sosedi[a][nb].z >= 0 &&
-                            x + sosedi[a][nb].x < xMax && y + sosedi[a][nb].y < yMax
-                            && z + sosedi[a][nb].z < zMax + 1) {
+                        auto &sosediANb = sosedi[a][nb];
+                        if (x + sosediANb.x >= 0 && y + sosediANb.y >= 0
+                            && z + sosediANb.z >= 0 &&
+                            x + sosediANb.x < xMax && y + sosediANb.y < yMax
+                            && z + sosediANb.z < zMax + 1) {
                             ++numberNeighbs;
-                            atomType neighb = {x + sosedi[a][nb].x, y + sosedi[a][nb].y, z + sosedi[a][nb].z, sosedi[a][nb].type, false};
+                            atomType neighb = {x + sosediANb.x, y + sosediANb.y,
+                                               z + sosediANb.z, sosediANb.type, false};
                             neighbs.push_back(neighb);
                         }
                     }
