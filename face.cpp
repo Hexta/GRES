@@ -44,8 +44,8 @@ MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent) {
             SLOT(getSettings(int*, int*, int*, int*, int*, int*)));
 
     // 	connect (result, SIGNAL (etching()), this, SLOT (etch()));
-    connect(etchMenu, SIGNAL(startEtching(int, int*, float*)), this,
-            SLOT(etch(int, int*, float*)));
+    connect(etchMenu, SIGNAL(startEtching(int, int, float*)), this,
+            SLOT(etch(int, int, float*)));
 }
 
 void
@@ -160,11 +160,12 @@ MainW::drawResult() {
 }
 
 void
-MainW::etch(int simType_, int* IterCount, float* rates) {
+MainW::etch(int simType_, int IterCount, float *rates) {
     simType sT;
     sT = (simType) simType_;
     QTime t;
-    int count = *IterCount;
+//    t.start();
+    int count = IterCount;
     for (int n = 0; n < count; ++n) {
         if (sT == KMC)
             perfect = selAtom(surfaceXYZ, surfAtoms, sosedi, z_min, cellAtoms, mask, rates);
@@ -172,7 +173,6 @@ MainW::etch(int simType_, int* IterCount, float* rates) {
             perfect = selAtomCA(surfaceXYZ, surfAtoms, z_min, cellAtoms, mask, rates);
 
         if (perfect) {
-            t.start();
             addLayer(surfaceXYZ, sosedi, SIZE_X, SIZE_Y, SIZE_Z);
             ++SIZE_Z;
             perfect = true;
@@ -180,6 +180,7 @@ MainW::etch(int simType_, int* IterCount, float* rates) {
         findZmin(surfaceXYZ, z_min);
         optimizeSurface(surfaceXYZ, z_min);
     }
+//    qDebug() << "etch: " << t.elapsed();
     z_center = 0.5 * (SIZE_Z - 2 + z_min);
     drawResult();
 }

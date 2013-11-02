@@ -76,6 +76,6 @@ void EtchingMenu::startEtching() {
     removRates[0] = f1NbLine->text().toFloat();
     removRates[1] = f2NbLine->text().toFloat();
     removRates[2] = f3NbLine->text().toFloat();
-    emit startEtching(simType, &iterCount, &removRates[0]);
+    emit startEtching(simType, iterCount, &removRates[0]);
     this -> close();
 }

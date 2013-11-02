@@ -22,7 +22,7 @@ class MainW : public QMainWindow
 		void newDocument();
 		void getSettings(int*, int*, int *, int*, int *, int*);//считываем значения виджетов
 		void changeVizType(QAction* type);
-		void etch(int, int* , float* rates); //травление
+		void etch(int, int, float *rates); //травление
 
 	private:
 		QAction *aboutQtAction;

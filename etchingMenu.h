@@ -11,7 +11,7 @@ class EtchingMenu : public QWidget
 	public:
 		EtchingMenu (QWidget *parent=0);
 	signals:
-		void startEtching(int, int* iterations, float* rates);
+		void startEtching(int, int iterations, float* rates);
 		
 	private:
 		QComboBox *simTypeComboBox;

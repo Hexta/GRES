@@ -1,6 +1,8 @@
 #include "functions.h"
 #include <QTime>
 #include "QDebug"
+#include <random>
+#include <functional>
 
 float P1 = 1.0;
 float P2 = 0.030;
@@ -511,7 +513,12 @@ selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
     bool result = false;
     bool maskON = !mask.empty();
 
-    int i = rand() * surfAtoms.size() / RAND_MAX;
+    static std::mt19937 rdevice(std::random_device {}());
+    static std::uniform_real_distribution<float> dis;
+    static auto rd = bind(dis, rdevice);
+
+    int i = std::uniform_int_distribution<size_t> {0, surfAtoms.size() - 1}
+    (rdevice);
 
     auto &surfAtom = surfAtoms[i];
     short x = surfAtom.x;
@@ -523,12 +530,13 @@ selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
                      && !mask[ (y - 2)*(surfaceZY.size() - 4) + x - 2 ])
                     || (z + tA[a].z >= 0.5)))
         || !maskON) {
-        float randN = (float) rand() / RAND_MAX;
+        float randN = rd();
         int bonds = surfaceZY[x][a].fNbCount;
         if (!bonds) {
-            surfAtoms.erase(surfAtoms.begin() + i);
+            swap(surfAtoms[i], surfAtoms.back());
+            surfAtoms.pop_back();
+            swap(surfAtoms[i], surfAtoms.back());
             --i;
-            //continue;
             return false;
         }
 
@@ -536,7 +544,6 @@ selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
             || (bonds == 2 && randN < P2)
             || (bonds == 3 && randN < P3)) {
             delAtom(surface, surfAtoms, x, y, z, a, i);
-            result = true;
             /*
             удалим и соостветсвенный краевой атом
              */
@@ -563,7 +570,7 @@ selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
 
 bool
 selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
-          atomsCoords &tA, vector<bool> &mask, float* rates) {
+          atomsCoords &tA, vector<bool> &mask, float *rates) {
     P1 = rates[0];
     P2 = rates[1];
     P3 = rates[2];
@@ -573,6 +580,10 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
     bool maskON = !mask.empty();
 
     size_t surfAtomsSize = surfAtoms.size();
+
+    static std::mt19937 rdevice(std::random_device {}());
+    static std::uniform_real_distribution<float> dis;
+    static auto rd = bind(dis, rdevice);
 
     for (unsigned int i = 0; i < surfAtomsSize; ++i) {
         const auto &surfAtom = surfAtoms[i];
@@ -585,7 +596,7 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
         if ((maskON && (((z + tAz < 0.5) && !mask[ (y - 2)*(surfaceZY.size() - 4) + x - 2 ])
                         || (z + tAz >= 0.5)))
             || !maskON) {
-            float randN = (float) rand() / RAND_MAX;
+            float randN = rd();
             int bonds = surfaceZY[x][a].fNbCount;
             if (!bonds) {
                 surfAtoms.erase(surfAtoms.begin() + i--);
@@ -643,7 +654,6 @@ delAtom(surface3D &surface, vector<atomType> &surfAtoms, int x, int y, int z,
         swap(surfAtoms[i], surfAtoms.back());
         surfAtoms.pop_back();
         swap(surfAtoms[i], surfAtoms.back());
-        //        surfAtoms.erase(surfAtoms.begin() + i);
     }
     recallNeighbours(surface, surfAtoms, x, y, z, type);
     surface[z][y][x][type].fNbCount = 0;
