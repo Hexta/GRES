@@ -78,14 +78,14 @@ Settings::get() {
     int xS = xSpinBox->value();
     int yS = ySpinBox->value();
     int zS = zSpinBox->value();
-    emit settingsChanged(&h, &k, &l, &xS, &yS, &zS);
+    emit settingsChanged(h, k, l, xS, yS, zS);
 }
 
 void
-Settings::set(int* h, int* k, int* l, int xS, int yS, int zS) {
-    hSpinBox->setValue(*h);
-    kSpinBox->setValue(*k);
-    lSpinBox->setValue(*l);
+Settings::set(int h, int k, int l, int xS, int yS, int zS) {
+    hSpinBox->setValue(h);
+    kSpinBox->setValue(k);
+    lSpinBox->setValue(l);
 
     xSpinBox->setValue(xS);
     ySpinBox->setValue(yS);

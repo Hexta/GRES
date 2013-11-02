@@ -39,9 +39,9 @@ MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent) {
     etchMenu = new EtchingMenu;
 
     connect(settings,
-            SIGNAL(settingsChanged(int*, int*, int*, int*, int*, int*)),
+            SIGNAL(settingsChanged(int, int, int, int, int, int)),
             this,
-            SLOT(getSettings(int*, int*, int*, int*, int*, int*)));
+            SLOT(getSettings(int, int, int, int, int, int)));
 
     // 	connect (result, SIGNAL (etching()), this, SLOT (etch()));
     connect(etchMenu, SIGNAL(startEtching(int, int, float*)), this,
@@ -186,13 +186,13 @@ MainW::etch(int simType_, int IterCount, float *rates) {
 }
 
 void
-MainW::getSettings(int* hGet, int* kGet, int * lGet, int* xS, int* yS, int* zS) {
-    h = *hGet;
-    k = *kGet;
-    l = *lGet;
-    SIZE_X = *xS + 4;
-    SIZE_Y = *yS + 4;
-    SIZE_Z = *zS + 2;
+MainW::getSettings(int hGet, int kGet, int lGet, int xS, int yS, int zS) {
+    h = hGet;
+    k = kGet;
+    l = lGet;
+    SIZE_X = xS + 4;
+    SIZE_Y = yS + 4;
+    SIZE_Z = zS + 2;
 }
 
 void
@@ -271,7 +271,7 @@ MainW::setMask(vector<bool>* inMask) {
 
 void
 MainW::setSettings() {
-    settings->set(&h, &k, &l, SIZE_X - 4, SIZE_Y - 4, SIZE_Z - 2);
+    settings->set(h, k, l, SIZE_X - 4, SIZE_Y - 4, SIZE_Z - 2);
 }
 
 void

@@ -52,6 +52,7 @@ MaskMenu::loadMask() {
 void
 MaskMenu::setMask() {
     vector<bool> mask;
+    mask.reserve(yS * xS);
     *maskImage = maskImage->scaled(xS, yS);
     for (int i = 0; i < yS; ++i)
         for (int j = 0; j < xS; ++j)
