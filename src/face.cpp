@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>     *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -12,7 +12,7 @@
  * GNU General Public License for more details.                               *
  *                                                                            *
  * You should have received a copy of the GNU General Public License          *
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ******************************************************************************/
 
 #include "face.h"
@@ -51,7 +51,7 @@ MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent) {
     addDockWidget(Qt::LeftDockWidgetArea, settingsDock);
     result->setFocus();
     setSettings();
-    vizualType = CELLS_SURFACE;
+    vizualType = GRES::VizType::CELLS_SURFACE;
 
     etchMenu = new EtchingMenu;
 
@@ -60,7 +60,7 @@ MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent) {
             this,
             SLOT(getSettings(int, int, int, int, int, int)));
 
-    // 	connect (result, SIGNAL (etching()), this, SLOT (etch()));
+    //     connect (result, SIGNAL (etching()), this, SLOT (etch()));
     connect(etchMenu, SIGNAL(startEtching(int, int, float*)), this,
             SLOT(etch(int, int, float*)));
 }
@@ -68,19 +68,19 @@ MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent) {
 void
 MainW::changeVizType(QAction* type) {
     if (type == viewAsAts_SurfaceAndBulkAct)
-        vizualType = ATOMS_SURFACE_AND_BULK;
+        vizualType = GRES::VizType::ATOMS_SURFACE_AND_BULK;
 
     else if (type == viewAsAts_SurfaceAct)
-        vizualType = ATOMS_SURFACE;
+        vizualType = GRES::VizType::ATOMS_SURFACE;
 
     else if (type == viewAsAtsAndBonds_SurfaceAndBulkAct)
-        vizualType = ATOMS_AND_BONDS_SURFACE_AND_BULK;
+        vizualType = GRES::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK;
 
     else if (type == viewAsAtsAndBonds_SurfaceAct)
-        vizualType = ATOMS_AND_BONDS_SURFACE;
+        vizualType = GRES::VizType::ATOMS_AND_BONDS_SURFACE;
 
     else if (type == viewAsCellsSurface)
-        vizualType = CELLS_SURFACE;
+        vizualType = GRES::VizType::CELLS_SURFACE;
 
     result->changeVizType(vizualType);
 }
@@ -178,15 +178,14 @@ MainW::drawResult() {
 
 void
 MainW::etch(int simType_, int IterCount, float *rates) {
-    simType sT;
-    sT = (simType) simType_;
+    GRES::SimType sT = static_cast<GRES::SimType>(simType_);
     QTime t;
 //    t.start();
     int count = IterCount;
     for (int n = 0; n < count; ++n) {
-        if (sT == KMC)
+        if (sT == GRES::SimType::KMC)
             perfect = selAtom(surfaceXYZ, surfAtoms, sosedi, z_min, cellAtoms, mask, rates);
-        else if (sT == CA)
+        else if (sT == GRES::SimType::CA)
             perfect = selAtomCA(surfaceXYZ, surfAtoms, z_min, cellAtoms, mask, rates);
 
         if (perfect) {

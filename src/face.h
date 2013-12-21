@@ -34,7 +34,7 @@ class MaskMenu;
 class MainW : public QMainWindow {
     Q_OBJECT
 public:
-    MainW(QWidget *parent = 0, int argc = NULL, char *const argv[] = NULL);
+    MainW(QWidget *parent = 0, int argc = 0, char *const argv[] = NULL);
 public slots:
     void newDocument();
     void getSettings(int, int, int, int, int, int); //считываем значения виджетов
@@ -85,7 +85,7 @@ private:
     bool perfect;
     allSoseds sosedi;
     cells surfacePoints;
-    vizType vizualType; //тип визуализации
+    GRES::VizType vizualType; //тип визуализации
     void drawResult();
     vector<bool> mask;
 private slots:

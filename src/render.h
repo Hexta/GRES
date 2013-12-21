@@ -47,8 +47,9 @@ public:
 public slots:
     void view(surface3D &surface, vector<atomType>&, atomsCoords&, float Xsize,
             float Ysize, float Zsize, int z_min, int z_center, int width,
-            int height, coords3D &Vx, coords3D &Vy, coords3D &Vz, vizType vizualType);
-    void changeVizType(vizType type);
+            int height, coords3D &Vx, coords3D &Vy, coords3D &Vz,
+            GRES::VizType vizualType);
+    void changeVizType(GRES::VizType type);
     void saveResult();
 signals:
     void etching(void);
@@ -116,7 +117,7 @@ private:
     void processSelectionMenu();
     void processAtom(GLuint *pSelectBuff);
     bool dataInitialized;
-    vizType visualType; //тип визуализации
+    GRES::VizType visualType; //тип визуализации
     cells surfPoints;
     atomsCoords surfVertex;
     atomsCoords surfNormals;

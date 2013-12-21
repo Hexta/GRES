@@ -18,6 +18,16 @@
 #ifndef CONSTS
 #define CONSTS
 
-enum vizType { ATOMS_SURFACE_AND_BULK, ATOMS_SURFACE, ATOMS_AND_BONDS_SURFACE_AND_BULK, ATOMS_AND_BONDS_SURFACE, CELLS_SURFACE };
-enum simType { CA, KMC };
+namespace GRES {
+
+enum class VizType {
+    ATOMS_SURFACE_AND_BULK, ATOMS_SURFACE, ATOMS_AND_BONDS_SURFACE_AND_BULK,
+    ATOMS_AND_BONDS_SURFACE, CELLS_SURFACE
+};
+
+enum class SimType {
+    CA, KMC
+};
+
+} // namespace
 #endif

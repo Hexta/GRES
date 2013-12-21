@@ -75,11 +75,11 @@ Render::Render(QWidget *parent) : QGLWidget(parent) {
     dataInitialized = false;
     dataChanged = false;
     buffers.clear();
-    visualType = CELLS_SURFACE;
+    visualType = GRES::VizType::CELLS_SURFACE;
 }
 
 void
-Render::changeVizType(vizType type) {
+Render::changeVizType(GRES::VizType type) {
     visualType = type;
     if (dataInitialized) {
         atNames.clear();
@@ -88,7 +88,7 @@ Render::changeVizType(vizType type) {
         surfNormals.clear();
 
         switch (visualType) {
-            case CELLS_SURFACE:
+            case GRES::VizType::CELLS_SURFACE:
 
                 if (dataChanged || surfPoints.empty()) {
                     if (!buffers.empty())
@@ -101,7 +101,7 @@ Render::changeVizType(vizType type) {
                 }
 
                 break;
-            case ATOMS_AND_BONDS_SURFACE_AND_BULK:
+            case GRES::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK:
             {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
@@ -116,7 +116,7 @@ Render::changeVizType(vizType type) {
                 }
             }
                 break;
-            case ATOMS_AND_BONDS_SURFACE:
+            case GRES::VizType::ATOMS_AND_BONDS_SURFACE:
             {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
@@ -132,7 +132,7 @@ Render::changeVizType(vizType type) {
                 }
             }
                 break;
-            case ATOMS_SURFACE_AND_BULK:
+            case GRES::VizType::ATOMS_SURFACE_AND_BULK:
             {
                 if (dataChanged || coordsOfAtoms.empty()) {
                     if (!buffers.empty())
@@ -148,7 +148,7 @@ Render::changeVizType(vizType type) {
 
             }
                 break;
-            case ATOMS_SURFACE:
+            case GRES::VizType::ATOMS_SURFACE:
             {
                 if (dataChanged || coordsOfAtoms.empty()) {
 
@@ -405,7 +405,10 @@ Render::draw() {
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        if (visualType == ATOMS_AND_BONDS_SURFACE_AND_BULK || visualType == ATOMS_SURFACE_AND_BULK || visualType == ATOMS_AND_BONDS_SURFACE || visualType == ATOMS_SURFACE) {/*
+        if (visualType == GRES::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK
+            || visualType == GRES::VizType::ATOMS_SURFACE_AND_BULK
+            || visualType == GRES::VizType::ATOMS_AND_BONDS_SURFACE
+            || visualType == GRES::VizType::ATOMS_SURFACE) {/*
 			GLfloat ambientLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 			GLfloat diffuseLight[] = { 0.8, 0.8, 0.8, 1.0 };*/
             GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
@@ -446,7 +449,8 @@ Render::draw() {
             glColor3f(0.98, 0.625, 0.12);
             //sphere( 5,10,10 );
 
-            if (!(visualType == ATOMS_SURFACE_AND_BULK || visualType == ATOMS_SURFACE) || rotating || scribble || moving) {
+            if (!(visualType == GRES::VizType::ATOMS_SURFACE_AND_BULK || visualType == GRES::VizType::ATOMS_SURFACE)
+                  || rotating || scribble || moving) {
                 glColor3f(0, 0, 1.0);
                 glEnableClientState(GL_VERTEX_ARRAY);
                 glVertexPointer(3, GL_FLOAT, 0, &bonds[0].x1);
@@ -503,7 +507,7 @@ Render::draw() {
             }
             glFlush();
         }/*-------------------------------*/
-        else if (visualType == CELLS_SURFACE) {
+        else if (visualType == GRES::VizType::CELLS_SURFACE) {
 
             GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
             GLfloat diffuseLight[] = {0.7, 0.7, 0.7, 1.0};
@@ -754,7 +758,7 @@ void
 Render::view(surface3D &surface, vector<atomType> &surfAt, atomsCoords &atTypes,
              float Xsize, float Ysize, float Zsize, int center, int min,
              int width, int height, coords3D &vX, coords3D &vY, coords3D &vZ,
-             vizType vT) {
+             GRES::VizType vT) {
     visualType = vT;
     surfAtoms = &surfAt;
 
