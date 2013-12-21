@@ -15,18 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
+#pragma once
+
+#include "functions.h"
+#include "consts.h"
+#include "geometry.h"
+
 #include <QWidget>
 #include <QGLWidget>
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QColorDialog>
 #include <QVector>
+
 #include <vector>
 #include <list>
 #include <cmath>
-#include "functions.h"
-#include "consts.h"
-#include "dataTypes.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #define GL_GLEXT_PROTOTYPES
@@ -34,7 +39,6 @@
 #include <GL/glu.h>
 #include <GL/glext.h>
 #endif
-using namespace std;
 
 class SelectAtomMenu;
 

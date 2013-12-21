@@ -16,11 +16,16 @@
  ******************************************************************************/
 
 #include "functions.h"
+
 #include <QTime>
-#include "QDebug"
+#include <QDebug>
+
 #include <random>
 #include <functional>
 
+using std::swap;
+
+namespace {
 float P1 = 1.0;
 float P2 = 0.030;
 float P3 = 0.00010;
@@ -37,6 +42,12 @@ coords3D atomTypes[] = {
     {0.75, 0.25, 0.75},
     {0.25, 0.75, 0.75}
 };
+} // namespace
+
+bool cmp_float(double x, double y) {
+    const double FLOAT_TOL = 0.000001;
+    return fabs(x - y) < FLOAT_TOL;
+}
 
 void
 addLayer(surface3D &surface, allSoseds &sosedi, int sX, int sY, int sZ) {
@@ -150,7 +161,8 @@ compareTranslCell(const atomsCoords &cellAtoms, const atomsCoords &allAtoms,
 bool
 coords3Dcompare(const coords3D &coords1, const coords3D &coords2) {
     //сравнение координат
-    return coords1.x == coords2.x && coords1.y == coords2.y && coords1.z == coords2.z;
+    return cmp_float(coords1.x, coords2.x) && cmp_float(coords1.y, coords2.y)
+            && cmp_float(coords1.z, coords2.z);
 }
 
 void
@@ -161,9 +173,9 @@ coordsMove(atomsCoords &ca, const coords3D &O, const coords3D &Vx,
         const double y = ScalarMult(pointShifting(O, *atom_coords_it), Vy) / distance(Vy);
         const double z = ScalarMult(pointShifting(O, *atom_coords_it), Vz) / distance(Vz);
 
-        atom_coords_it->x = x;
-        atom_coords_it->y = y;
-        atom_coords_it->z = z;
+        atom_coords_it->x = static_cast<float> (x);
+        atom_coords_it->y = static_cast<float> (y);
+        atom_coords_it->z = static_cast<float> (z);
     }
 }
 
@@ -211,7 +223,7 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
                     allAtoms.push_back(atom);
                 }
     //Найдем свободный член в уравнении секущей плоскости hx+ky+lz-C=0
-    int C = 0.5 * (h * (SIZE_X - 1) + k * (SIZE_Y - 1) + l * (SIZE_Z - 1)) + 1;
+    int C = (h * (SIZE_X - 1) + k * (SIZE_Y - 1) + l * (SIZE_Z - 1)) / 2 + 1;
     //Найдем атомы, лежащие на плоскости №1
 
     atomsP1.reserve(SIZE_Z * SIZE_Y * SIZE_X * NUMBER_OF_ATOMS_IN_CELL);
@@ -219,14 +231,14 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
         for (int y = 0; y < SIZE_Y; ++y)
             for (int x = 0; x < SIZE_X; ++x)
                 for (int a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a)
-                    if (h * (x + atomTypes[a].x) + k * (y + atomTypes[a].y) + l * (z + atomTypes[a].z) - C == 0.0) {
+                    if (cmp_float(h * (x + atomTypes[a].x) + k * (y + atomTypes[a].y) + l * (z + atomTypes[a].z), C)) {
                         coords3D atom = {x + atomTypes[a].x, y + atomTypes[a].y, z + atomTypes[a].z};
                         atomsP1.push_back(atom);
                     }
 
     //Найдем прямоугольники, лежащие на плоскости №1
     const size_t atomsP1Size = atomsP1.size();
-    ls.reserve(0.5 * atomsP1Size * atomsP1Size);
+    ls.reserve(atomsP1Size * atomsP1Size / 2);
     for (unsigned int i = 0; i < atomsP1Size; ++i)
         for (unsigned int j = i + 1; j < atomsP1Size; ++j) {
             const auto atomP1A = atomsP1[i];
@@ -258,39 +270,49 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
             z4 = ls[j].z2;
             l1 = ls[i].length;
             l2 = ls[j].length;
-            if (fabs(l1 - l2) < 0.01) {
-                if (fabs(x4 - x3) > 0.01)
+
+            if (cmp_float(l1, l2)) {
+                if (!cmp_float(x4, x3))
                     kx = (x2 - x1) / (x4 - x3);
-                else if (fabs(x2 - x1) < 0.01)
+                else if (cmp_float(x2, x1))
                     kx = 1;
 
-                if (fabs(y4 - y3) > 0.01)
+                if (!cmp_float(y4, y3))
                     ky = (y2 - y1) / (y4 - y3);
-                else if (fabs(y2 - y1) < 0.01)
+                else if (cmp_float(y2, y1))
                     ky = 1;
 
-                if (fabs(z4 - z3) > 0.01)
+                if (!cmp_float(z4, z3))
                     kz = (z2 - z1) / (z4 - z3);
-                else if (fabs(z2 - z1) < 0.01)
+                else if (cmp_float(z2, z1))
                     kz = 1;
-                if ((kx == ky && kx == kz) &&
-                    !((x2 - x1)*(x4 - x2) + (y2 - y1)*(y4 - y2) + (z2 - z1)*(z4 - z2))) {
+
+                if ((cmp_float(kx, ky) && cmp_float(kx, kz)) &&
+                    cmp_float((x2 - x1)*(x4 - x2) + (y2 - y1)*(y4 - y2) + (z2 - z1)*(z4 - z2), 0)) {
                     rectangle rect = {x1, y1, z1, x2, y2, z2,
                                       x3, y3, z3, x4, y4, z4, l1};
                     rectanglesP1.push_back(rect);
 
                     //удаляем дубли
-                    for (auto v = ls.begin() + j + 1; v < ls.end(); ++v)
-                        if ((v->x1 == x1 && v->x2 == x3 && v->y1 == y1
-                             && v->y2 == y3 && v->z1 == z1
-                             && v->z2 == z3)
-                            || (v->x1 == x2 && v->x2 == x4
-                                && v->y1 == y2 && v->y2 == y4
-                                && v->z1 == z2 && v->z2 == z4)) {
+                    for (auto v = ls.begin() + j + 1; v < ls.end(); ++v) {
+                        const auto& v_x1 = v->x1;
+                        const auto& v_x2 = v->x2;
+                        const auto& v_y1 = v->y1;
+                        const auto& v_y2 = v->y2;
+                        const auto& v_z1 = v->z1;
+                        const auto& v_z2 = v->z2;
+
+                        if (((cmp_float(v_x1, x1) && cmp_float(v_x2, x3)
+                              && cmp_float(v_y1, y1) && cmp_float(v_y2, y3)
+                              && cmp_float(v_z1, z1) && cmp_float(v_z2, z3))
+                             || (cmp_float(v_x1, x2) && cmp_float(v_x2, x4)
+                                 && cmp_float(v_y1, y2) && cmp_float(v_y2, y4)
+                                 && cmp_float(v_z1, z2) && cmp_float(v_z2, z4)))) {
                             const size_t n = v - ls.begin();
                             ls.erase(v);
                             v = ls.begin() + n - 1;
                         }
+                    }
                 }
             }
         }
@@ -308,10 +330,17 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
             int atoms = 0;
 
             for (auto &atom : allAtoms) {
-                if ((atom.x == x1 + n * h && atom.y == y1 + n * k && atom.z == z1 + n * l)
-                    || (atom.x == x2 + n * h && atom.y == y2 + n * k && atom.z == z2 + n * l)
-                    || (atom.x == x3 + n * h && atom.y == y3 + n * k && atom.z == z3 + n * l)
-                    || (atom.x == x4 + n * h && atom.y == y4 + n * k && atom.z == z4 + n * l))
+                if ((cmp_float(atom.x, x1 + n * h)
+                     && cmp_float(atom.y, y1 + n * k)
+                     && cmp_float(atom.z, z1 + n * l))
+                    || (cmp_float(atom.x, x2 + n * h)
+                        && cmp_float(atom.y, y2 + n * k)
+                        && cmp_float(atom.z, z2 + n * l))
+                    || (cmp_float(atom.x, x3 + n * h) && cmp_float(atom.y, y3 + n * k)
+                        && cmp_float(atom.z, z3 + n * l))
+                    || (cmp_float(atom.x, x4 + n * h)
+                        && cmp_float(atom.y, y4 + n * k)
+                        && cmp_float(atom.z, z4 + n * l)))
                     ++atoms;
             }
 
@@ -412,8 +441,10 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
             break;
         }
     }
-
+    qDebug() << "allCells size: " << allCells.size();
     auto &firstCell = allCells[0];
+
+    qDebug() << "firstCell size: " << firstCell.size();
 
     coordsMove(firstCell, *(firstCell.end() - 4), *(firstCell.end() - 3),
                *(firstCell.end() - 2), *(firstCell.end() - 1));
@@ -425,7 +456,7 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
 
 void
 findSoseds(allSoseds &allSosedi, atomsCoords &atom_Types, float xs, float ys, float zs) {
-    const int NUMBER_OF_ATOMS_IN_CELL = atom_Types.size();
+    const int NUMBER_OF_ATOMS_IN_CELL = static_cast<int> (atom_Types.size());
     allSosedi.clear();
     for (int type0 = 0; type0 < NUMBER_OF_ATOMS_IN_CELL; ++type0) {
         soseds sosedi;
@@ -445,6 +476,7 @@ findSoseds(allSoseds &allSosedi, atomsCoords &atom_Types, float xs, float ys, fl
                             double z1 = atom_Types[type1].z + zc1*zs;
                             if (fabs(pow(x1 - x0, 2) + pow(y1 - y0, 2) + pow(z1 - z0, 2) - 3.0 / 16.0) <= 0.001) //квадрат длины связи #1
                             {
+
                                 atomType s1 = {xc1, yc1, zc1, type1, false};
                                 sosedi.push_back(s1);
                             }
@@ -462,7 +494,8 @@ findZmin(const surface3D &surface, int &zm) {
 
                 for (auto &atom : *x)
                     if (!atom.deleted) {
-                        zm = z - surface.begin();
+
+                        zm = static_cast<int> (z - surface.begin());
                         return;
                     }
         }
@@ -498,6 +531,7 @@ recallNeighbours(surface3D &surface, vector<atomType> &surfAtoms, int x, int y,
         if ((neihgbAtomInfo.fNbCount == 3) &&
             ((xNb > 1 && xNb < surface[zNb][yNb].size() - 2)
              && (yNb > 1 && yNb < surface[zNb].size() - 2))) {
+
             atomType aT = {xNb, yNb, zNb, typeNb, false};
             surfAtoms.push_back(aT);
         }
@@ -506,6 +540,7 @@ recallNeighbours(surface3D &surface, vector<atomType> &surfAtoms, int x, int y,
 
 bool
 rect_comp(const rectangle &r1, const rectangle &r2) {
+
     const double S1 = distance(r1.x1, r1.y1, r1.z1, r1.x2, r1.y2, r1.z2) *
             distance(r1.x3, r1.y3, r1.z3, r1.x4, r1.y4, r1.z4);
     const double S2 = distance(r2.x1, r2.y1, r2.z1, r2.x2, r2.y2, r2.z2) *
@@ -516,6 +551,7 @@ rect_comp(const rectangle &r1, const rectangle &r2) {
 double
 ScalarMult(coords3D V1, coords3D V2) {
     //Скалярное произведение векторов
+
     return V1.x * V2.x + V1.y * V2.y + V1.z * V2.z;
 }
 
@@ -525,23 +561,24 @@ selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
     P1 = rates[0];
     P2 = rates[1];
     P3 = rates[2];
-    const int yC = surface[z_min].size();
-    const int xC = surface[z_min][0].size();
+    const int yC = static_cast<int> (surface[z_min].size());
+    const int xC = static_cast<int> (surface[z_min][0].size());
     bool result = false;
     bool maskON = !mask.empty();
 
-    static std::mt19937 rdevice(std::random_device {}());
+    static std::mt19937 rdevice(std::random_device {}
+                                ());
     static std::uniform_real_distribution<float> dis;
     static auto rd = bind(dis, rdevice);
 
-    int i = std::uniform_int_distribution<size_t> {0, surfAtoms.size() - 1}
-    (rdevice);
+    int i = static_cast<int> (std::uniform_int_distribution<size_t> {0, surfAtoms.size() - 1}
+                              (rdevice));
 
     auto &surfAtom = surfAtoms[i];
-    short x = surfAtom.x;
-    short y = surfAtom.y;
-    unsigned short z = surfAtom.z;
-    unsigned short a = surfAtom.type;
+    int x = surfAtom.x;
+    int y = surfAtom.y;
+    int z = surfAtom.z;
+    unsigned char a = surfAtom.type;
     auto &surfaceZY = surface[z][y];
     if ((maskON && ((z == 0
                      && !mask[ (y - 2)*(surfaceZY.size() - 4) + x - 2 ])
@@ -577,7 +614,8 @@ selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
                 delAtom(surface, surfAtoms, x, 2 * yC - 7 - y, z, a, -1);
             }
             if (z >= surface.size() - 3) {
-                addLayer(surface, sosedi, xC, yC, surface.size());
+
+                addLayer(surface, sosedi, xC, yC, static_cast<int> (surface.size()));
             }
         }
     }
@@ -591,22 +629,23 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
     P1 = rates[0];
     P2 = rates[1];
     P3 = rates[2];
-    const int yC = surface[z_min].size();
-    const int xC = surface[z_min][0].size();
+    const int yC = static_cast<int> (surface[z_min].size());
+    const int xC = static_cast<int> (surface[z_min][0].size());
     bool result = false;
     bool maskON = !mask.empty();
 
     size_t surfAtomsSize = surfAtoms.size();
 
-    static std::mt19937 rdevice(std::random_device {}());
+    static std::mt19937 rdevice(std::random_device {}
+                                ());
     static std::uniform_real_distribution<float> dis;
     static auto rd = bind(dis, rdevice);
 
     for (unsigned int i = 0; i < surfAtomsSize; ++i) {
         const auto &surfAtom = surfAtoms[i];
-        short x = surfAtom.x;
-        short y = surfAtom.y;
-        unsigned short z = surfAtom.z;
+        int x = surfAtom.x;
+        int y = surfAtom.y;
+        unsigned int z = surfAtom.z;
         unsigned short a = surfAtom.type;
         const auto &tAz = tA[a].z;
         auto &surfaceZY = surface[z][y];
@@ -636,10 +675,10 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
     for (auto surfAtomIter = surfAtoms.begin(); surfAtomIter != surfAtomsEnd;
          ++surfAtomIter) {
         if (surfAtomIter->toDel) {
-            short x = surfAtomIter->x;
-            short y = surfAtomIter->y;
-            unsigned short z = surfAtomIter->z;
-            unsigned short a = surfAtomIter->type;
+            int x = surfAtomIter->x;
+            int y = surfAtomIter->y;
+            int z = surfAtomIter->z;
+            unsigned char a = surfAtomIter->type;
 
             delAtom(surface, surfAtoms, x, y, z, a, i);
 
@@ -653,6 +692,7 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
                 delAtom(surface, surfAtoms, x, 5 - y, z, a, -1);
             }
             if (y == yC - 6 || y == yC - 5) {
+
                 delAtom(surface, surfAtoms, x, 2 * yC - 7 - y, z, a, -1);
             }
 
@@ -668,6 +708,7 @@ void
 delAtom(surface3D &surface, vector<atomType> &surfAtoms, int x, int y, int z,
         int type, int i) {
     if (i != -1) {
+
         swap(surfAtoms[i], surfAtoms.back());
         surfAtoms.pop_back();
         swap(surfAtoms[i], surfAtoms.back());
@@ -687,7 +728,8 @@ VectorQuad(const coords3D &V) {
     static auto zPrev = V.z;
 
     static auto resultPrev = pow(xPrev, 2) + pow(yPrev, 2) + pow(zPrev, 2);
-    if (xPrev == V.x && yPrev == V.y && zPrev == V.z)
+
+    if (cmp_float(xPrev, V.x) && cmp_float(yPrev, V.y) && cmp_float(zPrev, V.z))
         return resultPrev;
 
     xPrev = V.x;
@@ -699,17 +741,20 @@ VectorQuad(const coords3D &V) {
 }
 
 coords3D operator +(const coords3D& v1, const coords3D& v2) {
+
     coords3D temp = {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
     return temp;
 }
 
 coords3D operator *(const int& n, const coords3D& v) {
+
     coords3D temp = {n * v.x, n * v.y, n * v.z};
     return temp;
 }
 
 void
 optimizeSurface(surface3D &surface, int z_min) {
+
     if (z_min > 1)
         surface[z_min - 2].clear();
     surface.shrink_to_fit();

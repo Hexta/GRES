@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
+#include "etchingMenu.h"
+
 #include <QLabel>
 #include <QLineEdit>
 #include <QGridLayout>
@@ -22,7 +24,6 @@
 #include <QtDebug>
 #include <QGroupBox>
 #include <QComboBox>
-#include "etchingMenu.h"
 
 EtchingMenu::EtchingMenu(QWidget *parent) : QWidget(parent) {
     const float P1 = 1.0;

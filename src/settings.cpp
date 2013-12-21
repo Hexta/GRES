@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 #include "settings.h"
+
 #include <QWidget>
 #include <QDoubleSpinBox>
 #include <QLabel>
@@ -33,6 +34,7 @@ Settings::Settings(QWidget *parent) : QWidget(parent) {
     hSpinBox = new QSpinBox;
     kSpinBox = new QSpinBox;
     lSpinBox = new QSpinBox;
+
     QHBoxLayout *hbox = new QHBoxLayout;
     hbox->addWidget(hLabel);
     hbox->addWidget(hSpinBox);
@@ -47,6 +49,7 @@ Settings::Settings(QWidget *parent) : QWidget(parent) {
     QLabel *xSizeLabel = new QLabel(tr("X"));
     QLabel *ySizeLabel = new QLabel(tr("Y"));
     QLabel *zSizeLabel = new QLabel(tr("Z"));
+
     xSpinBox = new QSpinBox;
     ySpinBox = new QSpinBox;
     zSpinBox = new QSpinBox;

@@ -15,15 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#ifndef FUNCTIONS
-#define FUNCTIONS
+#pragma once
 
 #include <cmath>
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
 
-using namespace std;
+using std::vector;
 
 struct atomType {
     int x; //сдвиг ячейки по OX (-1;0;+1)
@@ -109,4 +108,4 @@ bool operator==(const atomType &a1, const atomType &a2);
 coords3D operator +(const coords3D& v1, const coords3D& v2);
 coords3D operator *(const int& n, const coords3D& v);
 
-#endif
+bool cmp_float(double x, double y);

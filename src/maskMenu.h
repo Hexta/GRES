@@ -15,12 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#ifndef MASK_MENU
-#define MASK_MENU
+#pragma once
+
 #include <QWidget>
+
 #include <vector>
 
-using namespace std;
+using std::vector;
 
 class QLabel;
 class QPushButton;
@@ -43,4 +44,3 @@ private slots:
     void loadMask();
     void setMask();
 };
-#endif

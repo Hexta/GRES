@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 #include "maskMenu.h"
+
 #include <QtDebug>
 #include <QLabel>
 #include <QGridLayout>

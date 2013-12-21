@@ -15,14 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#ifndef MASK_PREVIEW
-#    define MASK_PREVIEW
-#    include <QLabel>
+#pragma once
 
-class MaskPreview : public QLabel
-{
+#include <QLabel>
+
+class MaskPreview : public QLabel {
     Q_OBJECT
 public:
-    MaskPreview ( QWidget *parent = 0 );
-} ;
-#endif
+    MaskPreview(QWidget *parent = 0);
+};

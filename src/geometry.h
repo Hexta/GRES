@@ -15,11 +15,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#ifndef GEOMETRY
-#define GEOMETRY
+#pragma once
 
 #include "functions.h"
-#include "dataTypes.h"
+
+#include <GL/gl.h>
+
+#include <vector>
+
+using std::vector;
+
+struct atomName {
+    int name;
+    int xC;
+    int yC;
+    int zC;
+    float x;
+    float y;
+    float z;
+    unsigned char type;
+    int fNbCount;
+};
+
+typedef vector<atomName>AtomsNames;
+
+struct Bond {
+    float x1;
+    float y1;
+    float z1;
+    float x2;
+    float y2;
+    float z2;
+};
+
+typedef vector<Bond> Bonds;
 
 void createAtomsAndBondes(surface3D &surface, vector<atomType>&,
         atomsCoords &cellAts, float xs_, float ys_, float zs_, int z_min,
@@ -32,5 +61,3 @@ void normalize(float v[3], coords3D&);
 coords3D normalize(coords3D);
 void norm(coords3D &in);
 coords3D normcrossprod(coords3D in1, coords3D in2);
-
-#endif

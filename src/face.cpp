@@ -18,13 +18,12 @@
 #include "face.h"
 #include "render.h"
 #include "settings.h"
-#include <QDockWidget>
-#include <QActionGroup>
 #include "consts.h"
 #include "etchingMenu.h"
 #include "maskMenu.h"
 
-using namespace std;
+#include <QDockWidget>
+#include <QActionGroup>
 
 MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent) {
     surfaceXYZ.reserve(5000);
@@ -178,9 +177,9 @@ MainW::drawResult() {
 
 void
 MainW::etch(int simType_, int IterCount, float *rates) {
-    GRES::SimType sT = static_cast<GRES::SimType>(simType_);
+    GRES::SimType sT = static_cast<GRES::SimType> (simType_);
     QTime t;
-//    t.start();
+    //    t.start();
     int count = IterCount;
     for (int n = 0; n < count; ++n) {
         if (sT == GRES::SimType::KMC)
@@ -196,8 +195,8 @@ MainW::etch(int simType_, int IterCount, float *rates) {
         findZmin(surfaceXYZ, z_min);
         optimizeSurface(surfaceXYZ, z_min);
     }
-//    qDebug() << "etch: " << t.elapsed();
-    z_center = 0.5 * (SIZE_Z - 2 + z_min);
+    //    qDebug() << "etch: " << t.elapsed();
+    z_center = (SIZE_Z - 2 + z_min) / 2;
     drawResult();
 }
 
@@ -223,10 +222,11 @@ MainW::newDocument() {
     int xMax = SIZE_X;
     int yMax = SIZE_Y;
     int zMax = SIZE_Z;
-    z_center = z_min + 0.5 * (zMax - 2 - z_min);
+    z_center = z_min + (zMax - 2 - z_min) / 2;
 
     cellAtoms = findCell(h, k, l, Xsize, Ysize, Zsize, Vx, Vy, Vz);
-    const unsigned int NUMBER_OF_ATOMS_IN_CELL = cellAtoms.size();
+    const unsigned int NUMBER_OF_ATOMS_IN_CELL
+            = static_cast<unsigned int> (cellAtoms.size());
     findSoseds(sosedi, cellAtoms, Xsize, Ysize, Zsize);
 
     surfaceXYZ.clear();

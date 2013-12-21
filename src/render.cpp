@@ -186,9 +186,9 @@ Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
                             Bonds &outBonds) {
 
     int name = 0;
-    for (int z = z_min; z < surface.size() - 2; ++z)
-        for (int y = surface[z].size() - 2; --y >= 2;)
-            for (int x = surface[z][y].size() - 2; --x >= 2;) {
+    for (size_t z = z_min; z < surface.size() - 2; ++z)
+        for (size_t y = surface[z].size() - 2; --y >= 2;)
+            for (size_t x = surface[z][y].size() - 2; --x >= 2;) {
                 float x0 = scaling * x*xs_;
                 float y0 = scaling * y*ys_;
                 float z0 = -scaling * (z - z_min) * zs_;
@@ -201,8 +201,10 @@ Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
                         float zA = z0 - scaling * cellAts[a].z;
 
                         ++name;
-                        atomName temp = {name, x, y, z, xA, yA, zA, a,
-                                         (int) atomsCount};
+                        atomName temp = {name, static_cast<int> (x),
+                                         static_cast<int> (y),
+                                         static_cast<int> (z), xA, yA, zA, a,
+                                         static_cast<int> (atomsCount)};
                         atN.push_back(temp);
 
                         for (auto &nb : surface[z][y][x][a].neighbours) {
@@ -221,18 +223,18 @@ Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
 void
 Render::createSurfacePoints(surface3D &surface, float xs_, float ys_, float zs_,
                             int z_min, atomsCoords &surfV, atomsCoords &surfN) {
-    const int dX = surface[z_min][0].size() - 3;
-    const int dY = surface[z_min].size() - 3;
+    const size_t dX = surface[z_min][0].size() - 3;
+    const size_t dY = surface[z_min].size() - 3;
 
     coords3D emptyP = {-1.0, -1.0, -1.0};
     cells points(dY, atomsCoords(dX, emptyP));
 
-    for (unsigned int z = z_min; z < surface.size() - 2; ++z)
-        for (int y = surface[z].size() - 2; --y >= 2;)
-            for (int x = surface[z][y].size() - 2; --x >= 2;)
-                for (int a = surface[z][y][x].size(); --a >= 0;)
-                    if (!surface[z][y][x][a].deleted)
-                        if (points[y - 2][x - 2].x == -1.0) {
+    for (size_t z = z_min; z < surface.size() - 2; ++z)
+        for (size_t y = surface[z].size() - 2; --y >= 2;)
+            for (size_t x = surface[z][y].size() - 2; --x >= 2;)
+                for (const auto& atom : surface[z][y][x])
+                    if (!atom.deleted)
+                        if (cmp_float(points[y - 2][x - 2].x, -1.0)) {
                             points[y - 2][x - 2].x = scaling * (x - 2) * xs_;
                             points[y - 2][x - 2].z = -scaling * z*zs_;
                             points[y - 2][x - 2].y = scaling * (y - 2) * ys_;
@@ -259,7 +261,7 @@ Render::createSurfacePoints(surface3D &surface, float xs_, float ys_, float zs_,
             coords3D v3 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
             coords3D v4 = {points[i + 1][j].x, points[i + 1][j].y, points[i][j].z};
 
-            if (points[i][j].z != points[i][j + 1].z) {
+            if (!cmp_float(points[i][j].z, points[i][j + 1].z)) {
                 coords3D v5 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j].z};
                 coords3D v6 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j + 1].z};
                 coords3D v7 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j + 1].z};
@@ -272,7 +274,7 @@ Render::createSurfacePoints(surface3D &surface, float xs_, float ys_, float zs_,
                 surfV.push_back(v7);
                 surfV.push_back(v8);
             }
-            if (points[i][j].z != points[i + 1][j].z) {
+            if (!cmp_float(points[i][j].z, points[i + 1][j].z)) {
 
                 coords3D v9 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
                 coords3D v10 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i + 1][j].z};
@@ -368,7 +370,9 @@ Render::resizeGL(int width, int height) {
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(40.0, (GLfloat) width / (GLfloat) height, 1.0, 80.0);
+    gluPerspective(40.0,
+                   static_cast<GLfloat> (width) / static_cast<GLfloat> (height),
+                   1.0, 80.0);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -450,11 +454,11 @@ Render::draw() {
             //sphere( 5,10,10 );
 
             if (!(visualType == GRES::VizType::ATOMS_SURFACE_AND_BULK || visualType == GRES::VizType::ATOMS_SURFACE)
-                  || rotating || scribble || moving) {
+                || rotating || scribble || moving) {
                 glColor3f(0, 0, 1.0);
                 glEnableClientState(GL_VERTEX_ARRAY);
                 glVertexPointer(3, GL_FLOAT, 0, &bonds[0].x1);
-                glDrawArrays(GL_LINES, 0, 2 * bonds.size());
+                glDrawArrays(GL_LINES, 0, static_cast<GLsizei> (2 * bonds.size()));
                 glDisableClientState(GL_VERTEX_ARRAY);
             }
 
@@ -471,9 +475,9 @@ Render::draw() {
                         glColor3f(1.0, 1.0, 0.0);
                     if (atNames[i].fNbCount == 1)
                         glColor3f(1.0, 0.0, 0.0);
-                    if ((atNames[i].x == selAtomType.x)
-                        && (atNames[i].y == selAtomType.y)
-                        && (atNames[i].z == selAtomType.z))
+                    if (cmp_float(atNames[i].x, selAtomType.x)
+                        && cmp_float(atNames[i].y, selAtomType.y)
+                        && cmp_float(atNames[i].z, selAtomType.z))
                         glColor3f(1.0, 0.0, 1.0);
                     glPushMatrix();
                     glTranslatef(atNames[i].x, atNames[i].y, atNames[i].z);
@@ -548,7 +552,7 @@ Render::draw() {
 
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_NORMAL_ARRAY);
-            glDrawArrays(GL_QUADS, 0, surfVertex.size());
+            glDrawArrays(GL_QUADS, 0, static_cast<GLsizei> (surfVertex.size()));
             glDisableClientState(GL_VERTEX_ARRAY);
             glDisableClientState(GL_NORMAL_ARRAY);
             glBindBufferARB(GL_ARRAY_BUFFER, 0);
@@ -663,9 +667,9 @@ Render::saveResult() {
 void
 Render::setGeometry(GLfloat zCenter) {
     glTranslatef(0, 0, zCenter);
-    if (drotationX)
+    if (!cmp_float(drotationX, 0))
         glRotatef(drotationX, 1.0, 0.0, 0.0);
-    if (drotationY)
+    if (!cmp_float(drotationY, 0))
         glRotatef(drotationY, 0.0, 1.0, 0.0);
     glTranslatef(0, 0, -zCenter);
 
@@ -677,7 +681,7 @@ Render::setGeometry(GLfloat zCenter) {
 
     glTranslatef(0, 0, zCenter);
 
-    if (scale != 1.0)
+    if (!cmp_float(scale, 1.0))
         glScalef(scale, scale, scale);
     glTranslatef(0, 0, -zCenter);
     glTranslatef(sumMovX, -sumMovY, 0.0);
@@ -722,7 +726,7 @@ Render::processSelection(int x, int y) {
     glLoadIdentity();
 
     gluPickMatrix(x, viewport[3] - y, 1, 1, viewport);
-    fAspect = (float) viewport[2] / (float) viewport[3];
+    fAspect = static_cast<float> (viewport[2]) / static_cast<float> (viewport[3]);
     gluPerspective(40.0f, fAspect, 1.0, 80.0);
     paintGL();
     hits = glRenderMode(GL_RENDER);
@@ -737,7 +741,6 @@ Render::processSelection(int x, int y) {
 void
 Render::processAtom(GLuint *pSelectBuff) {
     int id;
-    pSelectBuff[0];
     id = pSelectBuff[3];
     for (auto &atName : atNames) {
         if (atName.name == id) {
@@ -748,7 +751,7 @@ Render::processAtom(GLuint *pSelectBuff) {
             selAtomType.y = atName.y;
             selAtomType.z = atName.z;
             selAtomType.type = atName.type;
-            selAtomType.fNbCount = atName.fNbCount;
+            selAtomType.fNbCount = static_cast<char> (atName.fNbCount);
             break;
         }
     }

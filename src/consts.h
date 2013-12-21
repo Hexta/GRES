@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#ifndef CONSTS
-#define CONSTS
+#pragma once
 
 namespace GRES {
 
@@ -30,4 +29,3 @@ enum class SimType {
 };
 
 } // namespace
-#endif

@@ -15,15 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#ifndef SHNJAGA
-#define SHNJAGA
+#pragma once
 
-#include <QtGui>
-#include <QMainWindow>
 #include "functions.h"
 #include "consts.h"
 
-using namespace std;
+#include <QtGui>
+#include <QMainWindow>
 
 class Render;
 class Settings;
@@ -93,4 +91,3 @@ private slots:
     void showMenuMask();
     void setMask(vector<bool>*);
 };
-#endif

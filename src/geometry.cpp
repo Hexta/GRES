@@ -16,11 +16,12 @@
  ******************************************************************************/
 
 #define GL_GLEXT_PROTOTYPES
+#include "geometry.h"
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <GL/gl.h>
-#include "geometry.h"
 
 #define CACHE_SIZE 240
 #define PI 3.1415926535897932385
@@ -62,7 +63,7 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
             float zA = z0 - scaling * cellAts[a].z;
 
             ++name;
-            atomName temp = {name, x, y, z, xA, yA, zA, a, (short) neighbours.size()};
+            atomName temp = {name, x, y, z, xA, yA, zA, a, static_cast<int> (neighbours.size())};
             atNames_.push_back(temp);
 
             for (auto &nb : neighbours) {
@@ -77,15 +78,15 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
     }
 
     for (auto &surfAtom : surfAtoms) {
-        short x_ = surfAtom.x;
-        short y_ = surfAtom.y;
-        unsigned short z_ = surfAtom.z;
+        int x_ = surfAtom.x;
+        int y_ = surfAtom.y;
+        int z_ = surfAtom.z;
         unsigned char a_ = surfAtom.type;
 
         for (auto &nb : surface[z_][y_][x_][a_].neighbours) {
-            short x = nb.x;
-            short y = nb.y;
-            short z = nb.z;
+            int x = nb.x;
+            int y = nb.y;
+            int z = nb.z;
             unsigned char a = nb.type;
 
             auto &surfaceZYXA = surface[z][y][x][a];
@@ -103,7 +104,7 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
 
                     ++name;
                     atomName temp = {name, x, y, z, xA, yA, zA, a,
-                                     (short) surfaceZYXA.neighbours.size()};
+                                     static_cast<int> (surfaceZYXA.neighbours.size())};
                     atNames_.push_back(temp);
 
                     for (auto &nb_int : surfaceZYXA.neighbours) {
@@ -113,7 +114,7 @@ createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
 
                         Bond bondT = {xA, yA, zA,
                                       xNb, yNb, zNb};
-                        outBonds . push_back(bondT);
+                        outBonds.push_back(bondT);
                     }
                 }
         }
@@ -131,7 +132,7 @@ normalize(float v[3]) {
 
 void
 normalize(float v[3], coords3D &out) {
-    const GLfloat len = sqrt(pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2));
+    const float len = static_cast<float> (sqrt(pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2)));
     out.x = v[0] / len;
     out.y = v[1] / len;
     out.z = v[2] / len;
@@ -139,7 +140,7 @@ normalize(float v[3], coords3D &out) {
 
 coords3D
 normalize(coords3D in) {
-    GLfloat len = sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2));
+    const float len = static_cast<float> (sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2)));
     return
     {
         in.x / len, in.y / len, in.z / len
@@ -189,9 +190,9 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     needCache3 = GL_TRUE;
 
     for (i = 0; i < slices; ++i) {
-        angle = 2 * PI * i / slices;
-        sinCache1a[i] = SIN(angle);
-        cosCache1a[i] = COS(angle);
+        angle = static_cast<GLfloat> (2 * PI * i / slices);
+        sinCache1a[i] = static_cast<GLfloat> (SIN(angle));
+        cosCache1a[i] = static_cast<GLfloat> (COS(angle));
         if (needCache2) {
             sinCache2a[i] = sinCache1a[i];
             cosCache2a[i] = cosCache1a[i];
@@ -199,9 +200,9 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     }
 
     for (j = 0; j <= stacks; ++j) {
-        angle = PI * j / stacks;
-        sinCache1b[j] = radius * SIN(angle);
-        cosCache1b[j] = radius * COS(angle);
+        angle = static_cast<GLfloat> (PI * j / stacks);
+        sinCache1b[j] = static_cast<GLfloat> (radius * SIN(angle));
+        cosCache1b[j] = static_cast<GLfloat> (radius * COS(angle));
     }
     /* Make sure it comes to a point */
     sinCache1b[0] = 0;
@@ -209,14 +210,14 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
     if (needCache3) {
         for (i = 0; i < slices; ++i) {
-            angle = 2 * PI * (i - 0.5) / slices;
-            sinCache3a[i] = SIN(angle);
-            cosCache3a[i] = COS(angle);
+            angle = static_cast<GLfloat> (2 * PI * (i - 0.5) / slices);
+            sinCache3a[i] = static_cast<GLfloat> (SIN(angle));
+            cosCache3a[i] = static_cast<GLfloat> (COS(angle));
         }
         for (j = 0; j <= stacks; ++j) {
-            angle = PI * (j - 0.5) / stacks;
-            sinCache3b[j] = SIN(angle);
-            cosCache3b[j] = COS(angle);
+            angle = static_cast<GLfloat> (PI * (j - 0.5) / stacks);
+            sinCache3b[j] = static_cast<GLfloat> (SIN(angle));
+            cosCache3b[j] = static_cast<GLfloat> (COS(angle));
         }
     }
 
@@ -253,7 +254,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     vertex1.reserve(slices + 1);
     norm1.reserve(slices + 1);
 
-    coords3D v1 = {0.0, 0.0, (float) radius};
+    coords3D v1 = {0.0, 0.0, static_cast<float> (radius)};
     vertex1.push_back(v1);
     coords3D nT;
     normalize(&v1.x, nT);
@@ -282,7 +283,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     vertex2.reserve(slices + 1);
     norm2.reserve(slices + 1);
 
-    coords3D v2 = {0.0, 0.0, (float) -radius};
+    coords3D v2 = {0.0, 0.0, static_cast<float> (-radius)};
     vertex2.push_back(v2);
     normalize(&v2.x, nT);
     norm2.push_back(nT);
@@ -320,7 +321,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
             vertex3.push_back(v3_);
         }
     }
-    vSize1 = vertex1.size();
+    vSize1 = static_cast<int> (vertex1.size());
 
     glBindBufferARB(GL_ARRAY_BUFFER, 1);
     glBufferDataARB(GL_ARRAY_BUFFER, (vSize1 + norm1.size())*3 * SIZE_OF_FLOAT, 0, GL_STATIC_DRAW);
@@ -328,7 +329,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     glBufferSubDataARB(GL_ARRAY_BUFFER, vSize1 * 3 * SIZE_OF_FLOAT,
                        norm1.size()*3 * SIZE_OF_FLOAT, &norm1[0].x);
 
-    vSize2 = vertex2.size();
+    vSize2 = static_cast<int> (vertex2.size());
 
     glBindBufferARB(GL_ARRAY_BUFFER, 2);
     glBufferDataARB(GL_ARRAY_BUFFER, (vSize2 + norm2.size())*3 * SIZE_OF_FLOAT,
@@ -338,7 +339,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     glBufferSubDataARB(GL_ARRAY_BUFFER, vSize2 * 3 * SIZE_OF_FLOAT,
                        norm2.size()*3 * SIZE_OF_FLOAT, &norm2[0].x);
 
-    vSize3 = vertex3.size();
+    vSize3 = static_cast<int> (vertex3.size());
 
     glBindBufferARB(GL_ARRAY_BUFFER, 3);
     glBufferDataARB(GL_ARRAY_BUFFER, (vSize3 + norm3.size())*3 * SIZE_OF_FLOAT,
@@ -359,7 +360,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
 void
 norm(coords3D &in) {
-    GLfloat len = sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2));
+    const float len = static_cast<float> (sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2)));
     coords3D temp = {in.x / len, in.y / len, in.z / len};
     in = temp;
 }
