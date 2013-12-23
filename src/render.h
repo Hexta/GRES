@@ -132,7 +132,7 @@ private:
     void createAtomsAndBonds(surface3D &surface, atomsCoords&, float Xsize,
             float Ysize, float Zsize, int z_min, AtomsNames&, Bonds&);
     void createSurfacePoints(surface3D &surface, float Xsize, float Ysize,
-            float Zsize, int z_min, atomsCoords &surfV, atomsCoords &surfN);
+            float Zsize, int z_min);
     void initMatrix(vector<GLfloat>*);
     void drawAxis();
     void setGeometry(GLfloat zCenter = 0);

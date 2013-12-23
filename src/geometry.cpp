@@ -161,8 +161,6 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     GLint i, j;
     GLfloat sinCache1a[CACHE_SIZE];
     GLfloat cosCache1a[CACHE_SIZE];
-    GLfloat sinCache2a[CACHE_SIZE];
-    GLfloat cosCache2a[CACHE_SIZE];
     GLfloat sinCache3a[CACHE_SIZE];
     GLfloat cosCache3a[CACHE_SIZE];
     GLfloat sinCache1b[CACHE_SIZE];
@@ -173,10 +171,10 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     GLfloat zLow, zHigh;
     GLfloat sintemp1 = 0.0, sintemp2 = 0.0, sintemp3 = 0.0, sintemp4 = 0.0;
     GLfloat costemp3 = 0.0, costemp4 = 0.0;
-    GLboolean needCache2, needCache3;
+    GLboolean needCache3;
     GLint start, finish;
 
-    if (slices >= CACHE_SIZE) slices = CACHE_SIZE - 1;
+    if (slices >= CACHE_SIZE + 1) slices = CACHE_SIZE - 2;
     if (stacks >= CACHE_SIZE) stacks = CACHE_SIZE - 1;
     if (slices < 2 || stacks < 1 || radius < 0.0) {
         return;
@@ -185,7 +183,6 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     /* Cache is the vertex locations cache */
     /* Cache2 is the various normals at the vertices themselves */
     /* Cache3 is the various normals for the faces */
-    needCache2 = needCache3 = GL_FALSE;
 
     needCache3 = GL_TRUE;
 
@@ -193,10 +190,6 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
         angle = static_cast<GLfloat> (2 * PI * i / slices);
         sinCache1a[i] = static_cast<GLfloat> (SIN(angle));
         cosCache1a[i] = static_cast<GLfloat> (COS(angle));
-        if (needCache2) {
-            sinCache2a[i] = sinCache1a[i];
-            cosCache2a[i] = cosCache1a[i];
-        }
     }
 
     for (j = 0; j <= stacks; ++j) {
@@ -223,10 +216,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
     sinCache1a[slices] = sinCache1a[0];
     cosCache1a[slices] = cosCache1a[0];
-    if (needCache2) {
-        sinCache2a[slices] = sinCache2a[0];
-        cosCache2a[slices] = cosCache2a[0];
-    }
+
     if (needCache3) {
         sinCache3a[slices] = sinCache3a[0];
         cosCache3a[slices] = cosCache3a[0];
@@ -260,12 +250,9 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     normalize(&v1.x, nT);
     norm1.push_back(nT);
     for (i = slices; i >= 0; --i) {
-        /*if (i != slices)*/
-        {
-            coords3D n1 = {sinCache3a[i + 1] * sintemp3,
-                           cosCache3a[i + 1] * sintemp3, costemp3};
-            norm1.push_back(n1);
-        }
+        coords3D n1 = {sinCache3a[i + 1] * sintemp3,
+                       cosCache3a[i + 1] * sintemp3, costemp3};
+        norm1.push_back(n1);
         coords3D v1 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
         vertex1.push_back(v1);
     }
@@ -327,27 +314,27 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     glBufferDataARB(GL_ARRAY_BUFFER, (vSize1 + norm1.size())*3 * SIZE_OF_FLOAT, 0, GL_STATIC_DRAW);
     glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize1 * 3 * SIZE_OF_FLOAT, &vertex1[0].x);
     glBufferSubDataARB(GL_ARRAY_BUFFER, vSize1 * 3 * SIZE_OF_FLOAT,
-                       norm1.size()*3 * SIZE_OF_FLOAT, &norm1[0].x);
+            norm1.size()*3 * SIZE_OF_FLOAT, &norm1[0].x);
 
     vSize2 = static_cast<int> (vertex2.size());
 
     glBindBufferARB(GL_ARRAY_BUFFER, 2);
     glBufferDataARB(GL_ARRAY_BUFFER, (vSize2 + norm2.size())*3 * SIZE_OF_FLOAT,
-                    0, GL_STATIC_DRAW);
+            0, GL_STATIC_DRAW);
     glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize2 * 3 * SIZE_OF_FLOAT,
-                       &vertex2[0].x);
+            &vertex2[0].x);
     glBufferSubDataARB(GL_ARRAY_BUFFER, vSize2 * 3 * SIZE_OF_FLOAT,
-                       norm2.size()*3 * SIZE_OF_FLOAT, &norm2[0].x);
+            norm2.size()*3 * SIZE_OF_FLOAT, &norm2[0].x);
 
     vSize3 = static_cast<int> (vertex3.size());
 
     glBindBufferARB(GL_ARRAY_BUFFER, 3);
     glBufferDataARB(GL_ARRAY_BUFFER, (vSize3 + norm3.size())*3 * SIZE_OF_FLOAT,
-                    0, GL_STATIC_DRAW);
+            0, GL_STATIC_DRAW);
     glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize3 * 3 * SIZE_OF_FLOAT,
-                       &vertex3[0].x);
+            &vertex3[0].x);
     glBufferSubDataARB(GL_ARRAY_BUFFER, vSize3 * 3 * SIZE_OF_FLOAT,
-                       norm3.size()*3 * SIZE_OF_FLOAT, &norm3[0].x);
+            norm3.size()*3 * SIZE_OF_FLOAT, &norm3[0].x);
 
     glBindBufferARB(GL_ARRAY_BUFFER, 0);
     vertex1.clear();
