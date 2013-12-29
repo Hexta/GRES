@@ -24,6 +24,8 @@
 
 #include <QDockWidget>
 #include <QActionGroup>
+#include <QMenuBar>
+#include <QToolBar>
 
 MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent) {
     surfaceXYZ.reserve(5000);

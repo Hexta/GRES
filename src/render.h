@@ -22,7 +22,7 @@
 #include "geometry.h"
 
 #include <QWidget>
-#include <QGLWidget>
+#include <QtOpenGL/QGLWidget>
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QColorDialog>
@@ -37,7 +37,7 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glext.h>
+//#include <GL/glext.h>
 #endif
 
 class SelectAtomMenu;

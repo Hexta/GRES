@@ -268,8 +268,8 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
             x4 = ls[j].x2;
             y4 = ls[j].y2;
             z4 = ls[j].z2;
-            l1 = ls[i].length;
-            l2 = ls[j].length;
+            l1 = ls[i].distance;
+            l2 = ls[j].distance;
 
             if (cmp_float(l1, l2)) {
                 if (!cmp_float(x4, x3))
@@ -433,8 +433,9 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
             happy = (cell_size - 4 == translCell.size());
         }
         if (happy) {
+			auto tmpCell = cell;
             allCells.clear();
-            allCells.push_back(cell);
+            allCells.push_back(tmpCell);
             vX = Vx;
             vY = Vy;
             vZ = Vz;

@@ -53,7 +53,7 @@ struct length {
     float x2;
     float y2;
     float z2;
-    float length;
+    float distance;
 };
 
 struct rectangle {

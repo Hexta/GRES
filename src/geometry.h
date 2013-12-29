@@ -19,7 +19,12 @@
 
 #include "functions.h"
 
-#include <GL/gl.h>
+#ifdef _WIN32 
+#include <windows.h>
+#include <wingdi.h>
+#endif
+
+#include <GL/glu.h>
 
 #include <vector>
 

@@ -17,6 +17,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 
+#define NOMINMAX 
 #include "render.h"
 #include "selectAtomMenu.h"
 #include <GL/gl.h>
@@ -54,7 +55,7 @@ Render::Render(QWidget *parent) : QGLWidget(parent) {
 
     sphereQual = 3;
     scale = 1.0;
-    sR = 0.05;
+    sR = 0.05F;
 
     selAtomType.x =
             selAtomType.y =
@@ -194,7 +195,7 @@ Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
                 float x0 = scaling * x*xs_;
                 float y0 = scaling * y*ys_;
                 float z0 = -scaling * (z - z_min) * zs_;
-                const auto atomsCount = surface[z][y][x].size();
+                const char atomsCount = static_cast<char>(surface[z][y][x].size());
                 for (unsigned char a = atomsCount; --a > 0;) {
 
                     if (surface[z][y][x][a].fNbCount) {

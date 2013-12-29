@@ -18,10 +18,9 @@
 #define _STDCALL_SUPPORTED
 #define GLUT_NO_LIB_PRAGMA
 
+#define NOMINMAX 
 #include <QApplication>
 #include "render.h"
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include "face.h"
 
 using namespace std;

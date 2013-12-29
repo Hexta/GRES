@@ -18,10 +18,7 @@
 #define GL_GLEXT_PROTOTYPES
 #include "geometry.h"
 
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include <GL/glext.h>
-#include <GL/gl.h>
 
 #define CACHE_SIZE 240
 #define PI 3.1415926535897932385
@@ -30,7 +27,6 @@
 #define SQRT sqrtf
 
 #ifdef _WIN32
-#include <windows.h>
 #define glBindBufferARB           pglBindBufferARB
 #define glDeleteBuffersARB        pglDeleteBuffersARB
 #define glBufferDataARB           pglBufferDataARB
