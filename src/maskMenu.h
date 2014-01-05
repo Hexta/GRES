@@ -32,7 +32,7 @@ class MaskMenu : public QWidget {
 public:
     MaskMenu(QWidget *parent = 0, int xS = 10, int yS = 10);
 signals:
-    void maskChanged(vector<bool>*);
+    void maskChanged(vector<bool>&);
 private:
 
     QLabel* maskPreview;

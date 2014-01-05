@@ -75,6 +75,6 @@ MaskMenu::setMask() {
     for (int i = 0; i < yS; ++i)
         for (int j = 0; j < xS; ++j)
             mask.push_back(!qGray(maskImage->pixel(j, i)));
-    emit maskChanged(&mask);
+    emit maskChanged(mask);
     this->close();
 }

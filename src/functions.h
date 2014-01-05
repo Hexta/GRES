@@ -81,7 +81,8 @@ typedef vector<cell> surface1D;
 typedef vector<surface1D> surface2D;
 typedef vector<surface2D> surface3D;
 
-void findSoseds(allSoseds&, atomsCoords&, float xs, float ys, float zs);
+void findSoseds(allSoseds &allSosedi, const atomsCoords &atom_Types, float xs,
+	float ys, float zs);
 bool rect_comp(const rectangle &r1, const rectangle &r2);
 bool cells_comp(const atomsCoords &c1, const atomsCoords &c2);
 double distance(const double& x1, const double& y1, const double& z1, const double& x2, const double& y2, const double& z2);
@@ -91,16 +92,16 @@ coords3D pointShift(const coords3D &A, const coords3D &V); //сдвигает т
 bool compareTranslCell(const atomsCoords &cellAtoms, const atomsCoords &allAtoms, const coords3D &V); //Совпадение атомов после трансляции
 void coordsMove(atomsCoords &ca, const coords3D &O, const coords3D &Vx, const coords3D &Vy, const coords3D &Vz); // смещение координат в ячейку
 void cellOptim(atomsCoords &ca, float&, float&, float&); //чистка от общих атомов
-double ScalarMult(coords3D V1, coords3D V2);
+double ScalarMult(const coords3D& V1, const coords3D& V2);
 void recallNeighbours(surface3D &surface, vector<atomType> &surfAtoms, int x, int y, int z, int type);
-bool selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &neighbs, int z_min, atomsCoords &tA, vector<bool> &mask, float *rates);
+bool selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &neighbs, int z_min, atomsCoords &tA, const vector<bool> &mask, const float *rates);
 bool selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min, atomsCoords &tA, vector<bool> &mask, float* rates);
 
 atomsCoords findCell(int h, int k, int l, float &xs, float &ys, float &zs, coords3D &Vx, coords3D &Vy, coords3D &Vz); //Поиск эл ячейки
-void addLayer(surface3D &surface, allSoseds&, int sX, int sY, int sZ);
+void addLayer(surface3D &surface, const allSoseds& sosedi, int sX, int sY, int sZ);
 inline double VectorQuad(const coords3D &V);
 bool coords3Dcompare(const coords3D&, const coords3D&);
-atomsCoords atomsInBox(atomsCoords &atoms, const coords3D &Vx, const coords3D &Vy, const coords3D &Vz, const coords3D &P1);
+atomsCoords atomsInBox(const atomsCoords &atoms, const coords3D &Vx, const coords3D &Vy, const coords3D &Vz, const coords3D &P1);
 void findZmin(const surface3D &surface, int &zm);
 void optimizeSurface(surface3D &surface, int z_min);
 void delAtom(surface3D &surface, vector<atomType> &surfAtoms, int x, int y, int z, int type, int surfAtN);

@@ -55,14 +55,14 @@ struct Bond {
 
 typedef vector<Bond> Bonds;
 
-void createAtomsAndBondes(surface3D &surface, vector<atomType>&,
-        atomsCoords &cellAts, float xs_, float ys_, float zs_, int z_min,
+void createAtomsAndBondes(surface3D &surface, const vector<atomType>& surfAtoms,
+        const atomsCoords &cellAts, float xs_, float ys_, float zs_, int z_min,
         float scaling, vector<atomName> &atNames_, Bonds &outBonds);
 
 void createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
         int &vSize2, int &vSize3);
 void normalize(float v[3]);
 void normalize(float v[3], coords3D&);
-coords3D normalize(coords3D);
+coords3D normalize(const coords3D& in);
 void norm(coords3D &in);
-coords3D normcrossprod(coords3D in1, coords3D in2);
+coords3D normcrossprod(const coords3D& in1, const coords3D& in2);

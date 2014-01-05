@@ -89,5 +89,5 @@ private:
 private slots:
     void showEtchMenu();
     void showMenuMask();
-    void setMask(vector<bool>*);
+    void setMask(const vector<bool> &inMask);
 };

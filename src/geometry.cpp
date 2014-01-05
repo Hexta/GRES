@@ -34,8 +34,8 @@
 #endif
 
 void
-createAtomsAndBondes(surface3D &surface, vector<atomType> &surfAtoms,
-                     atomsCoords &cellAts, float xs, float ys, float zs,
+createAtomsAndBondes(surface3D &surface, const vector<atomType> &surfAtoms,
+                     const atomsCoords &cellAts, float xs, float ys, float zs,
                      int z_min, float scaling, vector<atomName> &atNames_,
                      Bonds &outBonds) {
 
@@ -135,7 +135,7 @@ normalize(float v[3], coords3D &out) {
 }
 
 coords3D
-normalize(coords3D in) {
+normalize(const coords3D& in) {
     const float len = static_cast<float> (sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2)));
     return
     {
@@ -348,12 +348,11 @@ norm(coords3D &in) {
     in = temp;
 }
 
-coords3D
-normcrossprod(coords3D v1, coords3D v2) {
+coords3D normcrossprod(const coords3D& in1, const coords3D& in2) {
     coords3D out;
-    out.x = v1.y * v2.z - v1.z * v2.y;
-    out.y = v1.z * v2.x - v1.x * v2.z;
-    out.z = v1.x * v2.y - v1.y * v2.x;
+    out.x = in1.y * in2.z - in1.z * in2.y;
+    out.y = in1.z * in2.x - in1.x * in2.z;
+    out.z = in1.x * in2.y - in1.y * in2.x;
     norm(out);
     return out;
 }

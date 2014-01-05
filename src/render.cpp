@@ -223,8 +223,7 @@ Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
             }
 }
 
-void
-Render::createSurfacePoints(surface3D &surface, float xs_, float ys_, float zs_,
+void Render::createSurfacePoints(const surface3D &surface, float Xsize, float Ysize, float Zsize,
                             int z_min) {
     const size_t dX = surface[z_min][0].size() - 3;
     const size_t dY = surface[z_min].size() - 3;
@@ -238,20 +237,20 @@ Render::createSurfacePoints(surface3D &surface, float xs_, float ys_, float zs_,
                 for (const auto& atom : surface[z][y][x])
                     if (!atom.deleted)
                         if (cmp_float(points[y - 2][x - 2].x, -1.0)) {
-                            points[y - 2][x - 2].x = scaling * (x - 2) * xs_;
-                            points[y - 2][x - 2].z = -scaling * z*zs_;
-                            points[y - 2][x - 2].y = scaling * (y - 2) * ys_;
+                            points[y - 2][x - 2].x = scaling * (x - 2) * Xsize;
+                            points[y - 2][x - 2].z = -scaling * z*Zsize;
+                            points[y - 2][x - 2].y = scaling * (y - 2) * Ysize;
                         }
 
     for (int i = 0; i < dY; ++i) {
-        points[i][dX - 1].x = points[i][dX - 2].x + scaling*xs_;
+        points[i][dX - 1].x = points[i][dX - 2].x + scaling*Xsize;
         points[i][dX - 1].y = points[i][dX - 2].y;
         points[i][dX - 1].z = points[i][dX - 2].z;
     }
 
     for (int i = 0; i < dX; ++i) {
         points[dY - 1][i].x = points[dY - 2][i].x;
-        points[dY - 1][i].y = points[dY - 2][i].y + scaling*ys_;
+        points[dY - 1][i].y = points[dY - 2][i].y + scaling*Ysize;
         points[dY - 1][i].z = points[dY - 2][i].z;
     }
     surfVertex.reserve((SIZE_Y - 4)*(SIZE_X - 4));
@@ -613,8 +612,8 @@ Render::mouseReleaseEvent(QMouseEvent *event) {
 
 void
 Render::mouseMoveEvent(QMouseEvent *event) {
-    GLfloat dx = GLfloat(event->x() - lastPos.x()) / width();
-    GLfloat dy = GLfloat(event->y() - lastPos.y()) / height();
+    GLfloat dx = static_cast<GLfloat>(event->x() - lastPos.x()) / width();
+    GLfloat dy = static_cast<GLfloat>(event->y() - lastPos.y()) / height();
     if (event->buttons() & Qt::LeftButton) {
         drotationX = 180 * dy;
         drotationY = 180 * dx;
@@ -743,8 +742,7 @@ Render::processSelection(int x, int y) {
     updateGL();
 }
 
-void
-Render::processAtom(GLuint *pSelectBuff) {
+void Render::processAtom(const GLuint *pSelectBuff) {
     int id;
     id = pSelectBuff[3];
     for (auto &atName : atNames) {

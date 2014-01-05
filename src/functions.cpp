@@ -49,8 +49,7 @@ bool cmp_float(double x, double y) {
     return fabs(x - y) < FLOAT_TOL;
 }
 
-void
-addLayer(surface3D &surface, allSoseds &sosedi, int sX, int sY, int sZ) {
+void addLayer(surface3D &surface, const allSoseds& sosedi, int sX, int sY, int sZ) {
     surface2D surfaceXY;
     surfaceXY.reserve(sY);
 
@@ -81,12 +80,8 @@ addLayer(surface3D &surface, allSoseds &sosedi, int sX, int sY, int sZ) {
     surface.push_back(surfaceXY);
 }
 
-atomsCoords
-atomsInBox(atomsCoords &atoms, const coords3D &Vx, const coords3D &Vy,
-           const coords3D &Vz, const coords3D &P1)
-/*
-определяет атомы лежащие внутри прямоугольного параллелипипеда
- */ {
+atomsCoords atomsInBox(const atomsCoords &atoms, const coords3D &Vx, const coords3D &Vy,
+           const coords3D &Vz, const coords3D &P1) {
     atomsCoords cellAts;
 
     for (auto &atom : atoms) {
@@ -165,8 +160,7 @@ coords3Dcompare(const coords3D &coords1, const coords3D &coords2) {
             && cmp_float(coords1.z, coords2.z);
 }
 
-void
-coordsMove(atomsCoords &ca, const coords3D &O, const coords3D &Vx,
+void coordsMove(atomsCoords &ca, const coords3D &O, const coords3D &Vx,
            const coords3D &Vy, const coords3D &Vz) {
     for (auto atom_coords_it = ca.begin(); atom_coords_it < ca.end() - 4; ++atom_coords_it) {
         const double x = ScalarMult(pointShifting(O, *atom_coords_it), Vx) / distance(Vx);
@@ -455,8 +449,8 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
     return firstCell;
 }
 
-void
-findSoseds(allSoseds &allSosedi, atomsCoords &atom_Types, float xs, float ys, float zs) {
+void findSoseds(allSoseds &allSosedi, const atomsCoords &atom_Types, float xs,
+	float ys, float zs) {
     const int NUMBER_OF_ATOMS_IN_CELL = static_cast<int> (atom_Types.size());
     allSosedi.clear();
     for (int type0 = 0; type0 < NUMBER_OF_ATOMS_IN_CELL; ++type0) {
@@ -549,16 +543,14 @@ rect_comp(const rectangle &r1, const rectangle &r2) {
     return S1 < S2;
 }
 
-double
-ScalarMult(coords3D V1, coords3D V2) {
+double ScalarMult(const coords3D& V1, const coords3D& V2) {
     //Скалярное произведение векторов
 
     return V1.x * V2.x + V1.y * V2.y + V1.z * V2.z;
 }
 
-bool
-selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
-        int z_min, atomsCoords &tA, vector<bool> &mask, float *rates) {
+bool selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &neighbs,
+        int z_min, atomsCoords &tA, const vector<bool> &mask, const float *rates) {
     P1 = rates[0];
     P2 = rates[1];
     P3 = rates[2];
@@ -616,7 +608,7 @@ selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &sosedi,
             }
             if (z >= surface.size() - 3) {
 
-                addLayer(surface, sosedi, xC, yC, static_cast<int> (surface.size()));
+                addLayer(surface, neighbs, xC, yC, static_cast<int> (surface.size()));
             }
         }
     }

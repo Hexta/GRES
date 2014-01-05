@@ -79,12 +79,12 @@ private:
     SelectAtomMenu* selAtomMenu;
 
     struct SelAtomType {
+		float x;
+		float y;
+		float z;
         short xC;
         short yC;
         short zC;
-        float x;
-        float y;
-        float z;
         char type;
         char fNbCount;
     } selAtomType;
@@ -119,7 +119,7 @@ private:
     void createActions();
     void processSelection(int x, int y);
     void processSelectionMenu();
-    void processAtom(GLuint *pSelectBuff);
+    void processAtom(const GLuint *pSelectBuff);
     bool dataInitialized;
     GRES::VizType visualType; //тип визуализации
     cells surfPoints;
@@ -131,7 +131,7 @@ private:
     vector<GLfloat> matrix;
     void createAtomsAndBonds(surface3D &surface, atomsCoords&, float Xsize,
             float Ysize, float Zsize, int z_min, AtomsNames&, Bonds&);
-    void createSurfacePoints(surface3D &surface, float Xsize, float Ysize,
+    void createSurfacePoints(const surface3D &surface, float Xsize, float Ysize,
             float Zsize, int z_min);
     void initMatrix(vector<GLfloat>*);
     void drawAxis();
