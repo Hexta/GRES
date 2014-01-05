@@ -278,7 +278,7 @@ void
 MainW::showMenuMask() {
     maskMenu = new MaskMenu(0, SIZE_X - 4, SIZE_Y - 4);
     connect(maskMenu, SIGNAL(maskChanged(vector<bool>&)), this,
-            SLOT(setMask(vector<bool>&)));
+            SLOT(setMask(const vector<bool>&)));
     maskMenu->show();
 }
 
