@@ -51,7 +51,7 @@ public:
 public slots:
     void view(surface3D &surface, vector<atomType>&, atomsCoords&, float Xsize,
             float Ysize, float Zsize, int z_min, int z_center, int width,
-            int height, coords3D &Vx, coords3D &Vy, coords3D &Vz,
+            int height, Coords3D &Vx, Coords3D &Vy, Coords3D &Vz,
             GRES::VizType vizualType);
     void changeVizType(GRES::VizType type);
     void saveResult();
@@ -100,7 +100,7 @@ private:
     float sR;
     void sphereTemplate(float);
     void cylinderTemplate(float);
-    coords3D *Vx, *Vy, *Vz;
+    Coords3D *Vx, *Vy, *Vz;
     GLuint theSphere;
     QColor clearColor;
     atomsCoords *cellAtoms;

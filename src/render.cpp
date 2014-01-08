@@ -228,7 +228,7 @@ void Render::createSurfacePoints(const surface3D &surface, float Xsize, float Ys
     const size_t dX = surface[z_min][0].size() - 3;
     const size_t dY = surface[z_min].size() - 3;
 
-    coords3D emptyP = {-1.0, -1.0, -1.0};
+    Coords3D emptyP = {-1.0, -1.0, -1.0};
     cells points(dY, atomsCoords(dX, emptyP));
 
     for (size_t z = z_min; z < surface.size() - 2; ++z)
@@ -258,16 +258,16 @@ void Render::createSurfacePoints(const surface3D &surface, float Xsize, float Ys
 
     for (int i = 0; i < SIZE_Y - 4; i++)
         for (int j = 0; j < SIZE_X - 4; j++) {
-            coords3D v1 = {points[i][j].x, points[i][j].y, points[i][j].z};
-            coords3D v2 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j].z};
-            coords3D v3 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
-            coords3D v4 = {points[i + 1][j].x, points[i + 1][j].y, points[i][j].z};
+            Coords3D v1 = {points[i][j].x, points[i][j].y, points[i][j].z};
+            Coords3D v2 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j].z};
+            Coords3D v3 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
+            Coords3D v4 = {points[i + 1][j].x, points[i + 1][j].y, points[i][j].z};
 
             if (!cmp_float(points[i][j].z, points[i][j + 1].z)) {
-                coords3D v5 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j].z};
-                coords3D v6 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j + 1].z};
-                coords3D v7 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j + 1].z};
-                coords3D v8 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
+                Coords3D v5 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j].z};
+                Coords3D v6 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j + 1].z};
+                Coords3D v7 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j + 1].z};
+                Coords3D v8 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
 
                 surfNormals.insert(surfNormals.end(), 4, normcrossprod(v6 + -1 * v5, v7 + -1 * v5));
 
@@ -278,10 +278,10 @@ void Render::createSurfacePoints(const surface3D &surface, float Xsize, float Ys
             }
 
             if (!cmp_float(points[i][j].z, points[i + 1][j].z)) {
-                coords3D v9 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
-                coords3D v10 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i + 1][j].z};
-                coords3D v11 = {points[i + 1][j].x, points[i + 1][j].y, points[i + 1][j].z};
-                coords3D v12 = {points[i + 1][j].x, points[i + 1][j].y, points[i][j].z};
+                Coords3D v9 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
+                Coords3D v10 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i + 1][j].z};
+                Coords3D v11 = {points[i + 1][j].x, points[i + 1][j].y, points[i + 1][j].z};
+                Coords3D v12 = {points[i + 1][j].x, points[i + 1][j].y, points[i][j].z};
 
                 surfNormals.insert(surfNormals.end(), 4, normcrossprod(v10 + -1 * v9, v11 + -1 * v9));
 
@@ -763,7 +763,7 @@ void Render::processAtom(const GLuint *pSelectBuff) {
 void
 Render::view(surface3D &surface, vector<atomType> &surfAt, atomsCoords &atTypes,
              float Xsize, float Ysize, float Zsize, int center, int min,
-             int width, int height, coords3D &vX, coords3D &vY, coords3D &vZ,
+             int width, int height, Coords3D &vX, Coords3D &vY, Coords3D &vZ,
              GRES::VizType vT) {
     visualType = vT;
     surfAtoms = &surfAt;

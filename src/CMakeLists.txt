@@ -34,7 +34,8 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MP")
 endif()
 
-set(${project}_SRC
+set(${PROJECT_NAME}_SRC
+    Coords3D.cpp
     etchingMenu.cpp
     functions.cpp
     main.cpp
@@ -47,7 +48,8 @@ set(${project}_SRC
     settings.cpp
 )
 
-set(${project}_HEADERS
+set(${PROJECT_NAME}_HEADERS
+    Coords3D.h
     etchingMenu.h
     face.h
     geometry.h
@@ -59,7 +61,7 @@ set(${project}_HEADERS
     settings.h
 )
 
-set(${project}_HEADERS_MOC
+set(${PROJECT_NAME}_HEADERS_MOC
     etchingMenu.h
     face.h
     maskMenu.h
@@ -69,28 +71,28 @@ set(${project}_HEADERS_MOC
     settings.h
 )
 
-source_group(${project} FILES
-    ${${project}_SRC}
-    ${${project}_HEADERS}
+source_group(${PROJECT_NAME} FILES
+    ${${PROJECT_NAME}_SRC}
+    ${${PROJECT_NAME}_HEADERS}
 )
 
-set(${project}_RESOURCES
+set(${PROJECT_NAME}_RESOURCES
     resources.qrc
 )
 
-QT5_WRAP_CPP(${project}_HEADERS_MOC ${${project}_HEADERS_MOC})
-QT5_ADD_RESOURCES(${project}_RESOURCES_RCC ${${project}_RESOURCES})
+QT5_WRAP_CPP(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_HEADERS_MOC})
+QT5_ADD_RESOURCES(${PROJECT_NAME}_RESOURCES_RCC ${${PROJECT_NAME}_RESOURCES})
 
-add_executable(${project}
-    ${${project}_SRC}
-    ${${project}_HEADERS_MOC}
-    ${${project}_RESOURCES_RCC}
-    ${${project}_HEADERS}
+add_executable(${PROJECT_NAME}
+    ${${PROJECT_NAME}_SRC}
+    ${${PROJECT_NAME}_HEADERS_MOC}
+    ${${PROJECT_NAME}_RESOURCES_RCC}
+    ${${PROJECT_NAME}_HEADERS}
 )
 
-qt5_use_modules(${project} Widgets Gui Core OpenGL)
+qt5_use_modules(${PROJECT_NAME} Widgets Gui Core OpenGL)
 
-target_link_libraries(${project}
+target_link_libraries(${PROJECT_NAME}
     ${QT_LIBRARIES}
     ${OPENGL_LIBRARIES}
 )

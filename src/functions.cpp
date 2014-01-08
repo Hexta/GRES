@@ -32,7 +32,7 @@ float P3 = 0.00010;
 
 const int NUMBER_OF_ATOMS_IN_CELL = 8;
 
-coords3D atomTypes[] = {
+Coords3D atomTypes[] = {
     {1.0, 1.0, 1.0},
     {1.0, 0.5, 0.5},
     {0.5, 1.0, 0.5},
@@ -80,22 +80,22 @@ void addLayer(surface3D &surface, const allSoseds& sosedi, int sX, int sY, int s
     surface.push_back(surfaceXY);
 }
 
-atomsCoords atomsInBox(const atomsCoords &atoms, const coords3D &Vx, const coords3D &Vy,
-           const coords3D &Vz, const coords3D &P1) {
+atomsCoords atomsInBox(const atomsCoords &atoms, const Coords3D &Vx, const Coords3D &Vy,
+           const Coords3D &Vz, const Coords3D &P1) {
     atomsCoords cellAts;
 
     for (auto &atom : atoms) {
         const float x = atom.x;
         const float y = atom.y;
         const float z = atom.z;
-        coords3D X = {x, y, z};
-        coords3D V = pointShifting(P1, X);
+        Coords3D X = {x, y, z};
+        Coords3D V = X - P1;
 
-        double k = ScalarMult(V, Vz) / VectorQuad(Vz);
+        double k = (V * Vz) / Vz.sqr();
         if (k >= 0.0 && k <= 1.0) {
-            k = ScalarMult(V, Vy) / VectorQuad(Vy);
+            k = (V * Vy) / Vy.sqr();
             if (k >= 0.0 && k <= 1.0) {
-                k = ScalarMult(V, Vx) / VectorQuad(Vx);
+                k = (V * Vx) / Vx.sqr();
                 if (k >= 0.0 && k <= 1.0)
                     cellAts.push_back(X); //Записываем атомы в ячейке
             }
@@ -114,14 +114,14 @@ cellOptim(atomsCoords &ca, float &xs, float &ys, float &zs) {
         const float z = i->z;
 
         if (x > 0.01 && y > 0.01 && z > 0.01) {
-            coords3D atom = {x, y, z};
+            Coords3D atom = {x, y, z};
             newCell.push_back(atom);
         }
     }
 
-    xs = distance(*(ca.end() - 3));
-    ys = distance(*(ca.end() - 2));
-    zs = distance(*(ca.end() - 1));
+    xs = (*(ca.end() - 3)).length();
+    ys = (*(ca.end() - 2)).length();
+    zs = (*(ca.end() - 1)).length();
     ca = newCell;
 }
 
@@ -132,16 +132,16 @@ cells_comp(const atomsCoords &c1, const atomsCoords &c2) {
 
 bool
 compareTranslCell(const atomsCoords &cellAtoms, const atomsCoords &allAtoms,
-                  const coords3D &V) {
+                  const Coords3D &V) {
     bool happy = false;
     for (auto cell_atom_it = cellAtoms.begin();
          cell_atom_it < cellAtoms.end() - 4; ++cell_atom_it) {
 
         happy = false;
-        coords3D At = pointShift(*cell_atom_it, V);
+        Coords3D At = *cell_atom_it + V;
 
         for (auto &atom : allAtoms) {
-            if (coords3Dcompare(At, atom)) {
+            if (At == atom) {
                 happy = true;
                 break;
             }
@@ -153,19 +153,13 @@ compareTranslCell(const atomsCoords &cellAtoms, const atomsCoords &allAtoms,
     return happy;
 }
 
-bool
-coords3Dcompare(const coords3D &coords1, const coords3D &coords2) {
-    //сравнение координат
-    return cmp_float(coords1.x, coords2.x) && cmp_float(coords1.y, coords2.y)
-            && cmp_float(coords1.z, coords2.z);
-}
-
-void coordsMove(atomsCoords &ca, const coords3D &O, const coords3D &Vx,
-           const coords3D &Vy, const coords3D &Vz) {
+void coordsMove(atomsCoords &ca, const Coords3D &O, const Coords3D &Vx,
+           const Coords3D &Vy, const Coords3D &Vz) {
     for (auto atom_coords_it = ca.begin(); atom_coords_it < ca.end() - 4; ++atom_coords_it) {
-        const double x = ScalarMult(pointShifting(O, *atom_coords_it), Vx) / distance(Vx);
-        const double y = ScalarMult(pointShifting(O, *atom_coords_it), Vy) / distance(Vy);
-        const double z = ScalarMult(pointShifting(O, *atom_coords_it), Vz) / distance(Vz);
+        const auto& vec = *atom_coords_it - O;
+        const double x = (vec * Vx) / Vx.length();
+        const double y = (vec * Vy) / Vy.length();
+        const double z = (vec * Vz) / Vz.length();
 
         atom_coords_it->x = static_cast<float> (x);
         atom_coords_it->y = static_cast<float> (y);
@@ -179,28 +173,9 @@ distance(const double& x1, const double& y1, const double& z1, const double& x2,
     return sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2) + pow((z2 - z1), 2));
 }
 
-double
-distance(const coords3D &V) {
-    return sqrt(pow(V.x, 2) + pow(V.y, 2) + pow(V.z, 2));
-}
-
-coords3D
-pointShift(const coords3D &A, const coords3D &V) {
-    //сдвигает точку A на вектор V
-    coords3D result = {A.x + V.x, A.y + V.y, A.z + V.z};
-    return result;
-}
-
-coords3D
-pointShifting(const coords3D &P1, const coords3D &P2) {
-    //Разность координат двух точек
-    coords3D result = {P2.x - P1.x, P2.y - P1.y, P2.z - P1.z};
-    return result;
-}
-
 atomsCoords
 findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
-         coords3D &vX, coords3D &vY, coords3D &vZ) {
+         Coords3D &vX, Coords3D &vY, Coords3D &vZ) {
     const int SIZE_X = 5;
     const int SIZE_Y = 5;
     const int SIZE_Z = 5;
@@ -212,7 +187,7 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
         for (int y = 0; y < 9; ++y)
             for (int x = 0; x < 9; ++x)
                 for (int a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a) {
-                    coords3D atom = {x + atomTypes[a].x, y + atomTypes[a].y,
+                    Coords3D atom = {x + atomTypes[a].x, y + atomTypes[a].y,
                                      z + atomTypes[a].z};
                     allAtoms.push_back(atom);
                 }
@@ -226,7 +201,7 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
             for (int x = 0; x < SIZE_X; ++x)
                 for (int a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a)
                     if (cmp_float(h * (x + atomTypes[a].x) + k * (y + atomTypes[a].y) + l * (z + atomTypes[a].z), C)) {
-                        coords3D atom = {x + atomTypes[a].x, y + atomTypes[a].y, z + atomTypes[a].z};
+                        Coords3D atom = {x + atomTypes[a].x, y + atomTypes[a].y, z + atomTypes[a].z};
                         atomsP1.push_back(atom);
                     }
 
@@ -340,16 +315,16 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
 
             if (atoms == 4) {
                 atomsCoords cellAtoms;
-                coords3D Vx, Vy, Vz, P1;
+                Coords3D Vx, Vy, Vz, P1;
                 P1.x = x3;
                 P1.y = y3;
                 P1.z = z3;
-                coords3D P2 = {x4, y4, z4}, P3 = {x1, y1, z1};
-                coords3D P4 = {x3 + n*h, y3 + n*k, z3 + n * l};
+                Coords3D P2 = {x4, y4, z4}, P3 = {x1, y1, z1};
+                Coords3D P4 = {x3 + n*h, y3 + n*k, z3 + n * l};
 
-                Vz = pointShifting(P1, P4);
-                Vy = pointShifting(P1, P3);
-                Vx = pointShifting(P1, P2);
+                Vz = P4 - P1;
+                Vy = P3 - P1;
+                Vx = P2 - P1;
                 cellAtoms = atomsInBox(allAtoms, Vx, Vy, Vz, P1);
 
                 // а в конец списка атомов запишем векторы координат и координаты начала координат :)
@@ -367,10 +342,10 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
         const size_t cell_size = cell.size();
 
         //считаем векторы координат
-        const coords3D &P1 = *(cell.end() - 4);
-        const coords3D &Vx = *(cell.end() - 3);
-        const coords3D &Vy = *(cell.end() - 2);
-        const coords3D &Vz = *(cell.end() - 1);
+        const Coords3D &P1 = *(cell.end() - 4);
+        const Coords3D &Vx = *(cell.end() - 3);
+        const Coords3D &Vy = *(cell.end() - 2);
+        const Coords3D &Vz = *(cell.end() - 1);
         //транслируем по OX
         bool happy = compareTranslCell(cell, allAtoms, Vx);
 
@@ -393,37 +368,37 @@ findCell(int h, int k, int l, float &Xsize, float &Ysize, float &Zsize,
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                pointShift(P1, Vx));
+                                                P1 + Vx);
             happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                pointShift(P1, Vy));
+                                                P1 + Vy);
             happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                pointShift(P1, Vz));
+                                                P1 + Vz);
             happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                pointShift(P1, -1 * Vx));
+                                                P1 + -1 * Vx);
             happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                pointShift(P1, -1 * Vy));
+                                                P1 + -1 * Vy);
             happy = (cell_size - 4 == translCell.size());
         }
 
         if (happy) {
             atomsCoords translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                pointShift(P1, -1 * Vz));
+                                                P1 + -1 * Vz);
             happy = (cell_size - 4 == translCell.size());
         }
         if (happy) {
@@ -543,12 +518,6 @@ rect_comp(const rectangle &r1, const rectangle &r2) {
     return S1 < S2;
 }
 
-double ScalarMult(const coords3D& V1, const coords3D& V2) {
-    //Скалярное произведение векторов
-
-    return V1.x * V2.x + V1.y * V2.y + V1.z * V2.z;
-}
-
 bool selAtom(surface3D &surface, vector<atomType> &surfAtoms, allSoseds &neighbs,
         int z_min, atomsCoords &tA, const vector<bool> &mask, const float *rates) {
     P1 = rates[0];
@@ -663,7 +632,7 @@ selAtomCA(surface3D &surface, vector<atomType> &surfAtoms, int z_min,
         }
     }
 
-    size_t i = 0;
+    int i = 0;
     auto surfAtomsEnd = surfAtoms.end();
     for (auto surfAtomIter = surfAtoms.begin(); surfAtomIter != surfAtomsEnd;
          ++surfAtomIter) {
@@ -712,39 +681,6 @@ delAtom(surface3D &surface, vector<atomType> &surfAtoms, int x, int y, int z,
     surface[z][y][x][type].neighbours.clear();
 }
 
-double
-VectorQuad(const coords3D &V) {
-    //Возведение вектора в квадрат
-
-    static auto xPrev = V.x;
-    static auto yPrev = V.y;
-    static auto zPrev = V.z;
-
-    static auto resultPrev = pow(xPrev, 2) + pow(yPrev, 2) + pow(zPrev, 2);
-
-    if (cmp_float(xPrev, V.x) && cmp_float(yPrev, V.y) && cmp_float(zPrev, V.z))
-        return resultPrev;
-
-    xPrev = V.x;
-    yPrev = V.y;
-    zPrev = V.z;
-    resultPrev = pow(xPrev, 2) + pow(yPrev, 2) + pow(zPrev, 2);
-
-    return resultPrev;
-}
-
-coords3D operator +(const coords3D& v1, const coords3D& v2) {
-
-    coords3D temp = {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
-    return temp;
-}
-
-coords3D operator *(const int& n, const coords3D& v) {
-
-    coords3D temp = {n * v.x, n * v.y, n * v.z};
-    return temp;
-}
-
 void
 optimizeSurface(surface3D &surface, int z_min) {
 
@@ -756,3 +692,4 @@ optimizeSurface(surface3D &surface, int z_min) {
 bool operator==(const atomType &a1, const atomType &a2) {
     return ((a1.x == a2.x) && (a1.y == a2.y) && (a1.z == a2.z) && (a1.type == a2.type));
 }
+

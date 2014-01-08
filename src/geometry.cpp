@@ -127,15 +127,15 @@ normalize(float v[3]) {
 }
 
 void
-normalize(float v[3], coords3D &out) {
+normalize(float v[3], Coords3D &out) {
     const float len = static_cast<float> (sqrt(pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2)));
     out.x = v[0] / len;
     out.y = v[1] / len;
     out.z = v[2] / len;
 }
 
-coords3D
-normalize(const coords3D& in) {
+Coords3D
+normalize(const Coords3D& in) {
     const float len = static_cast<float> (sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2)));
     return
     {
@@ -240,16 +240,16 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     vertex1.reserve(slices + 1);
     norm1.reserve(slices + 1);
 
-    coords3D v1 = {0.0, 0.0, static_cast<float> (radius)};
+    Coords3D v1 = {0.0, 0.0, static_cast<float> (radius)};
     vertex1.push_back(v1);
-    coords3D nT;
+    Coords3D nT;
     normalize(&v1.x, nT);
     norm1.push_back(nT);
     for (i = slices; i >= 0; --i) {
-        coords3D n1 = {sinCache3a[i + 1] * sintemp3,
+        Coords3D n1 = {sinCache3a[i + 1] * sintemp3,
                        cosCache3a[i + 1] * sintemp3, costemp3};
         norm1.push_back(n1);
-        coords3D v1 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
+        Coords3D v1 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
         vertex1.push_back(v1);
     }
 
@@ -266,14 +266,14 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     vertex2.reserve(slices + 1);
     norm2.reserve(slices + 1);
 
-    coords3D v2 = {0.0, 0.0, static_cast<float> (-radius)};
+    Coords3D v2 = {0.0, 0.0, static_cast<float> (-radius)};
     vertex2.push_back(v2);
     normalize(&v2.x, nT);
     norm2.push_back(nT);
     for (i = 0; i <= slices; ++i) {
-        coords3D n2 = {sinCache3a[i] * sintemp3, cosCache3a[i] * sintemp3, costemp3};
+        Coords3D n2 = {sinCache3a[i] * sintemp3, cosCache3a[i] * sintemp3, costemp3};
         norm2.push_back(n2);
-        coords3D v2 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
+        Coords3D v2 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
         vertex2.push_back(v2);
     }
 
@@ -293,14 +293,14 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
         //GL_QUAD_STRIP
         for (i = 0; i <= slices; ++i) {
-            coords3D v3 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
+            Coords3D v3 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
             vertex3.push_back(v3);
 
-            coords3D n3 = {sinCache3a[i] * sintemp4, cosCache3a[i] * sintemp4, costemp4};
+            Coords3D n3 = {sinCache3a[i] * sintemp4, cosCache3a[i] * sintemp4, costemp4};
             norm3.push_back(n3);
             norm3.push_back(n3);
 
-            coords3D v3_ = {sintemp1 * sinCache1a[i], sintemp1 * cosCache1a[i], zLow};
+            Coords3D v3_ = {sintemp1 * sinCache1a[i], sintemp1 * cosCache1a[i], zLow};
             vertex3.push_back(v3_);
         }
     }
@@ -342,14 +342,14 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 }
 
 void
-norm(coords3D &in) {
+norm(Coords3D &in) {
     const float len = static_cast<float> (sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2)));
-    coords3D temp = {in.x / len, in.y / len, in.z / len};
+    Coords3D temp = {in.x / len, in.y / len, in.z / len};
     in = temp;
 }
 
-coords3D normcrossprod(const coords3D& in1, const coords3D& in2) {
-    coords3D out;
+Coords3D normcrossprod(const Coords3D& in1, const Coords3D& in2) {
+    Coords3D out;
     out.x = in1.y * in2.z - in1.z * in2.y;
     out.y = in1.z * in2.x - in1.x * in2.z;
     out.z = in1.x * in2.y - in1.y * in2.x;

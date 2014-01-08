@@ -79,7 +79,7 @@ private:
     float Xsize, Ysize, Zsize;
     vector<atomType> surfAtoms;
     int z_center, z_min;
-    coords3D Vx, Vy, Vz;
+    Coords3D Vx, Vy, Vz;
     bool perfect;
     allSoseds sosedi;
     cells surfacePoints;
