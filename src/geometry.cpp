@@ -33,11 +33,12 @@
 #define glBufferSubDataARB        pglBufferSubDataARB
 #endif
 
-void
-createAtomsAndBondes(surface3D &surface, const vector<atomType> &surfAtoms,
-                     const atomsCoords &cellAts, float xs, float ys, float zs,
+void createAtomsAndBondes(surface3D &surface, const vector<AtomType>& surfAtoms,
+                     const Cell &cellAts, float xs_, float ys_, float zs_,
                      int z_min, float scaling, vector<atomName> &atNames_,
-                     Bonds &outBonds) {
+                     Bonds &outBonds)
+{
+    auto& cellAtoms = cellAts.atoms;
 
     int name = 0;
     for (auto &surfAtom : surfAtoms) {
@@ -47,25 +48,25 @@ createAtomsAndBondes(surface3D &surface, const vector<atomType> &surfAtoms,
         const int z = surfAtom.z;
         const unsigned char a = surfAtom.type;
 
-        auto &neighbours = surface[z][y][x][a].neighbours;
+        auto &neighbours = surface[z][y][x][a].neighbors;
 
         if (!neighbours.empty()) {
-            float x0 = scaling * x*xs;
-            float y0 = scaling * y*ys;
-            float z0 = -scaling * (z - z_min) * zs;
+            float x0 = scaling * x*xs_;
+            float y0 = scaling * y*ys_;
+            float z0 = -scaling * (z - z_min) * zs_;
 
-            float xA = x0 + scaling * cellAts[a].x;
-            float yA = y0 + scaling * cellAts[a].y;
-            float zA = z0 - scaling * cellAts[a].z;
+            float xA = x0 + scaling * cellAtoms[a].x;
+            float yA = y0 + scaling * cellAtoms[a].y;
+            float zA = z0 - scaling * cellAtoms[a].z;
 
             ++name;
             atomName temp = {name, x, y, z, xA, yA, zA, a, static_cast<int> (neighbours.size())};
             atNames_.push_back(temp);
 
             for (auto &nb : neighbours) {
-                float xNb = scaling * (xs * nb.x + cellAts[nb.type].x);
-                float yNb = scaling * (ys * nb.y + cellAts[nb.type].y);
-                float zNb = scaling * (-zs * nb.z - cellAts[nb.type].z);
+                float xNb = scaling * (xs_ * nb.x + cellAtoms[nb.type].x);
+                float yNb = scaling * (ys_ * nb.y + cellAtoms[nb.type].y);
+                float zNb = scaling * (-zs_ * nb.z - cellAtoms[nb.type].z);
 
                 Bond bondT = {xA, yA, zA, xNb, yNb, zNb};
                 outBonds.push_back(bondT);
@@ -79,7 +80,7 @@ createAtomsAndBondes(surface3D &surface, const vector<atomType> &surfAtoms,
         int z_ = surfAtom.z;
         unsigned char a_ = surfAtom.type;
 
-        for (auto &nb : surface[z_][y_][x_][a_].neighbours) {
+        for (auto &nb : surface[z_][y_][x_][a_].neighbors) {
             int x = nb.x;
             int y = nb.y;
             int z = nb.z;
@@ -90,23 +91,23 @@ createAtomsAndBondes(surface3D &surface, const vector<atomType> &surfAtoms,
             if (x > 1 && x < surface[z_][y_].size() - 2 && y > 1 && y < surface[z_].size() - 2)
                 if (!surfaceZYXA.deleted) {
 
-                    float x0 = scaling * x*xs;
-                    float y0 = scaling * y*ys;
-                    float z0 = -scaling * (z - z_min) * zs;
+                    float x0 = scaling * x*xs_;
+                    float y0 = scaling * y*ys_;
+                    float z0 = -scaling * (z - z_min) * zs_;
 
-                    float xA = x0 + scaling * cellAts[a].x;
-                    float yA = y0 + scaling * cellAts[a].y;
-                    float zA = z0 - scaling * cellAts[a].z;
+                    float xA = x0 + scaling * cellAtoms[a].x;
+                    float yA = y0 + scaling * cellAtoms[a].y;
+                    float zA = z0 - scaling * cellAtoms[a].z;
 
                     ++name;
                     atomName temp = {name, x, y, z, xA, yA, zA, a,
-                                     static_cast<int> (surfaceZYXA.neighbours.size())};
+                                     static_cast<int> (surfaceZYXA.neighbors.size())};
                     atNames_.push_back(temp);
 
-                    for (auto &nb_int : surfaceZYXA.neighbours) {
-                        float xNb = scaling * (xs * nb_int.x + cellAts[nb_int.type].x);
-                        float yNb = scaling * (ys * nb_int.y + cellAts[nb_int.type].y);
-                        float zNb = scaling * (-zs * nb_int.z - cellAts[nb_int.type].z);
+                    for (auto &nb_int : surfaceZYXA.neighbors) {
+                        float xNb = scaling * (xs_ * nb_int.x + cellAtoms[nb_int.type].x);
+                        float yNb = scaling * (ys_ * nb_int.y + cellAtoms[nb_int.type].y);
+                        float zNb = scaling * (-zs_ * nb_int.z - cellAtoms[nb_int.type].z);
 
                         Bond bondT = {xA, yA, zA,
                                       xNb, yNb, zNb};
@@ -234,8 +235,8 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
     //GL_TRIANGLE_FAN
 
-    atomsCoords norm1;
-    atomsCoords vertex1;
+    Atoms norm1;
+    Atoms vertex1;
 
     vertex1.reserve(slices + 1);
     norm1.reserve(slices + 1);
@@ -260,8 +261,8 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     costemp3 = cosCache3b[stacks];
     //GL_TRIANGLE_FAN
 
-    atomsCoords norm2;
-    atomsCoords vertex2;
+    Atoms norm2;
+    Atoms vertex2;
 
     vertex2.reserve(slices + 1);
     norm2.reserve(slices + 1);
@@ -277,8 +278,8 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
         vertex2.push_back(v2);
     }
 
-    atomsCoords norm3;
-    atomsCoords vertex3;
+    Atoms norm3;
+    Atoms vertex3;
 
     vertex3.reserve(2 * (finish - start) * slices);
     norm3.reserve(2 * (finish - start) * slices);

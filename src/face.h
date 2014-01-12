@@ -74,15 +74,15 @@ private:
 
     int h, k, l;
     int SIZE_X, SIZE_Y, SIZE_Z;
-    atomsCoords cellAtoms;
+    Cell cell;
     surface3D surfaceXYZ;
     float Xsize, Ysize, Zsize;
-    vector<atomType> surfAtoms;
+    vector<AtomType> surfAtoms;
     int z_center, z_min;
     Coords3D Vx, Vy, Vz;
     bool perfect;
-    allSoseds sosedi;
-    cells surfacePoints;
+    AllNeighbors sosedi;
+    Cells surfacePoints;
     GRES::VizType vizualType; //тип визуализации
     void drawResult();
     vector<bool> mask;

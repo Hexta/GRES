@@ -17,52 +17,28 @@
 
 #pragma once
 
-#include "functions.h"
+#include "Coords3D.h"
 
-#ifdef _WIN32 
-#include <windows.h>
-#include <wingdi.h>
-#endif
-
-#include <GL/glu.h>
-
+#include <cstddef>
 #include <vector>
 
-using std::vector;
-
-struct atomName {
-    int name;
-    int xC;
-    int yC;
-    int zC;
-    float x;
-    float y;
-    float z;
-    unsigned char type;
-    int fNbCount;
+struct AtomType {
+    int x; //сдвиг €чейки по OX (-1;0;+1)
+    int y;
+    int z;
+    unsigned char type; //тип атома (1 -- 8)
+    bool toDel;
 };
 
-typedef vector<atomName>AtomsNames;
+bool operator==(const AtomType &a1, const AtomType &a2);
 
-struct Bond {
-    float x1;
-    float y1;
-    float z1;
-    float x2;
-    float y2;
-    float z2;
+typedef std::vector<AtomType> Neighbors; //соседи одного атома
+typedef std::vector<Neighbors> AllNeighbors; //соседи всех атомов
+
+struct AtomInfo {
+    Neighbors neighbors;
+    char fNbCount;
+    bool deleted;
 };
 
-typedef vector<Bond> Bonds;
-
-void createAtomsAndBondes(surface3D &surface, const vector<AtomType>& surfAtoms,
-        const Cell &cellAts, float xs_, float ys_, float zs_, int z_min,
-        float scaling, vector<atomName> &atNames_, Bonds &outBonds);
-
-void createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
-        int &vSize2, int &vSize3);
-void normalize(float v[3]);
-void normalize(float v[3], Coords3D&);
-Coords3D normalize(const Coords3D& in);
-void norm(Coords3D &in);
-Coords3D normcrossprod(const Coords3D& in1, const Coords3D& in2);
+typedef std::vector<Coords3D> Atoms;

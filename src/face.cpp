@@ -173,7 +173,7 @@ MainW::createToolBars() {
 
 void
 MainW::drawResult() {
-    result->view(surfaceXYZ, surfAtoms, cellAtoms, Xsize, Ysize, Zsize,
+    result->view(surfaceXYZ, surfAtoms, cell, Xsize, Ysize, Zsize,
                  z_center, z_min, SIZE_X, SIZE_Y, Vx, Vy, Vz, vizualType);
 }
 
@@ -185,9 +185,9 @@ MainW::etch(int simType_, int IterCount, float *rates) {
     int count = IterCount;
     for (int n = 0; n < count; ++n) {
         if (sT == GRES::SimType::KMC)
-            perfect = selAtom(surfaceXYZ, surfAtoms, sosedi, z_min, cellAtoms, mask, rates);
+            perfect = selAtom(surfaceXYZ, surfAtoms, sosedi, z_min, cell, mask, rates);
         else if (sT == GRES::SimType::CA)
-            perfect = selAtomCA(surfaceXYZ, surfAtoms, z_min, cellAtoms, mask, rates);
+            perfect = selAtomCA(surfaceXYZ, surfAtoms, z_min, cell, mask, rates);
 
         if (perfect) {
             addLayer(surfaceXYZ, sosedi, SIZE_X, SIZE_Y, SIZE_Z);
@@ -226,10 +226,10 @@ MainW::newDocument() {
     int zMax = SIZE_Z;
     z_center = z_min + (zMax - 2 - z_min) / 2;
 
-    cellAtoms = findCell(h, k, l, Xsize, Ysize, Zsize, Vx, Vy, Vz);
+    cell = findCell(h, k, l, Xsize, Ysize, Zsize, Vx, Vy, Vz);
     const unsigned int NUMBER_OF_ATOMS_IN_CELL
-            = static_cast<unsigned int> (cellAtoms.size());
-    findSoseds(sosedi, cellAtoms, Xsize, Ysize, Zsize);
+            = static_cast<unsigned int> (cell.size());
+    sosedi = cell.findSoseds(Xsize, Ysize, Zsize);
 
     surfaceXYZ.clear();
     surfAtoms.clear();
@@ -241,9 +241,9 @@ MainW::newDocument() {
             surface1D surfaceX;
             surfaceX.reserve(SIZE_X);
             for (int x = 0; x < SIZE_X; ++x) {
-                cell cell;
+                vector<AtomInfo> cell;
                 for (unsigned char a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a) {
-                    soseds neighbs;
+                    Neighbors neighbs;
                     char numberNeighbs = 0; //Число первых соседей
                     for (int nb = 0; nb < 4; ++nb) {
                         auto &sosediANb = sosedi[a][nb];
@@ -252,17 +252,17 @@ MainW::newDocument() {
                             x + sosediANb.x < xMax && y + sosediANb.y < yMax
                             && z + sosediANb.z < zMax + 1) {
                             ++numberNeighbs;
-                            atomType neighb = {x + sosediANb.x, y + sosediANb.y,
+                            AtomType neighb = {x + sosediANb.x, y + sosediANb.y,
                                                z + sosediANb.z, sosediANb.type, false};
                             neighbs.push_back(neighb);
                         }
                     }
                     if ((x > 1 && x < SIZE_X - 2) && (y > 1 && y < SIZE_Y - 2) && z < SIZE_Z - 2)
                         if (numberNeighbs && numberNeighbs < 4) {
-                            atomType aT = {x, y, z, a, false};
+                            AtomType aT = {x, y, z, a, false};
                             surfAtoms.push_back(aT);
                         }
-                    atomInfo atom = {neighbs, numberNeighbs, !numberNeighbs};
+                    AtomInfo atom = {neighbs, numberNeighbs, !numberNeighbs};
                     cell.push_back(atom);
                 }
                 surfaceX.push_back(cell);

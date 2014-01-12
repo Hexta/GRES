@@ -38,6 +38,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 set(${PROJECT_NAME}_SRC
+    Atoms.cpp
+    Cell.cpp
     Coords3D.cpp
     etchingMenu.cpp
     functions.cpp
@@ -52,9 +54,12 @@ set(${PROJECT_NAME}_SRC
 )
 
 set(${PROJECT_NAME}_HEADERS
+    Atoms.h
+    Cell.h
     Coords3D.h
     etchingMenu.h
     face.h
+    functions.h
     geometry.h
     maskMenu.h
     maskPreview.h

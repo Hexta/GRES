@@ -183,10 +183,10 @@ Render::createActions() {
     // 	connect (exitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
-void
-Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
+void Render::createAtomsAndBonds(surface3D &surface, Atoms &cellAts, float xs_,
                             float ys_, float zs_, int z_min, AtomsNames &atN,
-                            Bonds &outBonds) {
+                            Bonds &outBonds)
+{
 
     int name = 0;
     for (size_t z = z_min; z < surface.size() - 2; ++z)
@@ -210,7 +210,7 @@ Render::createAtomsAndBonds(surface3D &surface, atomsCoords &cellAts, float xs_,
                                          static_cast<int> (atomsCount)};
                         atN.push_back(temp);
 
-                        for (auto &nb : surface[z][y][x][a].neighbours) {
+                        for (auto &nb : surface[z][y][x][a].neighbors) {
                             float xNb = scaling * (xs * nb.x + cellAts[nb.type].x);
                             float yNb = scaling * (ys * nb.y + cellAts[nb.type].y);
                             float zNb = scaling * (-zs * nb.z - cellAts[nb.type].z);
@@ -229,45 +229,47 @@ void Render::createSurfacePoints(const surface3D &surface, float Xsize, float Ys
     const size_t dY = surface[z_min].size() - 3;
 
     Coords3D emptyP = {-1.0, -1.0, -1.0};
-    cells points(dY, atomsCoords(dX, emptyP));
+    Cells points(dY, Atoms(dX, emptyP));
 
     for (size_t z = z_min; z < surface.size() - 2; ++z)
         for (size_t y = surface[z].size() - 2; --y >= 2;)
             for (size_t x = surface[z][y].size() - 2; --x >= 2;)
                 for (const auto& atom : surface[z][y][x])
                     if (!atom.deleted)
-                        if (cmp_float(points[y - 2][x - 2].x, -1.0)) {
-                            points[y - 2][x - 2].x = scaling * (x - 2) * Xsize;
-                            points[y - 2][x - 2].z = -scaling * z*Zsize;
-                            points[y - 2][x - 2].y = scaling * (y - 2) * Ysize;
+                        if (cmp_float(points[y - 2].atoms[x - 2].x, -1.0)) {
+                            points[y - 2].atoms[x - 2].x = scaling * (x - 2) * Xsize;
+                            points[y - 2].atoms[x - 2].z = -scaling * z*Zsize;
+                            points[y - 2].atoms[x - 2].y = scaling * (y - 2) * Ysize;
                         }
 
     for (int i = 0; i < dY; ++i) {
-        points[i][dX - 1].x = points[i][dX - 2].x + scaling*Xsize;
-        points[i][dX - 1].y = points[i][dX - 2].y;
-        points[i][dX - 1].z = points[i][dX - 2].z;
+        points[i].atoms[dX - 1].x = points[i].atoms[dX - 2].x + scaling*Xsize;
+        points[i].atoms[dX - 1].y = points[i].atoms[dX - 2].y;
+        points[i].atoms[dX - 1].z = points[i].atoms[dX - 2].z;
     }
 
     for (int i = 0; i < dX; ++i) {
-        points[dY - 1][i].x = points[dY - 2][i].x;
-        points[dY - 1][i].y = points[dY - 2][i].y + scaling*Ysize;
-        points[dY - 1][i].z = points[dY - 2][i].z;
+        points[dY - 1].atoms[i].x = points[dY - 2].atoms[i].x;
+        points[dY - 1].atoms[i].y = points[dY - 2].atoms[i].y + scaling*Ysize;
+        points[dY - 1].atoms[i].z = points[dY - 2].atoms[i].z;
     }
     surfVertex.reserve((SIZE_Y - 4)*(SIZE_X - 4));
     surfNormals.reserve((SIZE_Y - 4)*(SIZE_X - 4));
 
     for (int i = 0; i < SIZE_Y - 4; i++)
         for (int j = 0; j < SIZE_X - 4; j++) {
-            Coords3D v1 = {points[i][j].x, points[i][j].y, points[i][j].z};
-            Coords3D v2 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j].z};
-            Coords3D v3 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
-            Coords3D v4 = {points[i + 1][j].x, points[i + 1][j].y, points[i][j].z};
+            Cell& cell = points[i];
+            Cell& cellNext = points[i + 1];
+            Coords3D v1 = {cell.atoms[j].x, cell.atoms[j].y, cell.atoms[j].z};
+            Coords3D v2 = {cell.atoms[j + 1].x, cell.atoms[j + 1].y, cell.atoms[j].z};
+            Coords3D v3 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
+            Coords3D v4 = {cellNext.atoms[j].x, cellNext.atoms[j].y, cell.atoms[j].z};
 
-            if (!cmp_float(points[i][j].z, points[i][j + 1].z)) {
-                Coords3D v5 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j].z};
-                Coords3D v6 = {points[i][j + 1].x, points[i][j + 1].y, points[i][j + 1].z};
-                Coords3D v7 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j + 1].z};
-                Coords3D v8 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
+            if (!cmp_float(cell.atoms[j].z, cell.atoms[j + 1].z)) {
+                Coords3D v5 = {cell.atoms[j + 1].x, cell.atoms[j + 1].y, cell.atoms[j].z};
+                Coords3D v6 = {cell.atoms[j + 1].x, cell.atoms[j + 1].y, cell.atoms[j + 1].z};
+                Coords3D v7 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j + 1].z};
+                Coords3D v8 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
 
                 surfNormals.insert(surfNormals.end(), 4, normcrossprod(v6 + -1 * v5, v7 + -1 * v5));
 
@@ -277,11 +279,11 @@ void Render::createSurfacePoints(const surface3D &surface, float Xsize, float Ys
                 surfVertex.push_back(v8);
             }
 
-            if (!cmp_float(points[i][j].z, points[i + 1][j].z)) {
-                Coords3D v9 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i][j].z};
-                Coords3D v10 = {points[i + 1][j + 1].x, points[i + 1][j + 1].y, points[i + 1][j].z};
-                Coords3D v11 = {points[i + 1][j].x, points[i + 1][j].y, points[i + 1][j].z};
-                Coords3D v12 = {points[i + 1][j].x, points[i + 1][j].y, points[i][j].z};
+            if (!cmp_float(cell.atoms[j].z, cellNext.atoms[j].z)) {
+                Coords3D v9 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
+                Coords3D v10 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cellNext.atoms[j].z};
+                Coords3D v11 = {cellNext.atoms[j].x, cellNext.atoms[j].y, cellNext.atoms[j].z};
+                Coords3D v12 = {cellNext.atoms[j].x, cellNext.atoms[j].y, cell.atoms[j].z};
 
                 surfNormals.insert(surfNormals.end(), 4, normcrossprod(v10 + -1 * v9, v11 + -1 * v9));
 
@@ -761,7 +763,7 @@ void Render::processAtom(const GLuint *pSelectBuff) {
 }
 
 void
-Render::view(surface3D &surface, vector<atomType> &surfAt, atomsCoords &atTypes,
+Render::view(surface3D &surface, vector<AtomType> &surfAt, Cell &atTypes,
              float Xsize, float Ysize, float Zsize, int center, int min,
              int width, int height, Coords3D &vX, Coords3D &vY, Coords3D &vZ,
              GRES::VizType vT) {
@@ -774,7 +776,7 @@ Render::view(surface3D &surface, vector<atomType> &surfAt, atomsCoords &atTypes,
     surfaceXYZ = &surface;
     z_min = min;
     z_center = center;
-    cellAtoms = &atTypes;
+    cellAtoms = &atTypes.atoms;
     SIZE_X = width;
     SIZE_Y = height;
     Vx = &vX;
