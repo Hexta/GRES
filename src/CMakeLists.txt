@@ -11,7 +11,7 @@ add_definitions(${QT5_DEFINITIONS})
 
 find_package(OpenGL REQUIRED)
 
-FIND_PACKAGE( OpenMP REQUIRED)
+FIND_PACKAGE(OpenMP)
 if(OPENMP_FOUND)
     message("OPENMP FOUND")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -32,6 +32,9 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 elseif(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MP")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -ggdb -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++0x -g -fno-omit-frame-pointer -Wall -Wextra -pedantic -Weverything -Wnosystem-headers")
 endif()
 
 set(${PROJECT_NAME}_SRC
