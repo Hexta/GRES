@@ -20,6 +20,8 @@
 
 #include <GL/glext.h>
 
+#include <cmath>
+
 #define CACHE_SIZE 240
 #define PI 3.1415926535897932385
 #define SIN sinf
@@ -33,7 +35,7 @@
 #define glBufferSubDataARB        pglBufferSubDataARB
 #endif
 
-void createAtomsAndBondes(surface3D &surface, const vector<AtomType>& surfAtoms,
+void createAtomsAndBondes(Surface3D &surface, const vector<AtomType>& surfAtoms,
                      const Cell &cellAts, float xs_, float ys_, float zs_,
                      int z_min, float scaling, vector<atomName> &atNames_,
                      Bonds &outBonds)

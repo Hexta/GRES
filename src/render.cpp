@@ -183,7 +183,7 @@ Render::createActions() {
     // 	connect (exitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
-void Render::createAtomsAndBonds(surface3D &surface, Atoms &cellAts, float xs_,
+void Render::createAtomsAndBonds(Surface3D &surface, Atoms &cellAts, float xs_,
                             float ys_, float zs_, int z_min, AtomsNames &atN,
                             Bonds &outBonds)
 {
@@ -223,8 +223,9 @@ void Render::createAtomsAndBonds(surface3D &surface, Atoms &cellAts, float xs_,
             }
 }
 
-void Render::createSurfacePoints(const surface3D &surface, float Xsize, float Ysize, float Zsize,
-                            int z_min) {
+void Render::createSurfacePoints(const Surface3D &surface, float Xsize, float Ysize, float Zsize,
+                            int z_min)
+{
     const size_t dX = surface[z_min][0].size() - 3;
     const size_t dY = surface[z_min].size() - 3;
 
@@ -235,12 +236,14 @@ void Render::createSurfacePoints(const surface3D &surface, float Xsize, float Ys
         for (size_t y = surface[z].size() - 2; --y >= 2;)
             for (size_t x = surface[z][y].size() - 2; --x >= 2;)
                 for (const auto& atom : surface[z][y][x])
-                    if (!atom.deleted)
-                        if (cmp_float(points[y - 2].atoms[x - 2].x, -1.0)) {
-                            points[y - 2].atoms[x - 2].x = scaling * (x - 2) * Xsize;
-                            points[y - 2].atoms[x - 2].z = -scaling * z*Zsize;
-                            points[y - 2].atoms[x - 2].y = scaling * (y - 2) * Ysize;
+                if (!atom.deleted) {
+                    auto& atom_ = points[y - 2].atoms[x - 2];
+                    if (cmp_float(atom_.x, -1.0)) {
+                        atom_.x = scaling * (x - 2) * Xsize;
+                        atom_.z = -scaling * z*Zsize;
+                        atom_.y = scaling * (y - 2) * Ysize;
                         }
+                }      
 
     for (int i = 0; i < dY; ++i) {
         points[i].atoms[dX - 1].x = points[i].atoms[dX - 2].x + scaling*Xsize;
@@ -422,8 +425,8 @@ Render::draw() {
 			GLfloat ambientLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 			GLfloat diffuseLight[] = { 0.8, 0.8, 0.8, 1.0 };*/
             GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
-            GLfloat diffuseLight[] = {0.7, 0.7, 0.7, 1.0};
-            GLfloat specularLight[] = {1.0, 1.0, 1.0, 1.0};
+            GLfloat diffuseLight[] = {0.7f, 0.7f, 0.7f, 1.0f};
+            GLfloat specularLight[] = {1.0f, 1.0f, 1.0f, 1.0f};
             GLfloat light_position[] = {10.0, 10.0, 20.0, 0.0f};
             //GLfloat mat_specular[] = { 0.8, 0.8, 0.8, 1.0 };
             //GLfloat mat_shininess[] = { 200.0 };
@@ -434,7 +437,7 @@ Render::draw() {
             //GLfloat mat_shininess[] = { 100.0 };
             //glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
             //glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
-            GLfloat mat_specular[] = {0.3, 0.3, 0.3, 1.0};
+            GLfloat mat_specular[] = {0.3f, 0.3f, 0.3f, 1.0f};
             GLfloat mat_shininess[] = {100.0};
             glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
             glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
@@ -516,15 +519,15 @@ Render::draw() {
                 glBindBufferARB(GL_ARRAY_BUFFER, 0);
             }
             glFlush();
-        }/*-------------------------------*/
+        }
         else if (visualType == GRES::VizType::CELLS_SURFACE) {
 
             GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
-            GLfloat diffuseLight[] = {0.7, 0.7, 0.7, 1.0};
-            GLfloat specularLight[] = {1.0, 1.0, 1.0, 1.0};
-            GLfloat light_position[] = {5.0, 5.0, 5.0, 0.0f};
+            GLfloat diffuseLight[] = {0.7f, 0.7f, 0.7f, 1.0f};
+            GLfloat specularLight[] = {1.0f, 1.0f, 1.0f, 1.0f};
+            GLfloat light_position[] = {5.0f, 5.0f, 5.0f, 0.0f};
             //GLfloat light_position[] = { 10.0, 10.0, 20.0, 0.0f };
-            GLfloat mat_specular[] = {0.3, 0.3, 0.3, 1.0};
+            GLfloat mat_specular[] = {0.3f, 0.3f, 0.3f, 1.0f};
             GLfloat mat_shininess[] = {100.0};
             glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
             glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
@@ -763,7 +766,7 @@ void Render::processAtom(const GLuint *pSelectBuff) {
 }
 
 void
-Render::view(surface3D &surface, vector<AtomType> &surfAt, Cell &atTypes,
+Render::view(Surface3D &surface, vector<AtomType> &surfAt, Cell &atTypes,
              float Xsize, float Ysize, float Zsize, int center, int min,
              int width, int height, Coords3D &vX, Coords3D &vY, Coords3D &vZ,
              GRES::VizType vT) {

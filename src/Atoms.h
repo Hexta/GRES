@@ -42,3 +42,5 @@ struct AtomInfo {
 };
 
 typedef std::vector<Coords3D> Atoms;
+
+typedef std::vector<AtomInfo> CellInfo;

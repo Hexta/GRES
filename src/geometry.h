@@ -55,7 +55,7 @@ struct Bond {
 
 typedef vector<Bond> Bonds;
 
-void createAtomsAndBondes(surface3D &surface, const vector<AtomType>& surfAtoms,
+void createAtomsAndBondes(Surface3D &surface, const vector<AtomType>& surfAtoms,
         const Cell &cellAts, float xs_, float ys_, float zs_, int z_min,
         float scaling, vector<atomName> &atNames_, Bonds &outBonds);
 

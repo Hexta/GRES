@@ -51,6 +51,7 @@ set(${PROJECT_NAME}_SRC
     maskMenu.cpp
     render.cpp
     settings.cpp
+    Surface3D.cpp
 )
 
 set(${PROJECT_NAME}_HEADERS
@@ -67,6 +68,7 @@ set(${PROJECT_NAME}_HEADERS
     render.h
     selectAtomMenu.h
     settings.h
+    Surface3D.h
 )
 
 set(${PROJECT_NAME}_HEADERS_MOC

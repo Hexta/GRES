@@ -194,8 +194,9 @@ MainW::etch(int simType_, int IterCount, float *rates) {
             ++SIZE_Z;
             perfect = true;
         }
-        findZmin(surfaceXYZ, z_min);
-        optimizeSurface(surfaceXYZ, z_min);
+
+        z_min = surfaceXYZ.findZmin(z_min);
+        surfaceXYZ.optimize(z_min);
     }
     //    qDebug() << "etch: " << t.elapsed();
     z_center = (SIZE_Z - 2 + z_min) / 2;
@@ -235,10 +236,10 @@ MainW::newDocument() {
     surfAtoms.clear();
     surfaceXYZ.reserve(SIZE_Z);
     for (int z = 0; z < SIZE_Z; ++z) {
-        surface2D surfaceXY;
+        Surface2D surfaceXY;
         surfaceXY.reserve(SIZE_Y);
         for (int y = 0; y < SIZE_Y; ++y) {
-            surface1D surfaceX;
+            Surface1D surfaceX;
             surfaceX.reserve(SIZE_X);
             for (int x = 0; x < SIZE_X; ++x) {
                 vector<AtomInfo> cell;

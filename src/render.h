@@ -49,7 +49,7 @@ public:
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 public slots:
-    void view(surface3D &surface, vector<AtomType>&, Cell&, float Xsize,
+    void view(Surface3D &surface, vector<AtomType>&, Cell&, float Xsize,
             float Ysize, float Zsize, int z_min, int z_center, int width,
             int height, Coords3D &Vx, Coords3D &Vy, Coords3D &Vz,
             GRES::VizType vizualType);
@@ -104,7 +104,7 @@ private:
     GLuint theSphere;
     QColor clearColor;
     Atoms *cellAtoms;
-    surface3D *surfaceXYZ;
+    Surface3D *surfaceXYZ;
     float xs, ys, zs;
     int z_center, z_min;
     int SIZE_X, SIZE_Y;
@@ -129,10 +129,10 @@ private:
     int sphereQual;
     int vSize1, vSize2, vSize3;
     vector<GLfloat> matrix;
-    void createAtomsAndBonds(surface3D &surface, Atoms &cellAts, float xs_,
+    void createAtomsAndBonds(Surface3D &surface, Atoms &cellAts, float xs_,
         float ys_, float zs_, int z_min, AtomsNames &atN,
         Bonds &outBonds);
-    void createSurfacePoints(const surface3D &surface, float Xsize, float Ysize,
+    void createSurfacePoints(const Surface3D &surface, float Xsize, float Ysize,
             float Zsize, int z_min);
     void initMatrix(vector<GLfloat>*);
     void drawAxis();

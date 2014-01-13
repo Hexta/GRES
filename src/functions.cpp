@@ -54,6 +54,40 @@ struct length {
 };
 
 typedef vector<length>lengthes;
+
+struct rectangle {
+    float x1;
+    float y1;
+    float z1;
+    float x2;
+    float y2;
+    float z2;
+    float x3;
+    float y3;
+    float z3;
+    float x4;
+    float y4;
+    float z4;
+    float S;
+};
+
+typedef vector<rectangle>rectangles;
+
+double
+distance(const double& x1, const double& y1, const double& z1, const double& x2,
+const double& y2, const double& z2) {
+    return sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2) + pow((z2 - z1), 2));
+}
+
+bool rect_comp(const rectangle &r1, const rectangle &r2) {
+
+    const double S1 = distance(r1.x1, r1.y1, r1.z1, r1.x2, r1.y2, r1.z2) *
+        distance(r1.x3, r1.y3, r1.z3, r1.x4, r1.y4, r1.z4);
+    const double S2 = distance(r2.x1, r2.y1, r2.z1, r2.x2, r2.y2, r2.z2) *
+        distance(r2.x3, r2.y3, r2.z3, r2.x4, r2.y4, r2.z4);
+    return S1 < S2;
+}
+
 } // namespace
 
 bool cmp_float(double x, double y) {
@@ -61,16 +95,17 @@ bool cmp_float(double x, double y) {
     return fabs(x - y) < FLOAT_TOL;
 }
 
-void addLayer(surface3D &surface, const AllNeighbors& sosedi, int sX, int sY, int sZ) {
-    surface2D surfaceXY;
+void addLayer(Surface3D &surface, const AllNeighbors& sosedi, int sX, int sY, int sZ)
+{
+    Surface2D surfaceXY;
     surfaceXY.reserve(sY);
 
     for (int y = 0; y < sY; ++y) {
-        surface1D surfaceX;
+        Surface1D surfaceX;
         surfaceX.reserve(sX);
 
         for (int x = 0; x < sX; ++x) {
-            cell cell;
+            CellInfo cell;
             cell.reserve(sosedi.size());
             for (auto &sosed : sosedi) {
                 Neighbors neighbs;
@@ -89,6 +124,7 @@ void addLayer(surface3D &surface, const AllNeighbors& sosedi, int sX, int sY, in
         }
         surfaceXY.push_back(surfaceX);
     }
+
     surface.push_back(surfaceXY);
 }
 
@@ -154,12 +190,6 @@ void coordsMove(Cell &ca, const Coords3D &O, const Coords3D &Vx,
         atom_coords_it->y = static_cast<float> (y);
         atom_coords_it->z = static_cast<float> (z);
     }
-}
-
-double
-distance(const double& x1, const double& y1, const double& z1, const double& x2,
-         const double& y2, const double& z2) {
-    return sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2) + pow((z2 - z1), 2));
 }
 
 Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
@@ -415,25 +445,9 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
     return firstCell;
 }
 
-void
-findZmin(const surface3D &surface, int &zm) {
-    for (auto z = surface.begin() + zm; z != surface.end(); ++z)
-        for (auto y = z->begin() + 2; y != z->end() - 1; ++y) {
-            const auto yEnd = y->end();
-            for (auto x = y->begin() + 2; x != yEnd - 1; ++x)
-
-                for (auto &atom : *x)
-                    if (!atom.deleted) {
-
-                        zm = static_cast<int> (z - surface.begin());
-                        return;
-                    }
-        }
-}
-
-void
-recallNeighbours(surface3D &surface, vector<AtomType> &surfAtoms, int x, int y,
-                 int z, int type) {
+void recallNeighbors(Surface3D &surface, vector<AtomType> &surfAtoms, int x, int y,
+                 int z, int type)
+{
     for (auto &neighb : surface[z][y][x][type].neighbors) {
         const int xNb = neighb.x;
         const int yNb = neighb.y;
@@ -468,18 +482,9 @@ recallNeighbours(surface3D &surface, vector<AtomType> &surfAtoms, int x, int y,
     }
 }
 
-bool
-rect_comp(const rectangle &r1, const rectangle &r2) {
-
-    const double S1 = distance(r1.x1, r1.y1, r1.z1, r1.x2, r1.y2, r1.z2) *
-            distance(r1.x3, r1.y3, r1.z3, r1.x4, r1.y4, r1.z4);
-    const double S2 = distance(r2.x1, r2.y1, r2.z1, r2.x2, r2.y2, r2.z2) *
-            distance(r2.x3, r2.y3, r2.z3, r2.x4, r2.y4, r2.z4);
-    return S1 < S2;
-}
-
-bool selAtom(surface3D &surface, vector<AtomType> &surfAtoms, AllNeighbors &neighbs,
-        int z_min, Cell &tA, const vector<bool> &mask, const float *rates) {
+bool selAtom(Surface3D &surface, vector<AtomType> &surfAtoms, AllNeighbors &neighbs,
+        int z_min, Cell &tA, const vector<bool> &mask, const float *rates)
+{
     P1 = rates[0];
     P2 = rates[1];
     P3 = rates[2];
@@ -545,9 +550,9 @@ bool selAtom(surface3D &surface, vector<AtomType> &surfAtoms, AllNeighbors &neig
     return result;
 }
 
-bool
-selAtomCA(surface3D &surface, vector<AtomType> &surfAtoms, int z_min,
-          Cell &tA, vector<bool> &mask, float *rates) {
+bool selAtomCA(Surface3D &surface, vector<AtomType> &surfAtoms, int z_min,
+          Cell &tA, vector<bool> &mask, float* rates)
+{
     P1 = rates[0];
     P2 = rates[1];
     P3 = rates[2];
@@ -626,25 +631,18 @@ selAtomCA(surface3D &surface, vector<AtomType> &surfAtoms, int z_min,
     return result;
 }
 
-void
-delAtom(surface3D &surface, vector<AtomType> &surfAtoms, int x, int y, int z,
-        int type, int i) {
-    if (i != -1) {
+void delAtom(Surface3D &surface, vector<AtomType> &surfAtoms, int x, int y, int z,
+        int type, int surfAtN)
+{
+    if (surfAtN != -1) {
 
-        swap(surfAtoms[i], surfAtoms.back());
+        swap(surfAtoms[surfAtN], surfAtoms.back());
         surfAtoms.pop_back();
-        swap(surfAtoms[i], surfAtoms.back());
+        swap(surfAtoms[surfAtN], surfAtoms.back());
     }
-    recallNeighbours(surface, surfAtoms, x, y, z, type);
+
+    recallNeighbors(surface, surfAtoms, x, y, z, type);
     surface[z][y][x][type].fNbCount = 0;
     surface[z][y][x][type].deleted = true;
     surface[z][y][x][type].neighbors.clear();
-}
-
-void
-optimizeSurface(surface3D &surface, int z_min) {
-
-    if (z_min > 1)
-        surface[z_min - 2].clear();
-    surface.shrink_to_fit();
 }
