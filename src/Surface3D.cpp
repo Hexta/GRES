@@ -17,6 +17,8 @@
 
 #include "Surface3D.h"
 
+#include <algorithm>
+
 
 Surface3D::Surface3D() {
 }
@@ -71,4 +73,61 @@ void Surface3D::clear() {
 
 void Surface3D::push_back(Surface2D const& surface2D) {
     m_surfaces2D.push_back(surface2D);
+}
+
+void Surface3D::recallNeighbors(int x, int y, int z, int type,
+    AtomTypes& surfAtoms) {
+    for (auto &neighb : m_surfaces2D[z][y][x][type].neighbors) {
+        const int xNb = neighb.x;
+        const int yNb = neighb.y;
+        const int zNb = neighb.z;
+        const unsigned char typeNb = neighb.type;
+
+        AtomInfo &neihgbAtomInfo = m_surfaces2D[zNb][yNb][xNb][typeNb];
+
+        size_t i = 0;
+        for (auto &neighb_int : neihgbAtomInfo.neighbors) {
+            if (neighb_int.x == x && neighb_int.y == y
+                && neighb_int.z == z
+                && neighb_int.type == type) {
+                neihgbAtomInfo.neighbors.erase(neihgbAtomInfo.neighbors.begin() + i);
+                neihgbAtomInfo.fNbCount -= 1;
+                break;
+            }
+            ++i;
+        }
+        if (!neihgbAtomInfo.fNbCount) {
+            neihgbAtomInfo.deleted = true;
+            neihgbAtomInfo.neighbors.clear();
+        }
+
+        if ((neihgbAtomInfo.fNbCount == 3) &&
+            ((xNb > 1 && xNb < m_surfaces2D[zNb][yNb].size() - 2)
+            && (yNb > 1 && yNb < m_surfaces2D[zNb].size() - 2))) {
+
+            AtomType aT = {xNb, yNb, zNb, typeNb, false};
+            m_surfaceAtoms.push_back(aT);
+            surfAtoms.push_back(aT);
+        }
+    }
+}
+
+const AtomTypes& Surface3D::getSurfaceAtoms() const {
+    return m_surfaceAtoms;
+}
+
+void Surface3D::delAtom(AtomTypes& surfAtoms, int x, int y, int z, int type,
+    int surfAtN) {
+    if (surfAtN != -1) {
+
+        std::swap(surfAtoms[surfAtN], surfAtoms.back());
+        surfAtoms.pop_back();
+        std::swap(surfAtoms[surfAtN], surfAtoms.back());
+    }
+
+    recallNeighbors(x, y, z, type, surfAtoms);
+
+    m_surfaces2D[z][y][x][type].fNbCount = 0;
+    m_surfaces2D[z][y][x][type].deleted = true;
+    m_surfaces2D[z][y][x][type].neighbors.clear();
 }

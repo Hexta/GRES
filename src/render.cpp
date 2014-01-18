@@ -263,16 +263,16 @@ void Render::createSurfacePoints(const Surface3D &surface, float Xsize, float Ys
         for (int j = 0; j < SIZE_X - 4; j++) {
             Cell& cell = points[i];
             Cell& cellNext = points[i + 1];
-            Coords3D v1 = {cell.atoms[j].x, cell.atoms[j].y, cell.atoms[j].z};
-            Coords3D v2 = {cell.atoms[j + 1].x, cell.atoms[j + 1].y, cell.atoms[j].z};
-            Coords3D v3 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
-            Coords3D v4 = {cellNext.atoms[j].x, cellNext.atoms[j].y, cell.atoms[j].z};
+            Coords3D const& v1 = cell.atoms[j];
+            Coords3D const v2 = {cell.atoms[j + 1].x, cell.atoms[j + 1].y, cell.atoms[j].z};
+            Coords3D const v3 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
+            Coords3D const& v4 = cellNext.atoms[j];
 
             if (!cmp_float(cell.atoms[j].z, cell.atoms[j + 1].z)) {
-                Coords3D v5 = {cell.atoms[j + 1].x, cell.atoms[j + 1].y, cell.atoms[j].z};
-                Coords3D v6 = {cell.atoms[j + 1].x, cell.atoms[j + 1].y, cell.atoms[j + 1].z};
-                Coords3D v7 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j + 1].z};
-                Coords3D v8 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
+                Coords3D const v5 = {cell.atoms[j + 1].x, cell.atoms[j + 1].y, cell.atoms[j].z};
+                Coords3D const& v6 = cell.atoms[j + 1];
+                Coords3D const& v7 = cellNext.atoms[j + 1];
+                Coords3D const v8 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
 
                 surfNormals.insert(surfNormals.end(), 4, normcrossprod(v6 + -1 * v5, v7 + -1 * v5));
 
@@ -283,10 +283,10 @@ void Render::createSurfacePoints(const Surface3D &surface, float Xsize, float Ys
             }
 
             if (!cmp_float(cell.atoms[j].z, cellNext.atoms[j].z)) {
-                Coords3D v9 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
-                Coords3D v10 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cellNext.atoms[j].z};
-                Coords3D v11 = {cellNext.atoms[j].x, cellNext.atoms[j].y, cellNext.atoms[j].z};
-                Coords3D v12 = {cellNext.atoms[j].x, cellNext.atoms[j].y, cell.atoms[j].z};
+                Coords3D const v9 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cell.atoms[j].z};
+                Coords3D const v10 = {cellNext.atoms[j + 1].x, cellNext.atoms[j + 1].y, cellNext.atoms[j].z};
+                Coords3D const& v11 = cellNext.atoms[j];
+                Coords3D const v12 = {cellNext.atoms[j].x, cellNext.atoms[j].y, cell.atoms[j].z};
 
                 surfNormals.insert(surfNormals.end(), 4, normcrossprod(v10 + -1 * v9, v11 + -1 * v9));
 
@@ -367,10 +367,10 @@ Render::initializeGL() {
     sphereTemplate(sR * 10);
     glEndList();
 #ifdef _WIN32
-    pglBindBufferARB = (PFNGLBINDBUFFERARBPROC) wglGetProcAddress("glBindBufferARB");
-    pglDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC) wglGetProcAddress("glDeleteBuffersARB");
-    pglBufferDataARB = (PFNGLBUFFERDATAARBPROC) wglGetProcAddress("glBufferDataARB");
-    pglBufferSubDataARB = (PFNGLBUFFERSUBDATAARBPROC) wglGetProcAddress("glBufferSubDataARB");
+    pglBindBufferARB = reinterpret_cast<PFNGLBINDBUFFERARBPROC>(wglGetProcAddress("glBindBufferARB"));
+    pglDeleteBuffersARB = reinterpret_cast<PFNGLDELETEBUFFERSARBPROC>(wglGetProcAddress("glDeleteBuffersARB"));
+    pglBufferDataARB = reinterpret_cast<PFNGLBUFFERDATAARBPROC>(wglGetProcAddress("glBufferDataARB"));
+    pglBufferSubDataARB = reinterpret_cast<PFNGLBUFFERSUBDATAARBPROC>(wglGetProcAddress("glBufferSubDataARB"));
 #endif
 }
 
@@ -459,7 +459,7 @@ Render::draw() {
             glTranslatef(6.0, 6.0, 20.0);
 
             glTranslatef(-5.0 - 2.0 * xs*scaling, -5.0 - 2.0 * ys*scaling, -20.0);
-            glColor3f(0.98, 0.625, 0.12);
+            glColor3f(0.98f, 0.625f, 0.12f);
             //sphere( 5,10,10 );
 
             if (!(visualType == GRES::VizType::ATOMS_SURFACE_AND_BULK || visualType == GRES::VizType::ATOMS_SURFACE)
@@ -477,9 +477,9 @@ Render::draw() {
                 glEnableClientState(GL_NORMAL_ARRAY);
                 //t.start();
                 for (unsigned int i = 0; i < atNames.size(); ++i) {
-                    glColor3f(105.0 / 255, 68.0 / 255, 9.0 / 255);
+                    glColor3f(105.0f / 255, 68.0f / 255, 9.0f / 255);
                     if (atNames[i].fNbCount == 3)
-                        glColor3f(0.08, 0.925, 0.02);
+                        glColor3f(0.08f, 0.925f, 0.02f);
                     if (atNames[i].fNbCount == 2)
                         glColor3f(1.0, 1.0, 0.0);
                     if (atNames[i].fNbCount == 1)
@@ -548,7 +548,7 @@ Render::draw() {
             drawAxis();
             glTranslatef(6.0, 6.0, 20.0);
 
-            glColor3f(0.18, 0.325, 0.82);
+            glColor3f(0.18f, 0.325f, 0.82f);
 
             glTranslatef(-5.0, -5.0, -20.0 + zs * z_min * scaling);
 

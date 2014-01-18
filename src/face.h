@@ -77,7 +77,7 @@ private:
     Cell cell;
     Surface3D surfaceXYZ;
     float Xsize, Ysize, Zsize;
-    vector<AtomType> surfAtoms;
+    AtomTypes surfAtoms;
     int z_center, z_min;
     Coords3D Vx, Vy, Vz;
     bool perfect;
@@ -85,9 +85,9 @@ private:
     Cells surfacePoints;
     GRES::VizType vizualType; //тип визуализации
     void drawResult();
-    vector<bool> mask;
+    std::vector<bool> mask;
 private slots:
     void showEtchMenu();
     void showMenuMask();
-    void setMask(vector<bool> inMask);
+    void setMask(std::vector<bool> inMask);
 };

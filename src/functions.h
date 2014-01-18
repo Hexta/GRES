@@ -25,21 +25,13 @@
 #include <vector>
 #include <cstdlib>
 
-using std::vector;
 
-bool compareTranslCell(const Cell &cellAtoms, const Cell &allAtoms, const Coords3D &V); //Совпадение атомов после трансляции
-void coordsMove(Cell &ca, const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy, const Coords3D &Vz); // смещение координат в ячейку
-
-void recallNeighbors(Surface3D &surface, vector<AtomType> &surfAtoms, int x, int y, int z, int type);
-
-bool selAtom(Surface3D &surface, vector<AtomType> &surfAtoms, AllNeighbors &neighbs, int z_min, Cell &tA, const vector<bool> &mask, const float *rates);
-bool selAtomCA(Surface3D &surface, vector<AtomType> &surfAtoms, int z_min, Cell &tA, vector<bool> &mask, float* rates);
+bool selAtom(Surface3D &surface, AtomTypes& surfAtoms, AllNeighbors &neighbs, int z_min, Cell &tA, const std::vector<bool> &mask, const float *rates);
+bool selAtomCA(Surface3D &surface, AtomTypes& surfAtoms, int z_min, Cell &tA, std::vector<bool> &mask, float* rates);
 
 Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &Vx, Coords3D &Vy, Coords3D &Vz); //Поиск эл ячейки
 void addLayer(Surface3D &surface, const AllNeighbors& sosedi, int sX, int sY, int sZ);
 
 Cell atomsInBox(const Atoms &atoms, const Coords3D &Vx, const Coords3D &Vy, const Coords3D &Vz, const Coords3D &P1);
-
-void delAtom(Surface3D &surface, vector<AtomType> &surfAtoms, int x, int y, int z, int type, int surfAtN);
 
 bool cmp_float(double x, double y);

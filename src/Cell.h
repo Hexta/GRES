@@ -30,6 +30,7 @@ public:
 
     bool operator==(const Cell& cell) const;
     bool operator<(const Cell& cell) const;
+
     size_t size() const;
 
     const AllNeighbors findSoseds(float xs, float ys, float zs);
@@ -41,8 +42,14 @@ public:
     double getYSize() const;
     double getZSize() const;
 
+    // смещение координат в €чейку
+    void moveCoords(const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy,
+        const Coords3D &Vz);
+
 public:
     Atoms atoms;
 };
+
+const Cell operator+(Cell const& cell, Coords3D const& v);
 
 typedef std::vector<Cell> Cells;

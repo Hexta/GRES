@@ -32,7 +32,24 @@ Cell::Cell(const std::vector<Coords3D>& atoms) : atoms(atoms) {
 }
 
 bool Cell::operator==(const Cell& cell) const {
-    return atoms.size() < cell.atoms.size();
+    bool isEual = false;
+    for (auto cell_atom_it = atoms.begin();
+        cell_atom_it < atoms.end() - 4; ++cell_atom_it) {
+
+        isEual = false;
+
+        for (auto &atom : cell.atoms) {
+            if (*cell_atom_it == atom) {
+                isEual = true;
+                break;
+            }
+        }
+
+        if (!isEual)
+            break;
+    }
+
+    return isEual;
 }
 
 size_t Cell::size() const {
@@ -104,4 +121,36 @@ double Cell::getYSize() const
 double Cell::getZSize() const
 {
     return (*(atoms.end() - 1)).length();
+}
+
+void Cell::moveCoords(const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy,
+    const Coords3D &Vz) {
+    for (auto atom_coords_it = atoms.begin();
+        atom_coords_it < atoms.end() - 4; ++atom_coords_it) {
+
+        const auto& vec = *atom_coords_it - O;
+        const double x = (vec * Vx) / Vx.length();
+        const double y = (vec * Vy) / Vy.length();
+        const double z = (vec * Vz) / Vz.length();
+
+        atom_coords_it->x = static_cast<float> (x);
+        atom_coords_it->y = static_cast<float> (y);
+        atom_coords_it->z = static_cast<float> (z);
+    }
+}
+
+const Cell operator+(Cell const& cell, Coords3D const& v) {
+    Cell resultCell;
+
+    for (auto cell_atom_it = cell.atoms.begin();
+        cell_atom_it < cell.atoms.end() - 4; ++cell_atom_it) {
+        resultCell.atoms.push_back(*cell_atom_it + v);
+    }
+
+    for (auto cell_atom_it = cell.atoms.end() - 4;
+        cell_atom_it < cell.atoms.end(); ++cell_atom_it) {
+        resultCell.atoms.push_back(*cell_atom_it);
+    }
+
+    return resultCell;
 }

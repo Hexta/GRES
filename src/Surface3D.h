@@ -41,7 +41,14 @@ public:
     void optimize(int zMin);
     void clear();
     void push_back(Surface2D const& surface2D);
+    void recallNeighbors(int x, int y, int z, int type,
+        AtomTypes& surfAtoms);
+
+    const AtomTypes& getSurfaceAtoms() const;
+    void delAtom(AtomTypes& surfAtoms, int x, int y, int z, int type,
+        int surfAtN);
 
 private:
     std::vector<Surface2D> m_surfaces2D;
+    AtomTypes m_surfaceAtoms;
 };

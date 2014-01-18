@@ -32,6 +32,7 @@ struct AtomType {
 
 bool operator==(const AtomType &a1, const AtomType &a2);
 
+typedef std::vector<AtomType> AtomTypes;
 typedef std::vector<AtomType> Neighbors; //соседи одного атома
 typedef std::vector<Neighbors> AllNeighbors; //соседи всех атомов
 
@@ -42,5 +43,4 @@ struct AtomInfo {
 };
 
 typedef std::vector<Coords3D> Atoms;
-
 typedef std::vector<AtomInfo> CellInfo;

@@ -278,8 +278,8 @@ MainW::newDocument() {
 void
 MainW::showMenuMask() {
     maskMenu = new MaskMenu(0, SIZE_X - 4, SIZE_Y - 4);
-    connect(maskMenu, SIGNAL(maskChanged(vector<bool>)), this,
-            SLOT(setMask(vector<bool>)));
+    connect(maskMenu, SIGNAL(maskChanged(std::vector<bool>)), this,
+            SLOT(setMask(std::vector<bool>)));
     maskMenu->show();
 }
 

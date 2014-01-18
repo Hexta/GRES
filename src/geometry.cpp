@@ -150,10 +150,10 @@ void
 createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
              int &vSize2, int &vSize3) {
 #ifdef _WIN32
-    PFNGLBINDBUFFERARBPROC pglBindBufferARB = (PFNGLBINDBUFFERARBPROC) wglGetProcAddress("glBindBufferARB");
-    PFNGLDELETEBUFFERSARBPROC pglDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC) wglGetProcAddress("glDeleteBuffersARB");
-    PFNGLBUFFERDATAARBPROC pglBufferDataARB = (PFNGLBUFFERDATAARBPROC) wglGetProcAddress("glBufferDataARB");
-    PFNGLBUFFERSUBDATAARBPROC pglBufferSubDataARB = (PFNGLBUFFERSUBDATAARBPROC) wglGetProcAddress("glBufferSubDataARB");
+    PFNGLBINDBUFFERARBPROC pglBindBufferARB = reinterpret_cast<PFNGLBINDBUFFERARBPROC>(wglGetProcAddress("glBindBufferARB"));
+    PFNGLDELETEBUFFERSARBPROC pglDeleteBuffersARB = reinterpret_cast<PFNGLDELETEBUFFERSARBPROC>(wglGetProcAddress("glDeleteBuffersARB"));
+    PFNGLBUFFERDATAARBPROC pglBufferDataARB = reinterpret_cast<PFNGLBUFFERDATAARBPROC>(wglGetProcAddress("glBufferDataARB"));
+    PFNGLBUFFERSUBDATAARBPROC pglBufferSubDataARB = reinterpret_cast<PFNGLBUFFERSUBDATAARBPROC>(wglGetProcAddress("glBufferSubDataARB"));
 #endif
     const auto SIZE_OF_FLOAT = sizeof (float);
 
