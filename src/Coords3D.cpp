@@ -67,6 +67,13 @@ bool Coords3D::operator==(const Coords3D& v) const {
     return cmp_float(x, v.x) && cmp_float(y, v.y) && cmp_float(z, v.z);
 }
 
+Coords3D::Coords3D(float x, float y, float z) : x(x), y(y), z(z) {
+
+}
+
+Coords3D::Coords3D() {
+}
+
 Coords3D operator *(const Coords3D& v, int n) {
     Coords3D temp = {n * v.x, n * v.y, n * v.z};
     return temp;

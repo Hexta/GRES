@@ -17,6 +17,8 @@
 
 #include "functions.h"
 
+#include "Coords3D.h"
+
 #include <QTime>
 #include <QDebug>
 
@@ -27,9 +29,6 @@ using std::swap;
 using std::vector;
 
 namespace {
-float P1 = 1.0f;
-float P2 = 0.030f;
-float P3 = 0.00010f;
 
 const int NUMBER_OF_ATOMS_IN_CELL = 8;
 
@@ -96,50 +95,14 @@ bool cmp_float(double x, double y) {
     return fabs(x - y) < FLOAT_TOL;
 }
 
-void addLayer(Surface3D &surface, const AllNeighbors& sosedi, int sX, int sY, int sZ)
-{
-    Surface2D surfaceXY;
-    surfaceXY.reserve(sY);
-
-    for (int y = 0; y < sY; ++y) {
-        Surface1D surfaceX;
-        surfaceX.reserve(sX);
-
-        for (int x = 0; x < sX; ++x) {
-            CellInfo cell;
-            cell.reserve(sosedi.size());
-            for (auto &sosed : sosedi) {
-                Neighbors neighbs;
-                char numberNeighbs = 0; //Число первых соседей
-                for (int nb = 0; nb < 4; ++nb) {
-                    if (x + sosed[nb].x >= 0 && y + sosed[nb].y >= 0 && x + sosed[nb].x < sX && y + sosed[nb].y < sY) {
-                        ++numberNeighbs;
-                        AtomType neighb = {x + sosed[nb].x, y + sosed[nb].y, sZ + sosed[nb].z, sosed[nb].type, false};
-                        neighbs.push_back(neighb);
-                    }
-                }
-                AtomInfo atom = {neighbs, numberNeighbs, !numberNeighbs};
-                cell.push_back(atom);
-            }
-            surfaceX.push_back(cell);
-        }
-        surfaceXY.push_back(surfaceX);
-    }
-
-    surface.push_back(surfaceXY);
-}
-
 Cell atomsInBox(const Atoms &atoms, const Coords3D &Vx, const Coords3D &Vy,
            const Coords3D &Vz, const Coords3D &P1)
 {
     Cell cellAts;
 
-    for (auto &atom : atoms) {
-        const float x = atom.x;
-        const float y = atom.y;
-        const float z = atom.z;
-        Coords3D X = {x, y, z};
-        Coords3D V = X - P1;
+    for (auto const& atom : atoms) {
+        Coords3D const& X = atom;
+        Coords3D const V = X - P1;
 
         double k = (V * Vz) / Vz.sqr();
         if (k >= 0.0 && k <= 1.0) {
@@ -297,12 +260,12 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
 
             if (atoms == 4) {
                 Atoms cellAtoms;
-                Coords3D Vx, Vy, Vz, P1;
-                P1.x = x3;
-                P1.y = y3;
-                P1.z = z3;
-                Coords3D P2 = {x4, y4, z4}, P3 = {x1, y1, z1};
-                Coords3D P4 = {x3 + n*h, y3 + n*k, z3 + n * l};
+                Coords3D Vx, Vy, Vz;
+
+                Coords3D const P1(x3, y3, z3);
+                Coords3D const P2(x4, y4, z4);
+                Coords3D const P3(x1, y1, z1);
+                Coords3D const P4(x3 + n*h, y3 + n*k, z3 + n * l);
 
                 Vz = P4 - P1;
                 Vy = P3 - P1;
@@ -328,63 +291,21 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
         const Coords3D &Vx = *(cell.atoms.end() - 3);
         const Coords3D &Vy = *(cell.atoms.end() - 2);
         const Coords3D &Vz = *(cell.atoms.end() - 1);
-        //транслируем по OX
-        bool happy = cell + Vx == allAtoms;
 
-        //транслируем по OY
-        if (happy)
-            happy = cell + Vy == allAtoms;
-        //транслируем по OZ
-        if (happy)
-            happy = cell + Vz == allAtoms;
+        if (cell + Vx == allAtoms //транслируем по OX
+            && cell + Vy == allAtoms //транслируем по OY
+            && cell + Vz == allAtoms //транслируем по OZ
+            && cell + (-1) * Vz == allAtoms //транслируем по -OZ
+            && cell + (-1) * Vy == allAtoms //транслируем по -OY
+            && cell + (-1) * Vx == allAtoms //транслируем по -OX
+            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + Vx).size() == cell_size - 4
+            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + Vy).size() == cell_size - 4
+            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + Vz).size() == cell_size - 4
+            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + -1 * Vx).size() == cell_size - 4
+            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + -1 * Vy).size() == cell_size - 4
+            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + -1 * Vz).size() == cell_size - 4) {
 
-        //транслируем по -OZ
-        if (happy)
-            happy = cell + (-1) * Vz == allAtoms;
-        //транслируем по -OY
-        if (happy)
-            happy = cell + (-1) * Vy == allAtoms;
-        //транслируем по -OX
-        if (happy)
-            happy = cell + (-1) * Vx == allAtoms;
-
-        if (happy) {
-            Cell translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                P1 + Vx);
-            happy = (cell_size - 4 == translCell.size());
-        }
-
-        if (happy) {
-            Cell translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                P1 + Vy);
-            happy = (cell_size - 4 == translCell.size());
-        }
-
-        if (happy) {
-            Cell translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                P1 + Vz);
-            happy = (cell_size - 4 == translCell.size());
-        }
-
-        if (happy) {
-            Cell translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                P1 + -1 * Vx);
-            happy = (cell_size - 4 == translCell.size());
-        }
-
-        if (happy) {
-            Cell translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                P1 + -1 * Vy);
-            happy = (cell_size - 4 == translCell.size());
-        }
-
-        if (happy) {
-            Cell translCell = atomsInBox(allAtoms, Vx, Vy, Vz,
-                                                P1 + -1 * Vz);
-            happy = (cell_size - 4 == translCell.size());
-        }
-        if (happy) {
-			auto tmpCell = cell;
+            auto tmpCell = cell;
             allCells.clear();
             allCells.push_back(tmpCell);
             vX = Vx;
@@ -408,151 +329,4 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
     firstCell.optimize();
 
     return firstCell;
-}
-
-bool selAtom(Surface3D &surface, vector<AtomType> &surfAtoms, AllNeighbors &neighbs,
-        int z_min, Cell &tA, const vector<bool> &mask, const float *rates)
-{
-    P1 = rates[0];
-    P2 = rates[1];
-    P3 = rates[2];
-    const int yC = static_cast<int> (surface[z_min].size());
-    const int xC = static_cast<int> (surface[z_min][0].size());
-    bool result = false;
-    bool maskON = !mask.empty();
-
-    static std::mt19937 rdevice(std::random_device {}
-                                ());
-    static std::uniform_real_distribution<float> dis;
-    static auto rd = bind(dis, rdevice);
-
-    int i = static_cast<int> (std::uniform_int_distribution<size_t> {0, surfAtoms.size() - 1}
-                              (rdevice));
-
-    auto &surfAtom = surfAtoms[i];
-    int x = surfAtom.x;
-    int y = surfAtom.y;
-    int z = surfAtom.z;
-    unsigned char a = surfAtom.type;
-    auto &surfaceZY = surface[z][y];
-    if ((maskON && ((z == 0
-                     && !mask[ (y - 2)*(surfaceZY.size() - 4) + x - 2 ])
-                    || (z + tA.atoms[a].z >= 0.5)))
-        || !maskON) {
-        float randN = rd();
-        int bonds = surfaceZY[x][a].fNbCount;
-        if (!bonds) {
-            swap(surfAtoms[i], surfAtoms.back());
-            surfAtoms.pop_back();
-            swap(surfAtoms[i], surfAtoms.back());
-            --i;
-            return false;
-        }
-
-        if ((bonds == 1 && randN < P1)
-            || (bonds == 2 && randN < P2)
-            || (bonds == 3 && randN < P3)) {
-            surface.delAtom(surfAtoms, x, y, z, a, i);
-            /*
-            удалим и соостветсвенный краевой атом
-             */
-            if (x == 4 || x == 5) {
-                surface.delAtom(surfAtoms, 5 - x, y, z, a, -1);
-            }
-            if (x == xC - 6 || x == xC - 5) {
-                surface.delAtom(surfAtoms, 2 * (xC - 1) - 5 - x, y, z, a, -1);
-            }
-            if (y == 4 || y == 5) {
-                surface.delAtom(surfAtoms, x, 5 - y, z, a, -1);
-            }
-            if (y == yC - 6 || y == yC - 5) {
-                surface.delAtom(surfAtoms, x, 2 * yC - 7 - y, z, a, -1);
-            }
-            if (z >= surface.size() - 3) {
-                addLayer(surface, neighbs, xC, yC, static_cast<int> (surface.size()));
-            }
-        }
-    }
-
-    return result;
-}
-
-bool selAtomCA(Surface3D &surface, vector<AtomType> &surfAtoms, int z_min,
-          Cell &tA, vector<bool> &mask, float* rates)
-{
-    P1 = rates[0];
-    P2 = rates[1];
-    P3 = rates[2];
-    const int yC = static_cast<int> (surface[z_min].size());
-    const int xC = static_cast<int> (surface[z_min][0].size());
-    bool result = false;
-    bool maskON = !mask.empty();
-
-    size_t surfAtomsSize = surfAtoms.size();
-
-    static std::mt19937 rdevice(std::random_device {}
-                                ());
-    static std::uniform_real_distribution<float> dis;
-    static auto rd = bind(dis, rdevice);
-
-    for (unsigned int i = 0; i < surfAtomsSize; ++i) {
-        const auto &surfAtom = surfAtoms[i];
-        int x = surfAtom.x;
-        int y = surfAtom.y;
-        unsigned int z = surfAtom.z;
-        unsigned short a = surfAtom.type;
-        const auto &tAz = tA.atoms[a].z;
-        auto &surfaceZY = surface[z][y];
-        if ((maskON && (((z + tAz < 0.5) && !mask[ (y - 2)*(surfaceZY.size() - 4) + x - 2 ])
-                        || (z + tAz >= 0.5)))
-            || !maskON) {
-            float randN = rd();
-            int bonds = surfaceZY[x][a].fNbCount;
-            if (!bonds) {
-                surfAtoms.erase(surfAtoms.begin() + i--);
-                --surfAtomsSize;
-                continue;
-            }
-
-            if ((bonds == 1 && randN < P1)
-                || (bonds == 2 && randN < P2)
-                || (bonds == 3 && randN < P3)) {
-                surfAtoms[i].toDel = true;
-                if (z == surface.size() - 3)
-                    result = true;
-            }
-        }
-    }
-
-    int i = 0;
-    auto surfAtomsEnd = surfAtoms.end();
-    for (auto surfAtomIter = surfAtoms.begin(); surfAtomIter != surfAtomsEnd;
-         ++surfAtomIter) {
-        if (surfAtomIter->toDel) {
-            int x = surfAtomIter->x;
-            int y = surfAtomIter->y;
-            int z = surfAtomIter->z;
-            unsigned char a = surfAtomIter->type;
-
-            surface.delAtom(surfAtoms, x, y, z, a, i);
-
-            if (x == 4 || x == 5) {
-                surface.delAtom(surfAtoms, 5 - x, y, z, a, -1);
-            }
-            if (x == xC - 6 || x == xC - 5) {
-                surface.delAtom(surfAtoms, 2 * (xC - 1) - 5 - x, y, z, a, -1);
-            }
-            if (y == 4 || y == 5) {
-                surface.delAtom(surfAtoms, x, 5 - y, z, a, -1);
-            }
-            if (y == yC - 6 || y == yC - 5) {
-                surface.delAtom(surfAtoms, x, 2 * yC - 7 - y, z, a, -1);
-            }
-
-            surfAtomIter = surfAtoms.begin() + --i;
-            surfAtomsEnd = surfAtoms.end();
-        }
-        ++i;
-    }
-    return result;
 }

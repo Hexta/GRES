@@ -22,6 +22,9 @@ struct Coords3D {
     float y;
     float z;
 
+    Coords3D();
+    Coords3D(float x, float y, float z);
+
     const Coords3D operator +(const Coords3D& v) const;
 
     //Разность координат двух точек

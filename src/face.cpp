@@ -185,12 +185,14 @@ MainW::etch(int simType_, int IterCount, float *rates) {
     int count = IterCount;
     for (int n = 0; n < count; ++n) {
         if (sT == GRES::SimType::KMC)
-            perfect = selAtom(surfaceXYZ, surfAtoms, sosedi, z_min, cell, mask, rates);
+            perfect = surfaceXYZ.selAtom(surfAtoms, sosedi, z_min, cell, mask,
+            rates, P1, P2, P3);
         else if (sT == GRES::SimType::CA)
-            perfect = selAtomCA(surfaceXYZ, surfAtoms, z_min, cell, mask, rates);
+            perfect = surfaceXYZ.selAtomCA(surfAtoms, z_min, cell, mask, rates,
+            P1, P2, P3);
 
         if (perfect) {
-            addLayer(surfaceXYZ, sosedi, SIZE_X, SIZE_Y, SIZE_Z);
+            surfaceXYZ.addLayer(sosedi, SIZE_X, SIZE_Y, SIZE_Z);
             ++SIZE_Z;
             perfect = true;
         }

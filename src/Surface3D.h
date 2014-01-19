@@ -26,6 +26,8 @@
 typedef std::vector<CellInfo> Surface1D;
 typedef std::vector<Surface1D> Surface2D;
 
+class Cell;
+
 class Surface3D {
 public:
     Surface3D();
@@ -47,6 +49,15 @@ public:
     const AtomTypes& getSurfaceAtoms() const;
     void delAtom(AtomTypes& surfAtoms, int x, int y, int z, int type,
         int surfAtN);
+
+    bool selAtom(AtomTypes& surfAtoms, AllNeighbors &neighbs, int z_min,
+        Cell &tA, const std::vector<bool> &mask, const float *rates, float& P1,
+        float& P2, float& P3);
+
+    bool selAtomCA(AtomTypes& surfAtoms, int z_min, Cell &tA,
+        std::vector<bool> &mask, float* rates, float& P1, float& P2, float& P3);
+
+    void addLayer(const AllNeighbors& sosedi, int sX, int sY, int sZ);
 
 private:
     std::vector<Surface2D> m_surfaces2D;
