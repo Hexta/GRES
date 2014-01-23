@@ -51,11 +51,10 @@ public:
         int surfAtN);
 
     bool selAtom(AtomTypes& surfAtoms, AllNeighbors &neighbs, int z_min,
-        Cell &tA, const std::vector<bool> &mask, const float *rates, float& P1,
-        float& P2, float& P3);
+        Cell &tA, const std::vector<bool> &mask, const float *rates);
 
     bool selAtomCA(AtomTypes& surfAtoms, int z_min, Cell &tA,
-        std::vector<bool> &mask, float* rates, float& P1, float& P2, float& P3);
+        std::vector<bool> &mask, float* rates);
 
     void addLayer(const AllNeighbors& sosedi, int sX, int sY, int sZ);
 

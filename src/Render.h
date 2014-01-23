@@ -21,7 +21,6 @@
 #include "consts.h"
 #include "geometry.h"
 
-#include <QWidget>
 #include <QtOpenGL/QGLWidget>
 #include <QMouseEvent>
 #include <QKeyEvent>
@@ -37,15 +36,19 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <GL/glu.h>
-//#include <GL/glext.h>
 #endif
 
+#include <memory>
+
 class SelectAtomMenu;
+class QWidget;
 
 class Render : public QGLWidget {
     Q_OBJECT
 public:
     Render(QWidget *parent = 0);
+    ~Render();
+
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 public slots:
@@ -65,17 +68,28 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent * event);
+
 private:
     void draw();
-    GLfloat drotationX;
-    GLfloat drotationY;
-    GLfloat drotationZ;
-    GLfloat movX;
-    GLfloat sumMovX;
-    GLfloat sumMovY;
-    GLfloat movY;
-    GLfloat scale;
-    QPoint lastPos;
+    void sphereTemplate(float);
+    void cylinderTemplate(float);
+    void createActions();
+    void processSelection(int x, int y);
+    void processSelectionMenu();
+    void processAtom(const GLuint *pSelectBuff);
+    void createAtomsAndBonds(Surface3D &surface, Atoms &cellAts, float xs_,
+        float ys_, float zs_, int z_min, AtomsNames &atN,
+        Bonds &outBonds);
+    void createSurfacePoints(const Surface3D &surface, float Xsize, float Ysize,
+        float Zsize, int z_min);
+    void initMatrix(vector<GLfloat>*);
+    void drawAxis();
+    void setGeometry(GLfloat zCenter = 0);
+
+private:
+    struct Private;
+    std::unique_ptr<Private> d;
+
     SelectAtomMenu* selAtomMenu;
 
     struct SelAtomType {
@@ -95,11 +109,11 @@ private:
         float z;
         char fNbCount;
     };
+
     vector<TypeAndCoordsOfAtom> typeAndCoordsOfAtoms;
     AtomsNames atNames;
     float sR;
-    void sphereTemplate(float);
-    void cylinderTemplate(float);
+
     Coords3D *Vx, *Vy, *Vz;
     GLuint theSphere;
     QColor clearColor;
@@ -116,10 +130,6 @@ private:
     Atoms coordsOfAtoms; //список координат атомов
     Bonds bonds;
     QAction *exitAction;
-    void createActions();
-    void processSelection(int x, int y);
-    void processSelectionMenu();
-    void processAtom(const GLuint *pSelectBuff);
     bool dataInitialized;
     GRES::VizType visualType; //тип визуализации
     Cells surfPoints;
@@ -129,14 +139,6 @@ private:
     int sphereQual;
     int vSize1, vSize2, vSize3;
     vector<GLfloat> matrix;
-    void createAtomsAndBonds(Surface3D &surface, Atoms &cellAts, float xs_,
-        float ys_, float zs_, int z_min, AtomsNames &atN,
-        Bonds &outBonds);
-    void createSurfacePoints(const Surface3D &surface, float Xsize, float Ysize,
-            float Zsize, int z_min);
-    void initMatrix(vector<GLfloat>*);
-    void drawAxis();
-    void setGeometry(GLfloat zCenter = 0);
     vector<AtomType> *surfAtoms;
 
 #ifdef _WIN32

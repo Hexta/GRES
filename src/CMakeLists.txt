@@ -49,7 +49,7 @@ set(${PROJECT_NAME}_SRC
     face.cpp
     geometry.cpp
     maskMenu.cpp
-    render.cpp
+    Render.cpp
     settings.cpp
     Surface3D.cpp
 )
@@ -64,8 +64,8 @@ set(${PROJECT_NAME}_HEADERS
     geometry.h
     maskMenu.h
     maskPreview.h
-	opengl.h
-    render.h
+    opengl.h
+    Render.h
     selectAtomMenu.h
     settings.h
     Surface3D.h
@@ -76,7 +76,7 @@ set(${PROJECT_NAME}_HEADERS_MOC
     face.h
     maskMenu.h
     maskPreview.h
-    render.h
+    Render.h
     selectAtomMenu.h
     settings.h
 )

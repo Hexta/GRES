@@ -24,13 +24,8 @@
 #include <vector>
 #include <cstdlib>
 
-static float P1 = 1.0f;
-static float P2 = 0.030f;
-static float P3 = 0.00010f;
-
 struct Coords3D;
 
 Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &Vx, Coords3D &Vy, Coords3D &Vz); //Поиск эл ячейки
-Cell atomsInBox(const Atoms &atoms, const Coords3D &Vx, const Coords3D &Vy, const Coords3D &Vz, const Coords3D &P1);
 
 bool cmp_float(double x, double y);

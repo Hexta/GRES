@@ -135,11 +135,10 @@ void Surface3D::delAtom(AtomTypes& surfAtoms, int x, int y, int z, int type,
 }
 
 bool Surface3D::selAtom(AtomTypes& surfAtoms, AllNeighbors &neighbs, int z_min,
-    Cell &tA, const std::vector<bool> &mask, const float *rates, float& P1,
-    float& P2, float& P3) {
-    P1 = rates[0];
-    P2 = rates[1];
-    P3 = rates[2];
+    Cell &tA, const std::vector<bool> &mask, const float *rates) {
+    auto const& P1 = rates[0];
+    auto const& P2 = rates[1];
+    auto const& P3 = rates[2];
     const int yC = static_cast<int> (m_surfaces2D[z_min].size());
     const int xC = static_cast<int> (m_surfaces2D[z_min][0].size());
     bool result = false;
@@ -233,10 +232,11 @@ void Surface3D::addLayer(const AllNeighbors& sosedi, int sX, int sY, int sZ) {
     push_back(surfaceXY);
 }
 
-bool Surface3D::selAtomCA(AtomTypes& surfAtoms, int z_min, Cell &tA, std::vector<bool> &mask, float* rates, float& P1, float& P2, float& P3) {
-    P1 = rates[0];
-    P2 = rates[1];
-    P3 = rates[2];
+bool Surface3D::selAtomCA(AtomTypes& surfAtoms, int z_min, Cell &tA, std::vector<bool> &mask,
+    float* rates) {
+    auto const& P1 = rates[0];
+    auto const& P2 = rates[1];
+    auto const& P3 = rates[2];
     const int yC = static_cast<int> (m_surfaces2D[z_min].size());
     const int xC = static_cast<int> (m_surfaces2D[z_min][0].size());
     bool result = false;

@@ -27,6 +27,8 @@ class Cell {
 public:
     Cell();
     Cell(const std::vector<Coords3D>& atoms);
+    Cell(const Atoms &atomsIn, const Coords3D &Vx, const Coords3D &Vy,
+        const Coords3D &Vz, const Coords3D &P1);
 
     bool operator==(const Cell& cell) const;
     bool operator<(const Cell& cell) const;

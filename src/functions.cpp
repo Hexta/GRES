@@ -95,29 +95,6 @@ bool cmp_float(double x, double y) {
     return fabs(x - y) < FLOAT_TOL;
 }
 
-Cell atomsInBox(const Atoms &atoms, const Coords3D &Vx, const Coords3D &Vy,
-           const Coords3D &Vz, const Coords3D &P1)
-{
-    Cell cellAts;
-
-    for (auto const& atom : atoms) {
-        Coords3D const& X = atom;
-        Coords3D const V = X - P1;
-
-        double k = (V * Vz) / Vz.sqr();
-        if (k >= 0.0 && k <= 1.0) {
-            k = (V * Vy) / Vy.sqr();
-            if (k >= 0.0 && k <= 1.0) {
-                k = (V * Vx) / Vx.sqr();
-                if (k >= 0.0 && k <= 1.0)
-                    cellAts.atoms.push_back(X); //Записываем атомы в ячейке
-            }
-        }
-    }
-
-    return cellAts;
-}
-
 Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
     Coords3D &vX, Coords3D &vY, Coords3D &vZ)
 {
@@ -259,7 +236,6 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
             }
 
             if (atoms == 4) {
-                Atoms cellAtoms;
                 Coords3D Vx, Vy, Vz;
 
                 Coords3D const P1(x3, y3, z3);
@@ -270,7 +246,7 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
                 Vz = P4 - P1;
                 Vy = P3 - P1;
                 Vx = P2 - P1;
-                cellAtoms = atomsInBox(allAtoms, Vx, Vy, Vz, P1).atoms;
+                Atoms cellAtoms = Cell(allAtoms, Vx, Vy, Vz, P1).atoms;
 
                 // а в конец списка атомов запишем векторы координат и координаты начала координат :)
                 cellAtoms.push_back(P1);
@@ -298,12 +274,12 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
             && cell + (-1) * Vz == allAtoms //транслируем по -OZ
             && cell + (-1) * Vy == allAtoms //транслируем по -OY
             && cell + (-1) * Vx == allAtoms //транслируем по -OX
-            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + Vx).size() == cell_size - 4
-            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + Vy).size() == cell_size - 4
-            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + Vz).size() == cell_size - 4
-            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + -1 * Vx).size() == cell_size - 4
-            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + -1 * Vy).size() == cell_size - 4
-            && atomsInBox(allAtoms, Vx, Vy, Vz, P1 + -1 * Vz).size() == cell_size - 4) {
+            && Cell(allAtoms, Vx, Vy, Vz, P1 + Vx).size() == cell_size - 4
+            && Cell(allAtoms, Vx, Vy, Vz, P1 + Vy).size() == cell_size - 4
+            && Cell(allAtoms, Vx, Vy, Vz, P1 + Vz).size() == cell_size - 4
+            && Cell(allAtoms, Vx, Vy, Vz, P1 + -1 * Vx).size() == cell_size - 4
+            && Cell(allAtoms, Vx, Vy, Vz, P1 + -1 * Vy).size() == cell_size - 4
+            && Cell(allAtoms, Vx, Vy, Vz, P1 + -1 * Vz).size() == cell_size - 4) {
 
             auto tmpCell = cell;
             allCells.clear();

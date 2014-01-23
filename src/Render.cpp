@@ -18,7 +18,7 @@
 #define GL_GLEXT_PROTOTYPES
 
 #define NOMINMAX 
-#include "render.h"
+#include "Render.h"
 #include "selectAtomMenu.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -26,6 +26,7 @@
 #include <QTime>
 #include <QMenu>
 #include <QFileDialog>
+#include <QWidget>
 #include <QMessageBox>
 #include "geometry.h"
 #include "QDebug"
@@ -40,12 +41,19 @@
 
 QTime t;
 
-Render::Render(QWidget *parent) : QGLWidget(parent) {
-    scribble =
-            rotating =
-            moving = false;
+struct Render::Private {
+    GLfloat drotationX;
+    GLfloat drotationY;
+    GLfloat drotationZ;
+    GLfloat movX;
+    GLfloat sumMovX;
+    GLfloat sumMovY;
+    GLfloat movY;
+    GLfloat scale;
+    QPoint lastPos;
 
-    drotationX =
+    Private() {
+        drotationX =
             drotationY =
             drotationZ =
             movX =
@@ -53,8 +61,17 @@ Render::Render(QWidget *parent) : QGLWidget(parent) {
             sumMovX =
             sumMovY = 0.0;
 
+        scale = 1.0;
+    }
+};
+
+Render::Render(QWidget *parent) : QGLWidget(parent), d(new Private()) {
+    scribble =
+            rotating =
+            moving = false;
+
     sphereQual = 3;
-    scale = 1.0;
+
     sR = 0.05F;
 
     selAtomType.x =
@@ -583,7 +600,7 @@ Render::draw() {
 
 void
 Render::mousePressEvent(QMouseEvent *event) {
-    lastPos = event->pos();
+    d->lastPos = event->pos();
     if (event->buttons() & Qt::LeftButton) {
         if (event->modifiers() == Qt::ControlModifier)
             processSelection(event->x(), event->y());
@@ -617,27 +634,27 @@ Render::mouseReleaseEvent(QMouseEvent *event) {
 
 void
 Render::mouseMoveEvent(QMouseEvent *event) {
-    GLfloat dx = static_cast<GLfloat>(event->x() - lastPos.x()) / width();
-    GLfloat dy = static_cast<GLfloat>(event->y() - lastPos.y()) / height();
+    GLfloat dx = static_cast<GLfloat>(event->x() - d->lastPos.x()) / width();
+    GLfloat dy = static_cast<GLfloat>(event->y() - d->lastPos.y()) / height();
     if (event->buttons() & Qt::LeftButton) {
-        drotationX = 180 * dy;
-        drotationY = 180 * dx;
+        d->drotationX = 180 * dy;
+        d->drotationY = 180 * dx;
         rotating = true;
         updateGL();
     } else if (event->buttons() & Qt::RightButton) {
         scribble = true;
-        scale += dy*scale;
+        d->scale += dy * d->scale;
         updateGL();
     } else if (event->buttons() & Qt::MidButton) {
 
-        movX = 18 * dx;
-        movY = 18 * dy;
-        sumMovX += movX;
-        sumMovY += movY;
+        d->movX = 18 * dx;
+        d->movY = 18 * dy;
+        d->sumMovX += d->movX;
+        d->sumMovY += d->movY;
         updateGL();
     }
 
-    lastPos = event->pos();
+    d->lastPos = event->pos();
 }
 
 void
@@ -676,13 +693,13 @@ Render::saveResult() {
 void
 Render::setGeometry(GLfloat zCenter) {
     glTranslatef(0, 0, zCenter);
-    if (!cmp_float(drotationX, 0))
-        glRotatef(drotationX, 1.0, 0.0, 0.0);
-    if (!cmp_float(drotationY, 0))
-        glRotatef(drotationY, 0.0, 1.0, 0.0);
+    if (!cmp_float(d->drotationX, 0))
+        glRotatef(d->drotationX, 1.0, 0.0, 0.0);
+    if (!cmp_float(d->drotationY, 0))
+        glRotatef(d->drotationY, 0.0, 1.0, 0.0);
     glTranslatef(0, 0, -zCenter);
 
-    drotationX = drotationY = 0.0;
+    d->drotationX = d->drotationY = 0.0;
     glMultMatrixf(&matrix[0]);
     glGetFloatv(GL_MODELVIEW_MATRIX, &matrix[0]);
 
@@ -690,10 +707,10 @@ Render::setGeometry(GLfloat zCenter) {
 
     glTranslatef(0, 0, zCenter);
 
-    if (!cmp_float(scale, 1.0))
-        glScalef(scale, scale, scale);
+    if (!cmp_float(d->scale, 1.0))
+        glScalef(d->scale, d->scale, d->scale);
     glTranslatef(0, 0, -zCenter);
-    glTranslatef(sumMovX, -sumMovY, 0.0);
+    glTranslatef(d->sumMovX, -d->sumMovY, 0.0);
     glMultMatrixf(&matrix[0]);
 }
 
@@ -804,4 +821,7 @@ Render::view(Surface3D &surface, vector<AtomType> &surfAt, Cell &atTypes,
     surfNormals.clear();
     initMatrix(&matrix);
     changeVizType(vT);
+}
+
+Render::~Render() {
 }

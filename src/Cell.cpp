@@ -31,6 +31,24 @@ Cell::Cell(const std::vector<Coords3D>& atoms) : atoms(atoms) {
 
 }
 
+Cell::Cell(const Atoms &atomsIn, const Coords3D &Vx, const Coords3D &Vy,
+    const Coords3D &Vz, const Coords3D &P1) {
+    for (auto const& atom : atomsIn) {
+        Coords3D const& X = atom;
+        Coords3D const V = X - P1;
+
+        double k = (V * Vz) / Vz.sqr();
+        if (k >= 0.0 && k <= 1.0) {
+            k = (V * Vy) / Vy.sqr();
+            if (k >= 0.0 && k <= 1.0) {
+                k = (V * Vx) / Vx.sqr();
+                if (k >= 0.0 && k <= 1.0)
+                    atoms.push_back(X); //Записываем атомы в ячейке
+            }
+        }
+    }
+}
+
 bool Cell::operator==(const Cell& cell) const {
     bool isEual = false;
     for (auto cell_atom_it = atoms.begin();

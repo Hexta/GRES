@@ -16,7 +16,7 @@
  ******************************************************************************/
 
 #include "face.h"
-#include "render.h"
+#include "Render.h"
 #include "settings.h"
 #include "consts.h"
 #include "etchingMenu.h"
@@ -186,10 +186,9 @@ MainW::etch(int simType_, int IterCount, float *rates) {
     for (int n = 0; n < count; ++n) {
         if (sT == GRES::SimType::KMC)
             perfect = surfaceXYZ.selAtom(surfAtoms, sosedi, z_min, cell, mask,
-            rates, P1, P2, P3);
+            rates);
         else if (sT == GRES::SimType::CA)
-            perfect = surfaceXYZ.selAtomCA(surfAtoms, z_min, cell, mask, rates,
-            P1, P2, P3);
+            perfect = surfaceXYZ.selAtomCA(surfAtoms, z_min, cell, mask, rates);
 
         if (perfect) {
             surfaceXYZ.addLayer(sosedi, SIZE_X, SIZE_Y, SIZE_Z);

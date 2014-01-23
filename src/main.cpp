@@ -20,8 +20,9 @@
 
 #define NOMINMAX 
 #include <QApplication>
-#include "render.h"
 #include "face.h"
+
+#include <QGLFormat>
 
 using namespace std;
 
