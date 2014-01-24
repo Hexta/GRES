@@ -75,7 +75,7 @@ private:
     int h, k, l;
     int SIZE_X, SIZE_Y, SIZE_Z;
     Cell cell;
-    Surface3D surfaceXYZ;
+    Surface3DPtr surfaceXYZ;
     float Xsize, Ysize, Zsize;
     AtomTypes surfAtoms;
     int z_center, z_min;

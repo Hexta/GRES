@@ -62,3 +62,5 @@ private:
     std::vector<Surface2D> m_surfaces2D;
     AtomTypes m_surfaceAtoms;
 };
+
+typedef std::shared_ptr<Surface3D> Surface3DPtr;

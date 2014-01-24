@@ -27,8 +27,9 @@
 #include <QMenuBar>
 #include <QToolBar>
 
-MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent) {
-    surfaceXYZ.reserve(5000);
+MainW::MainW(QWidget *parent, int, char * const *) : QMainWindow(parent),
+    surfaceXYZ(new Surface3D) {
+    surfaceXYZ->reserve(5000);
     h = 1;
     k = 0;
     l = 0;
@@ -185,19 +186,19 @@ MainW::etch(int simType_, int IterCount, float *rates) {
     int count = IterCount;
     for (int n = 0; n < count; ++n) {
         if (sT == GRES::SimType::KMC)
-            perfect = surfaceXYZ.selAtom(surfAtoms, sosedi, z_min, cell, mask,
+            perfect = surfaceXYZ->selAtom(surfAtoms, sosedi, z_min, cell, mask,
             rates);
         else if (sT == GRES::SimType::CA)
-            perfect = surfaceXYZ.selAtomCA(surfAtoms, z_min, cell, mask, rates);
+            perfect = surfaceXYZ->selAtomCA(surfAtoms, z_min, cell, mask, rates);
 
         if (perfect) {
-            surfaceXYZ.addLayer(sosedi, SIZE_X, SIZE_Y, SIZE_Z);
+            surfaceXYZ->addLayer(sosedi, SIZE_X, SIZE_Y, SIZE_Z);
             ++SIZE_Z;
             perfect = true;
         }
 
-        z_min = surfaceXYZ.findZmin(z_min);
-        surfaceXYZ.optimize(z_min);
+        z_min = surfaceXYZ->findZmin(z_min);
+        surfaceXYZ->optimize(z_min);
     }
     //    qDebug() << "etch: " << t.elapsed();
     z_center = (SIZE_Z - 2 + z_min) / 2;
@@ -233,9 +234,9 @@ MainW::newDocument() {
             = static_cast<unsigned int> (cell.size());
     sosedi = cell.findSoseds(Xsize, Ysize, Zsize);
 
-    surfaceXYZ.clear();
+    surfaceXYZ->clear();
     surfAtoms.clear();
-    surfaceXYZ.reserve(SIZE_Z);
+    surfaceXYZ->reserve(SIZE_Z);
     for (int z = 0; z < SIZE_Z; ++z) {
         Surface2D surfaceXY;
         surfaceXY.reserve(SIZE_Y);
@@ -271,7 +272,7 @@ MainW::newDocument() {
             }
             surfaceXY.push_back(surfaceX);
         }
-        surfaceXYZ.push_back(surfaceXY);
+        surfaceXYZ->push_back(surfaceXY);
     }
     drawResult();
 }

@@ -26,9 +26,9 @@
 #include <QComboBox>
 
 EtchingMenu::EtchingMenu(QWidget *parent) : QWidget(parent) {
-    const float P1 = 1.0;
-    const float P2 = 0.030;
-    const float P3 = 0.000010;
+    const float P1 = 1.0f;
+    const float P2 = 0.030f;
+    const float P3 = 0.000010f;
     QLabel *iterationsLabel = new QLabel(tr("Number of iterations"));
     iterationsLine = new QLineEdit;
     iterationsLine->setText(QString::number(2000));
