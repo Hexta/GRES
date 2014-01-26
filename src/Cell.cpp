@@ -27,7 +27,7 @@ Cell::Cell() {
 
 }
 
-Cell::Cell(const std::vector<Coords3D>& atoms) : atoms(atoms) {
+Cell::Cell(const Atoms& atoms) : atoms(atoms) {
 
 }
 

@@ -43,14 +43,14 @@ set(${PROJECT_NAME}_SRC
     Coords3D.cpp
     etchingMenu.cpp
     functions.cpp
-    main.cpp
-    maskPreview.cpp
-    selectAtomMenu.cpp
-    face.cpp
     geometry.cpp
+    main.cpp
+    MainWindow.cpp
     maskMenu.cpp
+    maskPreview.cpp
     Render.cpp
-    settings.cpp
+    selectAtomMenu.cpp
+    Settings.cpp
     Surface3D.cpp
 )
 
@@ -59,26 +59,26 @@ set(${PROJECT_NAME}_HEADERS
     Cell.h
     Coords3D.h
     etchingMenu.h
-    face.h
     functions.h
     geometry.h
+    MainWindow.h
     maskMenu.h
     maskPreview.h
     opengl.h
     Render.h
     selectAtomMenu.h
-    settings.h
+    Settings.h
     Surface3D.h
 )
 
 set(${PROJECT_NAME}_HEADERS_MOC
     etchingMenu.h
-    face.h
+    MainWindow.h
     maskMenu.h
     maskPreview.h
     Render.h
     selectAtomMenu.h
-    settings.h
+    Settings.h
 )
 
 source_group(${PROJECT_NAME} FILES

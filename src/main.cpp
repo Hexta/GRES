@@ -19,12 +19,11 @@
 #define GLUT_NO_LIB_PRAGMA
 
 #define NOMINMAX 
+#include "MainWindow.h"
+
 #include <QApplication>
-#include "face.h"
 
 #include <QGLFormat>
-
-using namespace std;
 
 int
 main(int argc, char *argv[]) {
@@ -36,8 +35,8 @@ main(int argc, char *argv[]) {
     fmt.setDoubleBuffer(false);
     QGLFormat::setDefaultFormat(fmt);
 #endif
-    MainW *content;
-    content = new MainW(0, argc, argv);
+    MainWindow *content;
+    content = new MainWindow(0, argc, argv);
     content->setWindowTitle(QObject::tr("GRES"));
     content->show();
     return app.exec();

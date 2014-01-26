@@ -21,6 +21,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <memory>
 
 struct AtomType {
     int x; //сдвиг €чейки по OX (-1;0;+1)
@@ -43,4 +44,5 @@ struct AtomInfo {
 };
 
 typedef std::vector<Coords3D> Atoms;
+typedef std::shared_ptr<Atoms> AtomsPtr;
 typedef std::vector<AtomInfo> CellInfo;

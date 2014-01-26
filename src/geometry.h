@@ -28,8 +28,6 @@
 
 #include <vector>
 
-using std::vector;
-
 struct atomName {
     int name;
     int xC;
@@ -42,7 +40,7 @@ struct atomName {
     int fNbCount;
 };
 
-typedef vector<atomName>AtomsNames;
+typedef std::vector<atomName>AtomsNames;
 
 struct Bond {
     float x1;
@@ -53,11 +51,7 @@ struct Bond {
     float z2;
 };
 
-typedef vector<Bond> Bonds;
-
-void createAtomsAndBondes(Surface3D &surface, const vector<AtomType>& surfAtoms,
-        const Cell &cellAts, float xs_, float ys_, float zs_, int z_min,
-        float scaling, vector<atomName> &atNames_, Bonds &outBonds);
+typedef std::vector<Bond> Bonds;
 
 void createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
         int &vSize2, int &vSize3);

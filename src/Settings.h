@@ -24,12 +24,16 @@ class QSpinBox;
 
 class Settings : public QWidget {
     Q_OBJECT
+
 public:
     Settings(QWidget *parent = 0);
+
 public slots:
     void set(int h, int k, int l, int xS, int yS, int zS);
+
 signals:
     void settingsChanged(int, int, int, int, int, int);
+
 private:
     QSpinBox* hSpinBox;
     QSpinBox* kSpinBox;
@@ -40,6 +44,4 @@ private:
 
 private slots:
     void get();
-
 };
-

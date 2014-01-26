@@ -74,10 +74,9 @@ private:
     void processSelection(int x, int y);
     void processSelectionMenu();
     void processAtom(const GLuint *pSelectBuff);
-    void createAtomsAndBonds(Surface3D &surface, Atoms &cellAts, float xs_,
-        float ys_, float zs_, int z_min, AtomsNames &atN, Bonds &outBonds);
-    void createSurfacePoints(const Surface3D &surface, float Xsize, float Ysize,
-        float Zsize, int z_min);
+    void createAtomsAndBonds();
+    void createAtomsAndBondes();
+    void createSurfacePoints();
     void initMatrix();
     void drawAxis();
     void setGeometry(GLfloat zCenter = 0);

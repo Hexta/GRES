@@ -60,7 +60,7 @@ struct Render::Private {
 
     atomName selAtomType;
 
-    vector<atomName> typeAndCoordsOfAtoms;
+    AtomsNames typeAndCoordsOfAtoms;
     AtomsNames atNames;
 
     float sR;
@@ -68,7 +68,7 @@ struct Render::Private {
     Coords3D *Vx, *Vy, *Vz;
     GLuint theSphere;
     QColor clearColor;
-    Atoms *cellAtoms;
+    Cell cellAtoms;
     Surface3DPtr surfaceXYZ;
 
     float xs, ys, zs;
@@ -89,11 +89,11 @@ struct Render::Private {
     Cells surfPoints;
     Atoms surfVertex;
     Atoms surfNormals;
-    vector <GLuint> buffers;
+    std::vector <GLuint> buffers;
     int sphereQual;
     int vSize1, vSize2, vSize3;
-    vector<GLfloat> matrix;
-    vector<AtomType> *surfAtoms;
+    std::vector<GLfloat> matrix;
+    std::vector<AtomType> *surfAtoms;
 
 #ifdef _WIN32
     PFNGLBINDBUFFERARBPROC pglBindBufferARB;
@@ -174,7 +174,7 @@ Render::changeVizType(GRES::VizType type) {
                 break;
             }
 
-            createSurfacePoints(*d->surfaceXYZ, d->xs, d->ys, d->zs, d->z_min);
+            createSurfacePoints();
             d->buffers.clear();
             d->buffers.push_back(1);
             break;
@@ -184,8 +184,7 @@ Render::changeVizType(GRES::VizType type) {
                 break;
             }
 
-            createAtomsAndBonds(*d->surfaceXYZ, *d->cellAtoms, d->xs, d->ys,
-                d->zs, d->z_min, d->atNames, d->bonds);
+            createAtomsAndBonds();
             createSphere(0.09 * d->scaling, 10, 10, d->vSize1, d->vSize2,
                 d->vSize3);
             d->buffers.clear();
@@ -200,9 +199,7 @@ Render::changeVizType(GRES::VizType type) {
                 break;
             }
 
-            createAtomsAndBondes(*d->surfaceXYZ, *d->surfAtoms, *d->cellAtoms,
-                d->xs, d->ys, d->zs, d->z_min, d->scaling, d->atNames,
-                d->bonds);
+            createAtomsAndBondes();
             createSphere(0.09 * d->scaling, 10, 10, d->vSize1, d->vSize2,
                 d->vSize3);
             d->buffers.clear();
@@ -217,8 +214,7 @@ Render::changeVizType(GRES::VizType type) {
                 break;
             }
 
-            createAtomsAndBonds(*d->surfaceXYZ, *d->cellAtoms, d->xs, d->ys,
-                d->zs, d->z_min, d->atNames, d->bonds);
+            createAtomsAndBonds();
             createSphere(0.2 * d->scaling, 10, 10, d->vSize1, d->vSize2,
                 d->vSize3);
             d->buffers.clear();
@@ -233,8 +229,7 @@ Render::changeVizType(GRES::VizType type) {
                 break;
             }
 
-            createAtomsAndBondes(*d->surfaceXYZ, *d->surfAtoms, *d->cellAtoms,
-                d->xs, d->ys, d->zs, d->z_min, d->scaling, d->atNames, d->bonds);
+            createAtomsAndBondes();
             createSphere(0.2 * d->scaling, 10, 10, d->vSize1, d->vSize2,
                 d->vSize3);
             d->buffers.clear();
@@ -252,22 +247,20 @@ Render::changeVizType(GRES::VizType type) {
 
 void
 Render::createActions() {
-    
-    // 	connect (exitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
-void Render::createAtomsAndBonds(Surface3D &surface, Atoms &cellAts, float xs_,
-                            float ys_, float zs_, int z_min, AtomsNames &atN,
-                            Bonds &outBonds)
+void Render::createAtomsAndBonds()
 {
+    auto& cellAts = d->cellAtoms.atoms;
+    auto& surface = *d->surfaceXYZ;
 
     int name = 0;
-    for (size_t z = z_min; z < surface.size() - 2; ++z)
+    for (size_t z = d->z_min; z < surface.size() - 2; ++z)
         for (size_t y = surface[z].size() - 2; --y >= 2;)
             for (size_t x = surface[z][y].size() - 2; --x >= 2;) {
-                float x0 = d->scaling * x * xs_;
-                float y0 = d->scaling * y * ys_;
-                float z0 = -d->scaling * (z - z_min) * zs_;
+                float x0 = d->scaling * x * d->xs;
+                float y0 = d->scaling * y * d->ys;
+                float z0 = -d->scaling * (z - d->z_min) * d->zs;
                 const char atomsCount = static_cast<char>(surface[z][y][x].size());
                 for (unsigned char a = atomsCount; --a > 0;) {
 
@@ -281,7 +274,7 @@ void Render::createAtomsAndBonds(Surface3D &surface, Atoms &cellAts, float xs_,
                                          static_cast<int> (y),
                                          static_cast<int> (z), xA, yA, zA, a,
                                          static_cast<int> (atomsCount)};
-                        atN.push_back(temp);
+                        d->atNames.push_back(temp);
 
                         for (auto &nb : surface[z][y][x][a].neighbors) {
                             float xNb = d->scaling * (d->xs * nb.x + cellAts[nb.type].x);
@@ -289,16 +282,100 @@ void Render::createAtomsAndBonds(Surface3D &surface, Atoms &cellAts, float xs_,
                             float zNb = d->scaling * (-d->zs * nb.z - cellAts[nb.type].z);
 
                             Bond bondT = {xA, yA, zA, xNb, yNb, zNb};
-                            outBonds . push_back(bondT);
+                            d->bonds.push_back(bondT);
                         }
                     }
                 }
             }
 }
 
-void Render::createSurfacePoints(const Surface3D &surface, float Xsize, float Ysize, float Zsize,
-                            int z_min)
+void Render::createAtomsAndBondes() {
+    auto& cellAtoms = d->cellAtoms.atoms;
+
+    int name = 0;
+    auto const& scaling = d->scaling;
+    for (auto &surfAtom : *d->surfAtoms) {
+        const int x = surfAtom.x;
+        const int y = surfAtom.y;
+        const int z = surfAtom.z;
+        const unsigned char a = surfAtom.type;
+
+        auto &neighbours = (*d->surfaceXYZ)[z][y][x][a].neighbors;
+        
+
+        if (!neighbours.empty()) {
+            float x0 = scaling * x * d->xs;
+            float y0 = scaling * y * d->ys;
+            float z0 = -scaling * (z - d->z_min) * d->zs;
+
+            float xA = x0 + scaling * cellAtoms[a].x;
+            float yA = y0 + scaling * cellAtoms[a].y;
+            float zA = z0 - scaling * cellAtoms[a].z;
+
+            ++name;
+            atomName temp = {name, x, y, z, xA, yA, zA, a, static_cast<int> (neighbours.size())};
+            d->atNames.push_back(temp);
+
+            for (auto &nb : neighbours) {
+                float xNb = scaling * (d->xs * nb.x + cellAtoms[nb.type].x);
+                float yNb = scaling * (d->ys * nb.y + cellAtoms[nb.type].y);
+                float zNb = scaling * (-d->zs * nb.z - cellAtoms[nb.type].z);
+
+                Bond bondT = {xA, yA, zA, xNb, yNb, zNb};
+                d->bonds.push_back(bondT);
+            }
+        }
+    }
+
+    for (auto &surfAtom : *d->surfAtoms) {
+        int x_ = surfAtom.x;
+        int y_ = surfAtom.y;
+        int z_ = surfAtom.z;
+        unsigned char a_ = surfAtom.type;
+
+        for (auto &nb : (*d->surfaceXYZ)[z_][y_][x_][a_].neighbors) {
+            int x = nb.x;
+            int y = nb.y;
+            int z = nb.z;
+            unsigned char a = nb.type;
+
+            auto &surfaceZYXA = (*d->surfaceXYZ)[z][y][x][a];
+
+            if (x > 1 && x < (*d->surfaceXYZ)[z_][y_].size() - 2
+                && y > 1 && y < (*d->surfaceXYZ)[z_].size() - 2)
+            if (!surfaceZYXA.deleted) {
+
+                float x0 = scaling * x * d->xs;
+                float y0 = scaling * y * d->ys;
+                float z0 = -scaling * (z - d->z_min) * d->zs;
+
+                float xA = x0 + scaling * cellAtoms[a].x;
+                float yA = y0 + scaling * cellAtoms[a].y;
+                float zA = z0 - scaling * cellAtoms[a].z;
+
+                ++name;
+                atomName temp = {name, x, y, z, xA, yA, zA, a,
+                    static_cast<int> (surfaceZYXA.neighbors.size())};
+                d->atNames.push_back(temp);
+
+                for (auto &nb_int : surfaceZYXA.neighbors) {
+                    float xNb = scaling * (d->xs * nb_int.x + cellAtoms[nb_int.type].x);
+                    float yNb = scaling * (d->ys * nb_int.y + cellAtoms[nb_int.type].y);
+                    float zNb = scaling * (-d->zs * nb_int.z - cellAtoms[nb_int.type].z);
+
+                    Bond bondT = {xA, yA, zA,
+                        xNb, yNb, zNb};
+                    d->bonds.push_back(bondT);
+                }
+            }
+        }
+    }
+}
+
+void Render::createSurfacePoints()
 {
+    auto& surface = *d->surfaceXYZ;
+    auto const& z_min = d->z_min;
     const size_t dX = surface[z_min][0].size() - 3;
     const size_t dY = surface[z_min].size() - 3;
 
@@ -312,21 +389,23 @@ void Render::createSurfacePoints(const Surface3D &surface, float Xsize, float Ys
                 if (!atom.deleted) {
                     auto& atom_ = points[y - 2].atoms[x - 2];
                     if (cmp_float(atom_.x, -1.0)) {
-                        atom_.x = d->scaling * (x - 2) * Xsize;
-                        atom_.z = -d->scaling * z*Zsize;
-                        atom_.y = d->scaling * (y - 2) * Ysize;
+                        atom_.x = d->scaling * (x - 2) * d->xs;
+                        atom_.z = -d->scaling * z * d->zs;
+                        atom_.y = d->scaling * (y - 2) * d->ys;
                         }
                 }      
 
     for (size_t i = 0; i < dY; ++i) {
-        points[i].atoms[dX - 1].x = points[i].atoms[dX - 2].x + d->scaling*Xsize;
+        points[i].atoms[dX - 1].x = points[i].atoms[dX - 2].x +
+            d->scaling * d->xs;
         points[i].atoms[dX - 1].y = points[i].atoms[dX - 2].y;
         points[i].atoms[dX - 1].z = points[i].atoms[dX - 2].z;
     }
 
     for (size_t i = 0; i < dX; ++i) {
         points[dY - 1].atoms[i].x = points[dY - 2].atoms[i].x;
-        points[dY - 1].atoms[i].y = points[dY - 2].atoms[i].y + d->scaling*Ysize;
+        points[dY - 1].atoms[i].y = points[dY - 2].atoms[i].y +
+            d->scaling * d->ys;
         points[dY - 1].atoms[i].z = points[dY - 2].atoms[i].z;
     }
     d->surfVertex.reserve((d->SIZE_Y - 4)*(d->SIZE_X - 4));
@@ -451,22 +530,23 @@ Render::resizeGL(int width, int height) {
 
 void
 Render::initMatrix() {
-    vector<GLfloat> matrix1 = {1.0,
-                               0.0,
-                               0.0,
-                               0.0,
-                               0.0,
-                               1.0,
-                               0.0,
-                               0.0,
-                               0.0,
-                               0.0,
-                               1.0,
-                               0.0,
-                               0.0,
-                               0.0,
-                               0.0,
-                               1.0};
+    std::vector<GLfloat> matrix1 = {
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0};
     d->matrix = matrix1;
 }
 
@@ -836,7 +916,7 @@ void Render::view(Surface3DPtr surface, AtomTypes& surfAt, Cell &atTypes,
     d->surfaceXYZ = surface;
     d->z_min = min;
     d->z_center = center;
-    d->cellAtoms = &atTypes.atoms;
+    d->cellAtoms = atTypes;
     d->SIZE_X = width;
     d->SIZE_Y = height;
     d->Vx = &vX;
