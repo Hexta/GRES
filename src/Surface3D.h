@@ -43,22 +43,22 @@ public:
     void optimize(int zMin);
     void clear();
     void push_back(Surface2D const& surface2D);
-    void recallNeighbors(int x, int y, int z, int type,
-        AtomTypes& surfAtoms);
+    void recallNeighbors(int x, int y, int z, int type);
 
     const AtomTypes& getSurfaceAtoms() const;
-    void delAtom(AtomTypes& surfAtoms, int x, int y, int z, int type,
-        int surfAtN);
+    void delAtom(int x, int y, int z, int type, int surfAtN);
 
-    bool selAtom(AtomTypes& surfAtoms, AllNeighbors &neighbs, int z_min,
-        Cell &tA, const std::vector<bool> &mask, const float *rates);
+    bool selAtom(AllNeighbors const& neighbs, size_t z_min, Cell &tA,
+        const std::vector<bool> &mask, const float *rates);
 
-    bool selAtomCA(AtomTypes& surfAtoms, int z_min, Cell &tA,
-        std::vector<bool> &mask, float* rates);
+    bool selAtomCA(int z_min, Cell &tA, std::vector<bool> const& mask,
+        float* rates);
 
-    void addLayer(const AllNeighbors& sosedi, int sX, int sY, int sZ);
+    void addLayer(const AllNeighbors& totalNeighbors, int sX, int sY, int sZ);
+    void rebuildSurfaceAtoms();
 
 private:
+    AtomTypes initSurfaceAtoms() const;
     std::vector<Surface2D> m_surfaces2D;
     AtomTypes m_surfaceAtoms;
 };

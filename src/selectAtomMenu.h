@@ -31,5 +31,5 @@ public slots:
     void setInfo(int x, int y, int z, int type, int fNbCount);
 private:
     QLabel *atomPosition;
-    QLabel *firstNeighboursCount;
+    QLabel *firstNeighborsCount;
 };

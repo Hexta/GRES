@@ -47,10 +47,9 @@ public:
     QSize sizeHint() const;
 
 public slots:
-    void view(Surface3DPtr surface, AtomTypes& surfAt, Cell &atTypes,
-        float Xsize, float Ysize, float Zsize, int center, int min,
-        int width, int height, Coords3D &vX, Coords3D &vY, Coords3D &vZ,
-        GRES::VizType vT);
+    void view(Surface3DPtr surface, Cell &atTypes, float Xsize, float Ysize,
+        float Zsize, int center, int min, int width, int height,
+        Coords3D &vX, Coords3D &vY, Coords3D &vZ, GRES::VizType vT);
     void changeVizType(GRES::VizType type);
     void saveResult();
 

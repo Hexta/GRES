@@ -108,7 +108,7 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
     for (int z = 0; z < 9; ++z)
         for (int y = 0; y < 9; ++y)
             for (int x = 0; x < 9; ++x)
-                for (int a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a) {
+                for (size_t a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a) {
                     Coords3D atom = {x + atomTypes[a].x, y + atomTypes[a].y,
                                      z + atomTypes[a].z};
                     allAtoms.push_back(atom);
@@ -121,7 +121,7 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
     for (int z = 0; z < SIZE_Z; ++z)
         for (int y = 0; y < SIZE_Y; ++y)
             for (int x = 0; x < SIZE_X; ++x)
-                for (int a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a)
+                for (size_t a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a)
                     if (cmp_float(h * (x + atomTypes[a].x) + k * (y + atomTypes[a].y) + l * (z + atomTypes[a].z), C)) {
                         Coords3D atom = {x + atomTypes[a].x, y + atomTypes[a].y, z + atomTypes[a].z};
                         atomsP1.push_back(atom);
@@ -130,8 +130,8 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
     //Найдем прямоугольники, лежащие на плоскости №1
     const size_t atomsP1Size = atomsP1.size();
     ls.reserve(atomsP1Size * atomsP1Size / 2);
-    for (unsigned int i = 0; i < atomsP1Size; ++i)
-        for (unsigned int j = i + 1; j < atomsP1Size; ++j) {
+    for (size_t i = 0; i < atomsP1Size; ++i)
+        for (size_t j = i + 1; j < atomsP1Size; ++j) {
             const auto atomP1A = atomsP1[i];
             const auto atomP1B = atomsP1[j];
             float l1 = distance(atomP1A.x, atomP1A.y, atomP1A.z,
@@ -144,8 +144,8 @@ Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs,
     float ky = -10;
     float kz = -100;
 
-    for (unsigned int i = 0; i < ls.size(); ++i)
-        for (unsigned int j = i + 1; j < ls.size(); ++j) {
+    for (size_t i = 0; i < ls.size(); ++i)
+        for (size_t j = i + 1; j < ls.size(); ++j) {
             float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, l1, l2;
             x1 = ls[i].x1;
             y1 = ls[i].y1;

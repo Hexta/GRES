@@ -38,7 +38,7 @@ EtchingMenu::EtchingMenu(QWidget *parent) : QWidget(parent) {
 
     QGroupBox *probabilityBox = new QGroupBox(tr("Removal rates"));
     QGridLayout *ratesGrid = new QGridLayout;
-    QLabel *fNbCountLabel = new QLabel(tr("Count of first neighbours"));
+    QLabel *fNbCountLabel = new QLabel(tr("Count of first neighbors"));
 
     QLabel *f1NbLabel = new QLabel(tr("1"));
     QLabel *f2NbLabel = new QLabel(tr("2"));

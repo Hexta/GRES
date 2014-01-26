@@ -57,12 +57,11 @@ struct MainWindow::Private {
     Cell cell;
     Surface3DPtr surfaceXYZ;
     float Xsize, Ysize, Zsize;
-    AtomTypes surfAtoms;
 
     Coords3D Vx, Vy, Vz;
-    AllNeighbors neighbours;
+    AllNeighbors neighbors;
     Cells surfacePoints;
-    GRES::VizType vizualType; //тип визуализации
+    GRES::VizType vizualizationType;
 
     std::vector<bool> mask;
 
@@ -94,7 +93,7 @@ struct MainWindow::Private {
         SIZE_Z(4),
         z_min(0),
         surfaceXYZ(new Surface3D),
-        vizualType(GRES::VizType::CELLS_SURFACE) {
+        vizualizationType(GRES::VizType::CELLS_SURFACE) {
 
         saveAct->setEnabled(false);
 
@@ -150,21 +149,21 @@ MainWindow::MainWindow(QWidget *parent, int, char * const *) : QMainWindow(paren
 void
 MainWindow::changeVizType(QAction* type) {
     if (type == d->viewAsAts_SurfaceAndBulkAct)
-        d->vizualType = GRES::VizType::ATOMS_SURFACE_AND_BULK;
+        d->vizualizationType = GRES::VizType::ATOMS_SURFACE_AND_BULK;
 
     else if (type == d->viewAsAts_SurfaceAct)
-        d->vizualType = GRES::VizType::ATOMS_SURFACE;
+        d->vizualizationType = GRES::VizType::ATOMS_SURFACE;
 
     else if (type == d->viewAsAtsAndBonds_SurfaceAndBulkAct)
-        d->vizualType = GRES::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK;
+        d->vizualizationType = GRES::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK;
 
     else if (type == d->viewAsAtsAndBonds_SurfaceAct)
-        d->vizualType = GRES::VizType::ATOMS_AND_BONDS_SURFACE;
+        d->vizualizationType = GRES::VizType::ATOMS_AND_BONDS_SURFACE;
 
     else if (type == d->viewAsCellsSurface)
-        d->vizualType = GRES::VizType::CELLS_SURFACE;
+        d->vizualizationType = GRES::VizType::CELLS_SURFACE;
 
-    d->result->changeVizType(d->vizualType);
+    d->result->changeVizType(d->vizualizationType);
 }
 
 void
@@ -212,9 +211,9 @@ MainWindow::createToolBars() {
 
 void
 MainWindow::drawResult() {
-    d->result->view(d->surfaceXYZ, d->surfAtoms, d->cell, d->Xsize, d->Ysize,
+    d->result->view(d->surfaceXYZ, d->cell, d->Xsize, d->Ysize,
         d->Zsize, d->z_center, d->z_min, d->SIZE_X, d->SIZE_Y, d->Vx, d->Vy,
-        d->Vz, d->vizualType);
+        d->Vz, d->vizualizationType);
 }
 
 void
@@ -223,25 +222,31 @@ MainWindow::etch(int simType_, int IterCount, float *rates) {
     QTime t;
     //    t.start();
     bool perfect = false;
+    auto surface = d->surfaceXYZ;
+    auto& neighbors = d->neighbors;
+    auto& z_min = d->z_min;
+    auto& cell = d->cell;
+    auto& mask = d->mask;
+    auto& sizeX = d->SIZE_X;
+    auto& sizeY = d->SIZE_Y;
+    auto& sizeZ = d->SIZE_Z;
     for (int n = 0; n < IterCount; ++n) {
         if (sT == GRES::SimType::KMC)
-            perfect = d->surfaceXYZ->selAtom(d->surfAtoms, d->neighbours,
-            d->z_min, d->cell, d->mask, rates);
+            perfect = surface->selAtom(neighbors, z_min, cell, mask, rates);
         else if (sT == GRES::SimType::CA)
-            perfect = d->surfaceXYZ->selAtomCA(d->surfAtoms, d->z_min,
-            d->cell, d->mask, rates);
+            perfect = surface->selAtomCA(z_min, cell, mask, rates);
 
         if (perfect) {
-            d->surfaceXYZ->addLayer(d->neighbours, d->SIZE_X, d->SIZE_Y, d->SIZE_Z);
-            ++d->SIZE_Z;
+            surface->addLayer(neighbors, sizeX, sizeY, sizeZ);
+            ++sizeZ;
             perfect = true;
         }
 
-        d->z_min = d->surfaceXYZ->findZmin(d->z_min);
-        d->surfaceXYZ->optimize(d->z_min);
+        z_min = surface->findZmin(z_min);
+        surface->optimize(z_min);
     }
     //    qDebug() << "etch: " << t.elapsed();
-    d->z_center = (d->SIZE_Z - 2 + d->z_min) / 2;
+    d->z_center = (d->SIZE_Z - 2 + z_min) / 2;
     drawResult();
 }
 
@@ -264,19 +269,18 @@ MainWindow::newDocument() {
 
     QTime t;
     d->z_min = 0;
-    int xMax = d->SIZE_X;
-    int yMax = d->SIZE_Y;
-    int zMax = d->SIZE_Z;
+    int const xMax = d->SIZE_X;
+    int const yMax = d->SIZE_Y;
+    int const zMax = d->SIZE_Z;
     d->z_center = d->z_min + (zMax - 2 - d->z_min) / 2;
 
     d->cell = findCell(d->h, d->k, d->l, d->Xsize, d->Ysize, d->Zsize, d->Vx,
         d->Vy, d->Vz);
-    const unsigned int NUMBER_OF_ATOMS_IN_CELL
-        = static_cast<unsigned int> (d->cell.size());
-    d->neighbours = d->cell.findSoseds(d->Xsize, d->Ysize, d->Zsize);
+    auto const numberOfAtomInCell =
+        static_cast<unsigned int>(d->cell.size());
+    d->neighbors = d->cell.findNeighbors(d->Xsize, d->Ysize, d->Zsize);
 
     d->surfaceXYZ->clear();
-    d->surfAtoms.clear();
     d->surfaceXYZ->reserve(d->SIZE_Z);
     for (int z = 0; z < d->SIZE_Z; ++z) {
         Surface2D surfaceXY;
@@ -286,28 +290,25 @@ MainWindow::newDocument() {
             surfaceX.reserve(d->SIZE_X);
             for (int x = 0; x < d->SIZE_X; ++x) {
                 vector<AtomInfo> cell;
-                for (unsigned char a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a) {
+                for (unsigned char a = 0; a < numberOfAtomInCell; ++a) {
                     Neighbors neighbs;
                     char numberNeighbs = 0; //Число первых соседей
                     for (int nb = 0; nb < 4; ++nb) {
-                        auto &sosediANb = d->neighbours[a][nb];
-                        if (x + sosediANb.x >= 0 && y + sosediANb.y >= 0
-                            && z + sosediANb.z >= 0 &&
-                            x + sosediANb.x < xMax && y + sosediANb.y < yMax
-                            && z + sosediANb.z < zMax + 1) {
+                        auto &neighborsANb = d->neighbors[a][nb];
+                        if (x + neighborsANb.x >= 0
+                            && y + neighborsANb.y >= 0
+                            && z + neighborsANb.z >= 0
+                            && x + neighborsANb.x < xMax
+                            && y + neighborsANb.y < yMax
+                            && z + neighborsANb.z < zMax + 1) {
                             ++numberNeighbs;
-                            AtomType neighb = {x + sosediANb.x, y + sosediANb.y,
-                                               z + sosediANb.z, sosediANb.type, false};
+                            AtomType neighb = {x + neighborsANb.x, y + neighborsANb.y,
+                                               z + neighborsANb.z, neighborsANb.type,
+                                               false};
                             neighbs.push_back(neighb);
                         }
                     }
-                    if ((x > 1 && x < d->SIZE_X - 2)
-                        && (y > 1 && y < d->SIZE_Y - 2)
-                        && z < d->SIZE_Z - 2)
-                        if (numberNeighbs && numberNeighbs < 4) {
-                            AtomType aT = {x, y, z, a, false};
-                            d->surfAtoms.push_back(aT);
-                        }
+
                     AtomInfo atom = {neighbs, numberNeighbs, !numberNeighbs};
                     cell.push_back(atom);
                 }
@@ -317,6 +318,7 @@ MainWindow::newDocument() {
         }
         d->surfaceXYZ->push_back(surfaceXY);
     }
+    d->surfaceXYZ->rebuildSurfaceAtoms();
     drawResult();
 }
 

@@ -93,7 +93,6 @@ struct Render::Private {
     int sphereQual;
     int vSize1, vSize2, vSize3;
     std::vector<GLfloat> matrix;
-    std::vector<AtomType> *surfAtoms;
 
 #ifdef _WIN32
     PFNGLBINDBUFFERARBPROC pglBindBufferARB;
@@ -294,16 +293,16 @@ void Render::createAtomsAndBondes() {
 
     int name = 0;
     auto const& scaling = d->scaling;
-    for (auto &surfAtom : *d->surfAtoms) {
+    auto& surface = *d->surfaceXYZ;
+    for (auto const& surfAtom : surface.getSurfaceAtoms()) {
         const int x = surfAtom.x;
         const int y = surfAtom.y;
         const int z = surfAtom.z;
         const unsigned char a = surfAtom.type;
 
-        auto &neighbours = (*d->surfaceXYZ)[z][y][x][a].neighbors;
-        
+        auto &neighbors = surface[z][y][x][a].neighbors;
 
-        if (!neighbours.empty()) {
+        if (!neighbors.empty()) {
             float x0 = scaling * x * d->xs;
             float y0 = scaling * y * d->ys;
             float z0 = -scaling * (z - d->z_min) * d->zs;
@@ -313,10 +312,10 @@ void Render::createAtomsAndBondes() {
             float zA = z0 - scaling * cellAtoms[a].z;
 
             ++name;
-            atomName temp = {name, x, y, z, xA, yA, zA, a, static_cast<int> (neighbours.size())};
+            atomName temp = {name, x, y, z, xA, yA, zA, a, static_cast<int> (neighbors.size())};
             d->atNames.push_back(temp);
 
-            for (auto &nb : neighbours) {
+            for (auto &nb : neighbors) {
                 float xNb = scaling * (d->xs * nb.x + cellAtoms[nb.type].x);
                 float yNb = scaling * (d->ys * nb.y + cellAtoms[nb.type].y);
                 float zNb = scaling * (-d->zs * nb.z - cellAtoms[nb.type].z);
@@ -327,22 +326,22 @@ void Render::createAtomsAndBondes() {
         }
     }
 
-    for (auto &surfAtom : *d->surfAtoms) {
-        int x_ = surfAtom.x;
-        int y_ = surfAtom.y;
-        int z_ = surfAtom.z;
+    for (auto const& surfAtom : surface.getSurfaceAtoms()) {
+        int const x_ = surfAtom.x;
+        int const y_ = surfAtom.y;
+        int const z_ = surfAtom.z;
         unsigned char a_ = surfAtom.type;
 
-        for (auto &nb : (*d->surfaceXYZ)[z_][y_][x_][a_].neighbors) {
+        for (auto &nb : surface[z_][y_][x_][a_].neighbors) {
             int x = nb.x;
             int y = nb.y;
             int z = nb.z;
             unsigned char a = nb.type;
 
-            auto &surfaceZYXA = (*d->surfaceXYZ)[z][y][x][a];
+            auto &surfaceZYXA = surface[z][y][x][a];
 
-            if (x > 1 && x < (*d->surfaceXYZ)[z_][y_].size() - 2
-                && y > 1 && y < (*d->surfaceXYZ)[z_].size() - 2)
+            if (x > 1 && x < static_cast<decltype(x)>(surface[z_][y_].size()) - 2
+                && y > 1 && y < static_cast<decltype(y)>(surface[z_].size()) - 2)
             if (!surfaceZYXA.deleted) {
 
                 float x0 = scaling * x * d->xs;
@@ -902,13 +901,11 @@ void Render::processAtom(const GLuint *pSelectBuff) {
     }
 }
 
-void Render::view(Surface3DPtr surface, AtomTypes& surfAt, Cell &atTypes,
-             float Xsize, float Ysize, float Zsize, int center, int min,
-             int width, int height, Coords3D &vX, Coords3D &vY, Coords3D &vZ,
-             GRES::VizType vT)
+void Render::view(Surface3DPtr surface, Cell &atTypes, float Xsize, float Ysize,
+    float Zsize, int center, int min, int width, int height, Coords3D &vX,
+    Coords3D &vY, Coords3D &vZ, GRES::VizType vT)
 {
     d->visualizationType = vT;
-    d->surfAtoms = &surfAt;
 
     d->xs = Xsize;
     d->ys = Ysize;

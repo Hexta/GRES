@@ -78,17 +78,18 @@ bool Cell::operator<(const Cell& cell) const {
     return atoms.size() < cell.atoms.size();
 }
 
-const AllNeighbors Cell::findSoseds(float xs, float ys, float zs) {
-    const int NUMBER_OF_ATOMS_IN_CELL = static_cast<int> (atoms.size());
-    AllNeighbors allSosedi;
-    for (int type0 = 0; type0 < NUMBER_OF_ATOMS_IN_CELL; ++type0) {
-        Neighbors sosedi;
+const AllNeighbors Cell::findNeighbors(float xs, float ys, float zs) {
+    const auto NUMBER_OF_ATOMS_IN_CELL = atoms.size();
+    AllNeighbors totalNeighbors;
+    for (size_t type0 = 0; type0 < NUMBER_OF_ATOMS_IN_CELL; ++type0) {
+        Neighbors neighbors;
 
         double x0 = atoms[type0].x;
         double y0 = atoms[type0].y;
         double z0 = atoms[type0].z;
 
-        for (int xc1 = -1; xc1 < 2; ++xc1)//смещение соседней €чейки є1
+        // shift of the cell #1
+        for (int xc1 = -1; xc1 < 2; ++xc1)
         for (int yc1 = -1; yc1 < 2; ++yc1)
         for (int zc1 = -1; zc1 < 2; ++zc1)
         for (unsigned char type1 = 0;
@@ -97,16 +98,17 @@ const AllNeighbors Cell::findSoseds(float xs, float ys, float zs) {
             double x1 = atoms[type1].x + xc1*xs;
             double y1 = atoms[type1].y + yc1*ys;
             double z1 = atoms[type1].z + zc1*zs;
-            if (fabs(pow(x1 - x0, 2) + pow(y1 - y0, 2) + pow(z1 - z0, 2) - 3.0 / 16.0) <= 0.001) //квадрат длины св€зи #1
+            // square of the bond #1 length
+            if (fabs(pow(x1 - x0, 2) + pow(y1 - y0, 2) + pow(z1 - z0, 2) - 3.0 / 16.0) <= 0.001)
             {
                 AtomType s1 = {xc1, yc1, zc1, type1, false};
-                sosedi.push_back(s1);
+                neighbors.push_back(s1);
             }
         }
-        allSosedi.push_back(sosedi);
+        totalNeighbors.push_back(neighbors);
     }
 
-    return allSosedi;
+    return totalNeighbors;
 }
 
 void Cell::optimize() {

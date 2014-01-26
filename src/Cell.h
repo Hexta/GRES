@@ -35,7 +35,7 @@ public:
 
     size_t size() const;
 
-    const AllNeighbors findSoseds(float xs, float ys, float zs);
+    const AllNeighbors findNeighbors(float xs, float ys, float zs);
 
     //чистка от общих атомов
     void optimize();

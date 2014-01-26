@@ -24,10 +24,10 @@
 #include <QGroupBox>
 
 SelectAtomMenu::SelectAtomMenu(QWidget *parent) : QWidget(parent) {
-    QLabel *firstNeighboursCountLabel = new QLabel(tr("first"));
+    QLabel *firstNeighborsCountLabel = new QLabel(tr("first"));
 
-    firstNeighboursCount = new QLabel();
-    firstNeighboursCount -> setTextInteractionFlags(Qt::TextSelectableByMouse);
+    firstNeighborsCount = new QLabel();
+    firstNeighborsCount -> setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     atomPosition = new QLabel();
 
@@ -45,16 +45,16 @@ SelectAtomMenu::SelectAtomMenu(QWidget *parent) : QWidget(parent) {
     QGridLayout *grid = new QGridLayout;
     grid->addWidget(atomPositionBox, 0, 0);
 
-    QGroupBox *neighboursBox = new QGroupBox(tr("Atom`s neighbours"));
-    QGridLayout *neighbourGrid = new QGridLayout;
-    neighbourGrid -> addWidget(firstNeighboursCountLabel, 0, 0);
-    neighbourGrid -> addWidget(firstNeighboursCount, 0, 1);
+    QGroupBox *neighborsBox = new QGroupBox(tr("Atom`s neighbors"));
+    QGridLayout *neighborGrid = new QGridLayout;
+    neighborGrid -> addWidget(firstNeighborsCountLabel, 0, 0);
+    neighborGrid -> addWidget(firstNeighborsCount, 0, 1);
     QSpacerItem *neighbSpace = new QSpacerItem(1, 1, QSizePolicy::Expanding,
                                                QSizePolicy::Minimum);
-    neighbourGrid -> addItem(neighbSpace, 0, 2);
-    neighboursBox->setLayout(neighbourGrid);
+    neighborGrid -> addItem(neighbSpace, 0, 2);
+    neighborsBox->setLayout(neighborGrid);
 
-    grid->addWidget(neighboursBox, 1, 0);
+    grid->addWidget(neighborsBox, 1, 0);
 
     QSpacerItem *space = new QSpacerItem(10, 10, QSizePolicy::Expanding,
                                          QSizePolicy::Expanding);
@@ -70,7 +70,7 @@ SelectAtomMenu::setInfo(int x, int y, int z, int type, int fNbCount) {
             + "," + QString::number(z) +
             "," + QString::number(type) + ")";
     atomPosition -> setText(position);
-    firstNeighboursCount->setText(QString::number(fNbCount));
+    firstNeighborsCount->setText(QString::number(fNbCount));
 }
 
 QSize
