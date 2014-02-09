@@ -20,27 +20,22 @@
 #include <QWidget>
 
 #include <vector>
-
-using std::vector;
-
-class QLabel;
-class QPushButton;
-class QImage;
+#include <memory>
 
 class MaskMenu : public QWidget {
     Q_OBJECT
 public:
     MaskMenu(QWidget *parent = 0, int xS = 10, int yS = 10);
+    ~MaskMenu();
+
 signals:
     void maskChanged(std::vector<bool>);
-private:
 
-    QLabel* maskPreview;
-    QPushButton *loadMaskButton;
-    QPushButton *setMaskButton;
-    QImage* maskImage;
-    int xS, yS;
 private slots:
     void loadMask();
     void setMask();
+
+private:
+    struct Private;
+    std::unique_ptr<Private> d;
 };

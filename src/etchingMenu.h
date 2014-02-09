@@ -19,27 +19,21 @@
 
 #include <QWidget>
 
-class QLineEdit;
-class QPushButton;
-class QComboBox;
+#include <memory>
 
 class EtchingMenu : public QWidget {
     Q_OBJECT
 public:
     EtchingMenu(QWidget *parent = 0);
+    ~EtchingMenu();
+
 signals:
     void startEtching(int, int iterations, float* rates);
 
 private:
-    QComboBox *simTypeComboBox;
-    QLineEdit *iterationsLine;
-    QLineEdit *f1NbLine;
-    QLineEdit *f2NbLine;
-    QLineEdit *f3NbLine;
-    QLineEdit *f4NbLine;
-    QLineEdit *simTypeLine;
-    QPushButton *etchButton;
-    float removRates[3];
+    struct Private;
+    std::unique_ptr<Private> d;
+
 private slots:
     void startEtching();
 };

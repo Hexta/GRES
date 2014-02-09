@@ -21,6 +21,7 @@
 #include "consts.h"
 #include "etchingMenu.h"
 #include "maskMenu.h"
+#include "Cell.h"
 
 #include <QDockWidget>
 #include <QActionGroup>
@@ -274,7 +275,7 @@ MainWindow::newDocument() {
     int const zMax = d->SIZE_Z;
     d->z_center = d->z_min + (zMax - 2 - d->z_min) / 2;
 
-    d->cell = findCell(d->h, d->k, d->l, d->Xsize, d->Ysize, d->Zsize, d->Vx,
+    d->cell = Cell(d->h, d->k, d->l, d->Xsize, d->Ysize, d->Zsize, d->Vx,
         d->Vy, d->Vz);
     auto const numberOfAtomInCell =
         static_cast<unsigned int>(d->cell.size());
@@ -289,7 +290,7 @@ MainWindow::newDocument() {
             Surface1D surfaceX;
             surfaceX.reserve(d->SIZE_X);
             for (int x = 0; x < d->SIZE_X; ++x) {
-                vector<AtomInfo> cell;
+                CellInfo cell;
                 for (unsigned char a = 0; a < numberOfAtomInCell; ++a) {
                     Neighbors neighbs;
                     char numberNeighbs = 0; //Число первых соседей
@@ -331,7 +332,7 @@ MainWindow::showMenuMask() {
 }
 
 void
-MainWindow::setMask(const vector<bool> inMask) {
+MainWindow::setMask(const std::vector<bool> inMask) {
     d->mask = inMask;
 }
 

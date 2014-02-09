@@ -20,6 +20,7 @@
 #include "functions.h"
 #include "consts.h"
 #include "geometry.h"
+#include "Surface3D.h"
 
 #include <QtOpenGL/QGLWidget>
 
@@ -35,6 +36,7 @@
 class QWidget;
 class QMouseEvent;
 class QKeyEvent;
+class Cell;
 
 class Render : public QGLWidget {
     Q_OBJECT

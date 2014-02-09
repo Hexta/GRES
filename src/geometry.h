@@ -40,7 +40,7 @@ struct atomName {
     int fNbCount;
 };
 
-typedef std::vector<atomName>AtomsNames;
+typedef std::vector<atomName>AtomNames;
 
 struct Bond {
     float x1;
@@ -53,10 +53,9 @@ struct Bond {
 
 typedef std::vector<Bond> Bonds;
 
+struct Coords3D;
+
 void createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
         int &vSize2, int &vSize3);
-void normalize(float v[3]);
-void normalize(float v[3], Coords3D&);
-Coords3D normalize(const Coords3D& in);
-void norm(Coords3D &in);
+
 Coords3D normcrossprod(const Coords3D& in1, const Coords3D& in2);

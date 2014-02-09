@@ -17,15 +17,4 @@
 
 #pragma once
 
-#include "Atoms.h"
-#include "Cell.h"
-#include "Surface3D.h"
-
-#include <vector>
-#include <cstdlib>
-
-struct Coords3D;
-
-Cell findCell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &Vx, Coords3D &Vy, Coords3D &Vz); //Поиск эл ячейки
-
 bool cmp_float(double x, double y);

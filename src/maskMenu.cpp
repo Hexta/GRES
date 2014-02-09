@@ -26,55 +26,80 @@
 #include <QImage>
 #include <QPixmap>
 
-MaskMenu::MaskMenu(QWidget *parent, int xS_, int yS_) : QWidget(parent) {
-    maskPreview = new QLabel();
-    maskPreview->setMinimumSize(200, 200);
+struct MaskMenu::Private {
+    Private() :
+        maskPreview(new QLabel),
+        loadMaskButton(new QPushButton(tr("Load Mask"))),
+        setMaskButton(new QPushButton(tr("Set Mask"))),
+        maskImage(new QImage) {
 
-    loadMaskButton = new QPushButton(tr("Load Mask"));
-    connect(loadMaskButton, SIGNAL(clicked()), this, SLOT(loadMask()));
+    }
 
-    setMaskButton = new QPushButton(tr("Set Mask"));
-    connect(setMaskButton, SIGNAL(clicked()), this, SLOT(setMask()));
+    QLabel* maskPreview;
+    QPushButton *loadMaskButton;
+    QPushButton *setMaskButton;
+    QImage* maskImage;
+    int xS, yS;
+};
+
+MaskMenu::MaskMenu(QWidget *parent, int xS_, int yS_) :
+    QWidget(parent),
+    d(new Private){
+
+    d->maskPreview->setMinimumSize(200, 200);
+
+    connect(d->loadMaskButton, SIGNAL(clicked()), this, SLOT(loadMask()));
+    connect(d->setMaskButton, SIGNAL(clicked()), this, SLOT(setMask()));
 
     QGridLayout *grid = new QGridLayout;
-    grid ->addWidget(maskPreview, 0, 0);
-    grid ->addWidget(loadMaskButton, 0, 1);
-    grid ->addWidget(setMaskButton, 1, 1);
+    grid ->addWidget(d->maskPreview, 0, 0);
+    grid ->addWidget(d->loadMaskButton, 0, 1);
+    grid ->addWidget(d->setMaskButton, 1, 1);
     setLayout(grid);
-    xS = xS_;
-    yS = yS_;
+
+    d->xS = xS_;
+    d->yS = yS_;
 }
 
 void
 MaskMenu::loadMask() {
     QString selFilter = "";
     QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("Open file with mask"),
-                                                    "./masks/", tr("Images (*.bmp *.gif *.png *.tiff *.jpg *.xpm)"),
-                                                    &selFilter);
-    if (!fileName.isNull())//проверяем не отменил ли юзер выбор файла
+        tr("Open file with mask"),
+        "./masks/", tr("Images (*.bmp *.gif *.png *.tiff *.jpg *.xpm)"),
+        &selFilter);
+
+    // check that user canceled file selection
+    if (!fileName.isNull())
     {
-        maskImage = new QImage(fileName);
-        if (maskImage->isNull()) {
+        d->maskImage = new QImage(fileName);
+        if (d->maskImage->isNull()) {
             QMessageBox::information(this, tr("GRES"),
-                                     tr("Cannot load %1.").arg(fileName));
+                tr("Cannot load %1.").arg(fileName));
             return;
         }
-        *maskImage = maskImage->convertToFormat(QImage::Format_Mono);
-        QPixmap maskPixmap = QPixmap::fromImage(*maskImage);
+
+        *d->maskImage = d->maskImage->convertToFormat(QImage::Format_Mono);
+        QPixmap maskPixmap = QPixmap::fromImage(*d->maskImage);
         maskPixmap = maskPixmap.scaled(200, 200);
-        maskPreview->setPixmap(maskPixmap);
+        d->maskPreview->setPixmap(maskPixmap);
     }
 }
 
 void
 MaskMenu::setMask() {
-    vector<bool> mask;
-    mask.reserve(yS * xS);
-    *maskImage = maskImage->scaled(xS, yS);
-    for (int i = 0; i < yS; ++i)
-        for (int j = 0; j < xS; ++j)
-            mask.push_back(!qGray(maskImage->pixel(j, i)));
+    std::vector<bool> mask;
+    auto const& xSize = d->xS;
+    auto const& ySize = d->yS;
+
+    mask.reserve(ySize * xSize);
+    *d->maskImage = d->maskImage->scaled(xSize, ySize);
+    for (int i = 0; i < ySize; ++i)
+        for (int j = 0; j < xSize; ++j)
+            mask.push_back(!qGray(d->maskImage->pixel(j, i)));
     emit maskChanged(mask);
     this->close();
+}
+
+MaskMenu::~MaskMenu() {
 }

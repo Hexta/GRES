@@ -39,6 +39,8 @@ struct Coords3D {
     double sqr() const;
     double length() const; //Вычисляет длину вектора
 
+    void normalize();
+
 private:
     static float xPrev;
     static float yPrev;

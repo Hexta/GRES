@@ -74,6 +74,15 @@ Coords3D::Coords3D(float x, float y, float z) : x(x), y(y), z(z) {
 Coords3D::Coords3D() {
 }
 
+void Coords3D::normalize() {
+    const float len = static_cast<float> (sqrt(pow(x, 2) + pow(y, 2) +
+        pow(z, 2)));
+
+    x /= len;
+    y /= len;
+    z /= len;
+}
+
 Coords3D operator *(const Coords3D& v, int n) {
     Coords3D temp = {n * v.x, n * v.y, n * v.z};
     return temp;

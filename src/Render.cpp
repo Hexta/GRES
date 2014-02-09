@@ -21,6 +21,7 @@
 #include "Render.h"
 #include "selectAtomMenu.h"
 #include "geometry.h"
+#include "Cell.h"
 
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -60,8 +61,8 @@ struct Render::Private {
 
     atomName selAtomType;
 
-    AtomsNames typeAndCoordsOfAtoms;
-    AtomsNames atNames;
+    AtomNames typeAndCoordsOfAtoms;
+    AtomNames atNames;
 
     float sR;
 

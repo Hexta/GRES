@@ -18,6 +18,9 @@
 #define GL_GLEXT_PROTOTYPES
 #include "geometry.h"
 
+#include "Coords3D.h"
+#include "Atoms.h"
+
 #include <GL/glext.h>
 
 #include <cmath>
@@ -34,32 +37,6 @@
 #define glBufferDataARB           pglBufferDataARB
 #define glBufferSubDataARB        pglBufferSubDataARB
 #endif
-
-void
-normalize(float v[3]) {
-    const GLfloat len = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    v[0] /= len;
-    v[1] /= len;
-    v[2] /= len;
-    glNormal3fv(&v[0]);
-}
-
-void
-normalize(float v[3], Coords3D &out) {
-    const float len = static_cast<float> (sqrt(pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2)));
-    out.x = v[0] / len;
-    out.y = v[1] / len;
-    out.z = v[2] / len;
-}
-
-Coords3D
-normalize(const Coords3D& in) {
-    const float len = static_cast<float> (sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2)));
-    return
-    {
-        in.x / len, in.y / len, in.z / len
-    };
-}
 
 void
 createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
@@ -160,9 +137,8 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
     Coords3D v1 = {0.0, 0.0, static_cast<float> (radius)};
     vertex1.push_back(v1);
-    Coords3D nT;
-    normalize(&v1.x, nT);
-    norm1.push_back(nT);
+    v1.normalize();
+    norm1.push_back(v1);
     for (i = slices; i >= 0; --i) {
         Coords3D n1 = {sinCache3a[i + 1] * sintemp3,
                        cosCache3a[i + 1] * sintemp3, costemp3};
@@ -186,8 +162,8 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
     Coords3D v2 = {0.0, 0.0, static_cast<float> (-radius)};
     vertex2.push_back(v2);
-    normalize(&v2.x, nT);
-    norm2.push_back(nT);
+    v2.normalize();
+    norm2.push_back(v2);
     for (i = 0; i <= slices; ++i) {
         Coords3D n2 = {sinCache3a[i] * sintemp3, cosCache3a[i] * sintemp3, costemp3};
         norm2.push_back(n2);
@@ -259,18 +235,11 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     norm3.clear();
 }
 
-void
-norm(Coords3D &in) {
-    const float len = static_cast<float> (sqrt(pow(in.x, 2) + pow(in.y, 2) + pow(in.z, 2)));
-    Coords3D temp = {in.x / len, in.y / len, in.z / len};
-    in = temp;
-}
-
 Coords3D normcrossprod(const Coords3D& in1, const Coords3D& in2) {
     Coords3D out;
     out.x = in1.y * in2.z - in1.z * in2.y;
     out.y = in1.z * in2.x - in1.x * in2.z;
     out.z = in1.x * in2.y - in1.y * in2.x;
-    norm(out);
+    out.normalize();
     return out;
 }
