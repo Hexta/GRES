@@ -20,8 +20,9 @@
 #include <cmath>
 
 namespace {
+    const double FLOAT_TOL = 0.00001;
+
     bool cmp_float(double x, double y) {
-        const double FLOAT_TOL = 0.000001;
         return fabs(x - y) < FLOAT_TOL;
     }
 }

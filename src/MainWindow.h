@@ -32,7 +32,6 @@ public:
 
 public slots:
     void newDocument();
-    // read values of the settings widgets
     void getSettings(int, int, int, int, int, int);
     void changeVizType(QAction* type);
     void etch(int, int, float *rates);
@@ -41,9 +40,6 @@ private:
     void createActions();
     void createMenus();
     void createToolBars();
-    // setup values of the settings widgets
-    void setSettings();
-    void drawResult();
 
 private slots:
     void showEtchMenu();

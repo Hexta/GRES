@@ -116,8 +116,117 @@ struct MainWindow::Private {
 
         surfaceXYZ->reserve(5000);
     }
-};
 
+    void newDocument() {
+        mask.clear();
+        etchingAction->setEnabled(true);
+        maskAction->setEnabled(true);
+        saveAct->setEnabled(true);
+
+        QTime t;
+        z_min = 0;
+        int const xMax = SIZE_X;
+        int const yMax = SIZE_Y;
+        int const zMax = SIZE_Z;
+        z_center = z_min + (zMax - 2 - z_min) / 2;
+
+        cell = Cell(h, k, l, Xsize, Ysize, Zsize, Vx, Vy, Vz);
+        auto const numberOfAtomInCell =
+            static_cast<unsigned int> (cell.size());
+        neighbors = cell.findNeighbors(Xsize, Ysize, Zsize);
+
+        surfaceXYZ->clear();
+        surfaceXYZ->reserve(SIZE_Z);
+        for (int z = 0; z < SIZE_Z; ++z) {
+            Surface2D surfaceXY;
+            surfaceXY.reserve(SIZE_Y);
+            for (int y = 0; y < SIZE_Y; ++y) {
+                Surface1D surfaceX;
+                surfaceX.reserve(SIZE_X);
+                for (int x = 0; x < SIZE_X; ++x) {
+                    Cell cell;
+                    for (unsigned char a = 0; a < numberOfAtomInCell; ++a) {
+                        Neighbors neighbs;
+                        char numberNeighbs = 0; // number of the first neighbors
+                        for (int nb = 0; nb < 4; ++nb) {
+                            auto &neighborsANb = neighbors[a][nb];
+                            if (x + neighborsANb.x >= 0
+                                && y + neighborsANb.y >= 0
+                                && z + neighborsANb.z >= 0
+                                && x + neighborsANb.x < xMax
+                                && y + neighborsANb.y < yMax
+                                && z + neighborsANb.z < zMax + 1) {
+                                ++numberNeighbs;
+                                AtomType neighb = {x + neighborsANb.x, y + neighborsANb.y,
+                                    z + neighborsANb.z, neighborsANb.type,
+                                    false};
+                                neighbs.push_back(neighb);
+                            }
+                        }
+
+                        AtomInfo atom;
+                        atom.neighbors = neighbs;
+                        atom.fNbCount = numberNeighbs;
+                        atom.deleted = numberNeighbs == 0;
+                        // TODO: atom.type = 
+                        cell.atoms.push_back(atom);
+                    }
+                    surfaceX.push_back(cell);
+                }
+                surfaceXY.push_back(surfaceX);
+            }
+            surfaceXYZ->push_back(surfaceXY);
+        }
+        surfaceXYZ->rebuildSurfaceAtoms();
+        drawResult();
+    }
+
+    void drawResult() {
+        result->view(surfaceXYZ, cell, Xsize, Ysize,
+            Zsize, z_center, z_min, SIZE_X, SIZE_Y, Vx, Vy,
+            Vz, vizualizationType);
+    }
+
+    void etch(int simType_, int IterCount, float *rates) {
+        GRES::SimType sT = static_cast<GRES::SimType> (simType_);
+        QTime t;
+        //    t.start();
+        bool perfect = false;
+        auto surface = surfaceXYZ;
+
+        for (int n = 0; n < IterCount; ++n) {
+            if (sT == GRES::SimType::KMC)
+                perfect = surface->selAtom(neighbors, z_min, cell, mask, rates);
+            else if (sT == GRES::SimType::CA)
+                perfect = surface->selAtomCA(z_min, cell, mask, rates);
+
+            if (perfect) {
+                surface->addLayer(neighbors, SIZE_X, SIZE_Y, SIZE_Z);
+                ++SIZE_Z;
+                perfect = true;
+            }
+
+            z_min = surface->findZmin(z_min);
+            surface->optimize(z_min);
+        }
+        //    qDebug() << "etch: " << t.elapsed();
+        z_center = (SIZE_Z - 2 + z_min) / 2;
+        drawResult();
+    }
+
+    void setSettings() {
+        settings->set(h, k, l, SIZE_X - 4, SIZE_Y - 4, SIZE_Z - 2);
+    }
+
+    void getSettings(int hGet, int kGet, int lGet, int xS, int yS, int zS) {
+        h = hGet;
+        k = kGet;
+        l = lGet;
+        SIZE_X = xS + 4;
+        SIZE_Y = yS + 4;
+        SIZE_Z = zS + 2;
+    }
+};
 
 MainWindow::MainWindow(QWidget *parent, int, char * const *) : QMainWindow(parent),
     d(new Private(this)) {
@@ -125,7 +234,7 @@ MainWindow::MainWindow(QWidget *parent, int, char * const *) : QMainWindow(paren
     createActions();
     createMenus();
     createToolBars();
-    
+
     connect(d->saveAct, SIGNAL(triggered()), d->result, SLOT(saveResult()));
     setCentralWidget(d->result);
     d->result->setFocusPolicy(Qt::ClickFocus);
@@ -135,16 +244,16 @@ MainWindow::MainWindow(QWidget *parent, int, char * const *) : QMainWindow(paren
     settingsDock->setWidget(d->settings);
     addDockWidget(Qt::LeftDockWidgetArea, settingsDock);
     d->result->setFocus();
-    setSettings();
-    
+    d->setSettings();
+
     connect(d->settings,
-            SIGNAL(settingsChanged(int, int, int, int, int, int)),
-            this,
-            SLOT(getSettings(int, int, int, int, int, int)));
+        SIGNAL(settingsChanged(int, int, int, int, int, int)),
+        this,
+        SLOT(getSettings(int, int, int, int, int, int)));
 
     //     connect (result, SIGNAL (etching()), this, SLOT (etch()));
     connect(d->etchMenu, SIGNAL(startEtching(int, int, float*)), this,
-            SLOT(etch(int, int, float*)));
+        SLOT(etch(int, int, float*)));
 }
 
 void
@@ -211,135 +320,31 @@ MainWindow::createToolBars() {
 }
 
 void
-MainWindow::drawResult() {
-    d->result->view(d->surfaceXYZ, d->cell, d->Xsize, d->Ysize,
-        d->Zsize, d->z_center, d->z_min, d->SIZE_X, d->SIZE_Y, d->Vx, d->Vy,
-        d->Vz, d->vizualizationType);
-}
-
-void
 MainWindow::etch(int simType_, int IterCount, float *rates) {
-    GRES::SimType sT = static_cast<GRES::SimType> (simType_);
-    QTime t;
-    //    t.start();
-    bool perfect = false;
-    auto surface = d->surfaceXYZ;
-    auto& neighbors = d->neighbors;
-    auto& z_min = d->z_min;
-    auto& cell = d->cell;
-    auto& mask = d->mask;
-    auto& sizeX = d->SIZE_X;
-    auto& sizeY = d->SIZE_Y;
-    auto& sizeZ = d->SIZE_Z;
-    for (int n = 0; n < IterCount; ++n) {
-        if (sT == GRES::SimType::KMC)
-            perfect = surface->selAtom(neighbors, z_min, cell, mask, rates);
-        else if (sT == GRES::SimType::CA)
-            perfect = surface->selAtomCA(z_min, cell, mask, rates);
-
-        if (perfect) {
-            surface->addLayer(neighbors, sizeX, sizeY, sizeZ);
-            ++sizeZ;
-            perfect = true;
-        }
-
-        z_min = surface->findZmin(z_min);
-        surface->optimize(z_min);
-    }
-    //    qDebug() << "etch: " << t.elapsed();
-    d->z_center = (d->SIZE_Z - 2 + z_min) / 2;
-    drawResult();
+    d->etch(simType_, IterCount, rates);
 }
 
 void
-MainWindow::getSettings(int hGet, int kGet, int lGet, int xS, int yS, int zS) {
-    d->h = hGet;
-    d->k = kGet;
-    d->l = lGet;
-    d->SIZE_X = xS + 4;
-    d->SIZE_Y = yS + 4;
-    d->SIZE_Z = zS + 2;
+MainWindow::getSettings(int h, int k, int l, int xS, int yS, int zS) {
+    d->getSettings(h, k, l, xS, yS, zS);
 }
 
 void
 MainWindow::newDocument() {
-    d->mask.clear();
-    d->etchingAction->setEnabled(true);
-    d->maskAction->setEnabled(true);
-    d->saveAct->setEnabled(true);
-
-    QTime t;
-    d->z_min = 0;
-    int const xMax = d->SIZE_X;
-    int const yMax = d->SIZE_Y;
-    int const zMax = d->SIZE_Z;
-    d->z_center = d->z_min + (zMax - 2 - d->z_min) / 2;
-
-    d->cell = Cell(d->h, d->k, d->l, d->Xsize, d->Ysize, d->Zsize, d->Vx,
-        d->Vy, d->Vz);
-    auto const numberOfAtomInCell =
-        static_cast<unsigned int>(d->cell.size());
-    d->neighbors = d->cell.findNeighbors(d->Xsize, d->Ysize, d->Zsize);
-
-    d->surfaceXYZ->clear();
-    d->surfaceXYZ->reserve(d->SIZE_Z);
-    for (int z = 0; z < d->SIZE_Z; ++z) {
-        Surface2D surfaceXY;
-        surfaceXY.reserve(d->SIZE_Y);
-        for (int y = 0; y < d->SIZE_Y; ++y) {
-            Surface1D surfaceX;
-            surfaceX.reserve(d->SIZE_X);
-            for (int x = 0; x < d->SIZE_X; ++x) {
-                CellInfo cell;
-                for (unsigned char a = 0; a < numberOfAtomInCell; ++a) {
-                    Neighbors neighbs;
-                    char numberNeighbs = 0; //Число первых соседей
-                    for (int nb = 0; nb < 4; ++nb) {
-                        auto &neighborsANb = d->neighbors[a][nb];
-                        if (x + neighborsANb.x >= 0
-                            && y + neighborsANb.y >= 0
-                            && z + neighborsANb.z >= 0
-                            && x + neighborsANb.x < xMax
-                            && y + neighborsANb.y < yMax
-                            && z + neighborsANb.z < zMax + 1) {
-                            ++numberNeighbs;
-                            AtomType neighb = {x + neighborsANb.x, y + neighborsANb.y,
-                                               z + neighborsANb.z, neighborsANb.type,
-                                               false};
-                            neighbs.push_back(neighb);
-                        }
-                    }
-
-                    AtomInfo atom = {neighbs, numberNeighbs, !numberNeighbs};
-                    cell.push_back(atom);
-                }
-                surfaceX.push_back(cell);
-            }
-            surfaceXY.push_back(surfaceX);
-        }
-        d->surfaceXYZ->push_back(surfaceXY);
-    }
-    d->surfaceXYZ->rebuildSurfaceAtoms();
-    drawResult();
+    d->newDocument();
 }
 
 void
 MainWindow::showMenuMask() {
     d->maskMenu = new MaskMenu(0, d->SIZE_X - 4, d->SIZE_Y - 4);
     connect(d->maskMenu, SIGNAL(maskChanged(std::vector<bool>)), this,
-            SLOT(setMask(std::vector<bool>)));
+        SLOT(setMask(std::vector<bool>)));
     d->maskMenu->show();
 }
 
 void
 MainWindow::setMask(const std::vector<bool> inMask) {
     d->mask = inMask;
-}
-
-void
-MainWindow::setSettings() {
-    d->settings->set(d->h, d->k, d->l, d->SIZE_X - 4, d->SIZE_Y - 4,
-        d->SIZE_Z - 2);
 }
 
 void

@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <random>
 #include <functional>
+#include <iostream>
 
 Surface3D::Surface3D() {
 }
@@ -54,7 +55,7 @@ int Surface3D::findZmin(int zBegin) {
         const auto yEnd = y->end();
         for (auto x = y->begin() + 2; x != yEnd - 1; ++x)
 
-        for (auto &atom : *x)
+        for (auto &atom : x->atoms)
         if (!atom.deleted) {
             return static_cast<int> (z - m_surfaces2D.begin());
         }
@@ -79,13 +80,13 @@ void Surface3D::push_back(Surface2D const& surface2D) {
 }
 
 void Surface3D::recallNeighbors(int x, int y, int z, int type) {
-    for (auto &neighb : m_surfaces2D[z][y][x][type].neighbors) {
+    for (auto &neighb : m_surfaces2D[z][y][x].atoms[type].neighbors) {
         const int xNb = neighb.x;
         const int yNb = neighb.y;
         const int zNb = neighb.z;
         const unsigned char typeNb = neighb.type;
 
-        AtomInfo &neihgbAtomInfo = m_surfaces2D[zNb][yNb][xNb][typeNb];
+        AtomInfo &neihgbAtomInfo = m_surfaces2D[zNb][yNb][xNb].atoms[typeNb];
 
         size_t i = 0;
         for (auto &neighb_int : neihgbAtomInfo.neighbors) {
@@ -127,9 +128,9 @@ void Surface3D::delAtom(int x, int y, int z, int type, int surfAtN) {
 
     recallNeighbors(x, y, z, type);
 
-    m_surfaces2D[z][y][x][type].fNbCount = 0;
-    m_surfaces2D[z][y][x][type].deleted = true;
-    m_surfaces2D[z][y][x][type].neighbors.clear();
+    m_surfaces2D[z][y][x].atoms[type].fNbCount = 0;
+    m_surfaces2D[z][y][x].atoms[type].deleted = true;
+    m_surfaces2D[z][y][x].atoms[type].neighbors.clear();
 }
 
 bool Surface3D::selAtom(AllNeighbors const& neighbs, size_t z_min, Cell &tA,
@@ -159,10 +160,10 @@ bool Surface3D::selAtom(AllNeighbors const& neighbs, size_t z_min, Cell &tA,
     auto &surfaceZY = m_surfaces2D[z][y];
     if ((maskON && ((z == 0
         && !mask[(y - 2)*(surfaceZY.size() - 4) + x - 2])
-        || (z + tA.atoms[a].z >= 0.5)))
+        || (z + tA.atoms[a].type.coords.z >= 0.5)))
         || !maskON) {
         float randN = rd();
-        int bonds = surfaceZY[x][a].fNbCount;
+        int bonds = surfaceZY[x].atoms[a].fNbCount;
         if (!bonds) {
             std::swap(m_surfaceAtoms[i], m_surfaceAtoms.back());
             m_surfaceAtoms.pop_back();
@@ -208,8 +209,8 @@ void Surface3D::addLayer(const AllNeighbors& totalNeighbors, int sX, int sY, int
         surfaceX.reserve(sX);
 
         for (int x = 0; x < sX; ++x) {
-            CellInfo cell;
-            cell.reserve(totalNeighbors.size());
+            Cell cell;
+            cell.atoms.reserve(totalNeighbors.size());
             for (auto &neighbors : totalNeighbors) {
                 Neighbors neighbs;
                 // First neighbors count
@@ -226,8 +227,12 @@ void Surface3D::addLayer(const AllNeighbors& totalNeighbors, int sX, int sY, int
                         neighbs.push_back(neighb);
                     }
                 }
-                AtomInfo atom = {neighbs, numberNeighbs, !numberNeighbs};
-                cell.push_back(atom);
+
+                AtomInfo atom;
+                atom.neighbors = neighbs;
+                atom.fNbCount = numberNeighbs;
+                atom.deleted = numberNeighbs == 0;
+                cell.atoms.push_back(atom);
             }
             surfaceX.push_back(cell);
         }
@@ -260,13 +265,13 @@ bool Surface3D::selAtomCA(int z_min, Cell &tA, std::vector<bool> const& mask,
         int y = surfAtom.y;
         unsigned int z = surfAtom.z;
         unsigned short a = surfAtom.type;
-        const auto &tAz = tA.atoms[a].z;
+        auto const tAz = tA.atoms[a].type.coords.z;
         auto &surfaceZY = m_surfaces2D[z][y];
         if ((maskON && (((z + tAz < 0.5) && !mask[(y - 2)*(surfaceZY.size() - 4) + x - 2])
             || (z + tAz >= 0.5)))
             || !maskON) {
             float randN = rd();
-            int bonds = surfaceZY[x][a].fNbCount;
+            int bonds = surfaceZY[x].atoms[a].fNbCount;
             if (!bonds) {
                 m_surfaceAtoms.erase(m_surfaceAtoms.begin() + i--);
                 --surfAtomsSize;
@@ -295,6 +300,8 @@ bool Surface3D::selAtomCA(int z_min, Cell &tA, std::vector<bool> const& mask,
 
             delAtom(x, y, z, a, i);
 
+
+
             if (x == 4 || x == 5) {
                 delAtom(5 - x, y, z, a, -1);
             }
@@ -307,8 +314,18 @@ bool Surface3D::selAtomCA(int z_min, Cell &tA, std::vector<bool> const& mask,
             if (y == yC - 6 || y == yC - 5) {
                 delAtom(x, 2 * yC - 7 - y, z, a, -1);
             }
+			
+			if (i == 0)
+			{
+				i = 1;
+			}
 
-            surfAtomIter = m_surfaceAtoms.begin() + --i;
+			if (i >= m_surfaceAtoms.size()) {
+				surfAtomIter = m_surfaceAtoms.begin() + (m_surfaceAtoms.size() - 1);
+			} else {
+				surfAtomIter = m_surfaceAtoms.begin() + --i;
+			}
+			
             surfAtomsEnd = m_surfaceAtoms.end();
         }
         ++i;
@@ -325,7 +342,7 @@ AtomTypes Surface3D::initSurfaceAtoms() const {
             int x = 0;
             for (auto& cell : surface1D) {
                 unsigned char a = 0;
-                for (auto& atom : cell) {
+                for (auto& atom : cell.atoms) {
                     if (x > 1 && x < static_cast<int>(surface1D.size()) - 2
                         && y > 1 && y < static_cast<int>(surface2D[z].size()) - 2
                         && atom.neighbors.size() < 4) {

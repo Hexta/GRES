@@ -24,11 +24,29 @@
 #include <memory>
 
 struct AtomType {
+    AtomType() {
+    }
+
+    AtomType(int x, int y, int z, uint8_t type, bool deleteFlag) :
+        x(x),
+        y(y),
+        z(z),
+        type(type),
+        toDel(deleteFlag) {
+    }
+
+    explicit AtomType(Coords3D const& coords) :
+        coords(coords) {
+    }
+
     int x; //сдвиг €чейки по OX (-1;0;+1)
     int y;
     int z;
-    unsigned char type; //тип атома (1 -- 8)
+
+    // atom type (1 - 8)
+    uint8_t type;
     bool toDel;
+    Coords3D coords;
 };
 
 bool operator==(const AtomType &a1, const AtomType &a2);
@@ -40,11 +58,21 @@ typedef std::vector<AtomType> Neighbors;
 typedef std::vector<Neighbors> AllNeighbors;
 
 struct AtomInfo {
-    Neighbors neighbors;
+    AtomInfo() {
+    }
+
+    explicit AtomInfo(AtomType const& type) :
+        type(type) {
+    }
+
+    AtomType type;
+    std::vector<AtomType> neighbors;
     char fNbCount;
     bool deleted;
 };
 
-typedef std::vector<Coords3D> Atoms;
+typedef std::vector<AtomInfo> Atoms;
 typedef std::shared_ptr<Atoms> AtomsPtr;
-typedef std::vector<AtomInfo> CellInfo;
+//typedef std::vector<AtomInfo> CellInfo;
+
+

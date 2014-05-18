@@ -68,21 +68,6 @@ protected:
     void keyPressEvent(QKeyEvent * event);
 
 private:
-    void draw();
-    void sphereTemplate(float);
-    void cylinderTemplate(float);
-    void createActions();
-    void processSelection(int x, int y);
-    void processSelectionMenu();
-    void processAtom(const GLuint *pSelectBuff);
-    void createAtomsAndBonds();
-    void createAtomsAndBondes();
-    void createSurfacePoints();
-    void initMatrix();
-    void drawAxis();
-    void setGeometry(GLfloat zCenter = 0);
-
-private:
     struct Private;
     std::unique_ptr<Private> d;
 };

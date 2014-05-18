@@ -129,8 +129,8 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
     //GL_TRIANGLE_FAN
 
-    Atoms norm1;
-    Atoms vertex1;
+    Coords3DList norm1;
+    Coords3DList vertex1;
 
     vertex1.reserve(slices + 1);
     norm1.reserve(slices + 1);
@@ -154,8 +154,8 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     costemp3 = cosCache3b[stacks];
     //GL_TRIANGLE_FAN
 
-    Atoms norm2;
-    Atoms vertex2;
+    Coords3DList norm2;
+    Coords3DList vertex2;
 
     vertex2.reserve(slices + 1);
     norm2.reserve(slices + 1);
@@ -171,8 +171,8 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
         vertex2.push_back(v2);
     }
 
-    Atoms norm3;
-    Atoms vertex3;
+    Coords3DList norm3;
+    Coords3DList vertex3;
 
     vertex3.reserve(2 * (finish - start) * slices);
     norm3.reserve(2 * (finish - start) * slices);

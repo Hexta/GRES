@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <vector>
+
 struct Coords3D {
     float x;
     float y;
@@ -52,3 +54,5 @@ private:
 Coords3D operator *(const Coords3D& v, int n);
 
 Coords3D operator *(int n, const Coords3D& v);
+
+typedef std::vector<Coords3D> Coords3DList;

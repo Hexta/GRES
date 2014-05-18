@@ -18,12 +18,13 @@
 #pragma once
 
 #include "Atoms.h"
+#include "Cell.h"
 
 #include <cstddef>
 #include <memory>
 #include <vector>
 
-typedef std::vector<CellInfo> Surface1D;
+typedef std::vector<Cell> Surface1D;
 typedef std::vector<Surface1D> Surface2D;
 
 class Cell;

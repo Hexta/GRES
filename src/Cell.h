@@ -22,6 +22,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <deque>
 
 class Cell {
 public:
@@ -56,4 +57,4 @@ public:
 
 const Cell operator+(Cell const& cell, Coords3D const& v);
 
-typedef std::vector<Cell> Cells;
+typedef std::deque<Cell> Cells;
