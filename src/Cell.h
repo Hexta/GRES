@@ -27,20 +27,18 @@
 class Cell {
 public:
     Cell();
-    Cell(const Atoms& atoms);
-    Cell(const Atoms &atomsIn, const Coords3D &Vx, const Coords3D &Vy,
-        const Coords3D &Vz, const Coords3D &P1);
+    explicit Cell(const Atoms& atoms);
+
     Cell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &vX,
         Coords3D &vY, Coords3D &vZ);
 
-    bool operator==(const Cell& cell) const;
     bool operator<(const Cell& cell) const;
 
     size_t size() const;
 
     const AllNeighbors findNeighbors(float xs, float ys, float zs);
 
-    //чистка от общих атомов
+    // remove shared atoms
     void optimize();
 
     double getXSize() const;

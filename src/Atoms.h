@@ -39,6 +39,8 @@ struct AtomType {
         coords(coords) {
     }
 
+    Coords3D coords;
+
     int x; //сдвиг €чейки по OX (-1;0;+1)
     int y;
     int z;
@@ -46,7 +48,6 @@ struct AtomType {
     // atom type (1 - 8)
     uint8_t type;
     bool toDel;
-    Coords3D coords;
 };
 
 bool operator==(const AtomType &a1, const AtomType &a2);
@@ -71,8 +72,52 @@ struct AtomInfo {
     bool deleted;
 };
 
-typedef std::vector<AtomInfo> Atoms;
-typedef std::shared_ptr<Atoms> AtomsPtr;
-//typedef std::vector<AtomInfo> CellInfo;
+class Atoms
+{
+public:
+    typedef std::vector<AtomInfo>::iterator Iterator;
+    typedef std::vector<AtomInfo>::const_iterator ConstIterator;
 
+public:
+    Atoms();
+    Atoms(Atoms const& other);
+    Atoms(Atoms&& other);
+    Atoms(std::size_t, AtomInfo const& atom);
 
+    Atoms(const Atoms &atomsIn, const Coords3D &Vx, const Coords3D &Vy,
+        const Coords3D &Vz, const Coords3D &P1);
+
+    ~Atoms();
+
+    Atoms& operator=(Atoms&& other);
+    Atoms& operator=(Atoms const& other);
+
+    void reserve(std::size_t size);
+    void push_back(AtomInfo const& atom);
+
+    Iterator begin();
+    ConstIterator begin() const;
+
+    Iterator end();
+    ConstIterator end() const;
+
+    std::size_t size() const;
+    AtomInfo& operator[](size_t n);
+
+    void clear();
+    bool empty() const;
+
+    bool checkContains(Atoms const& other);
+
+private:
+    class Private;
+    std::unique_ptr<Private> m_impl;
+};
+
+class AtomsHelper {
+public:
+    static Atoms createAllCellAtoms(Coords3DList const& atomTypes);
+
+private:
+    static Atoms allCellAtoms;
+};

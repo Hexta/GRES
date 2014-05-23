@@ -55,7 +55,7 @@ int Surface3D::findZmin(int zBegin) {
         const auto yEnd = y->end();
         for (auto x = y->begin() + 2; x != yEnd - 1; ++x)
 
-        for (auto &atom : x->atoms)
+        for (auto const& atom : x->atoms)
         if (!atom.deleted) {
             return static_cast<int> (z - m_surfaces2D.begin());
         }
@@ -80,7 +80,7 @@ void Surface3D::push_back(Surface2D const& surface2D) {
 }
 
 void Surface3D::recallNeighbors(int x, int y, int z, int type) {
-    for (auto &neighb : m_surfaces2D[z][y][x].atoms[type].neighbors) {
+    for (auto const& neighb : m_surfaces2D[z][y][x].atoms[type].neighbors) {
         const int xNb = neighb.x;
         const int yNb = neighb.y;
         const int zNb = neighb.z;
@@ -120,7 +120,6 @@ const AtomTypes& Surface3D::getSurfaceAtoms() const {
 
 void Surface3D::delAtom(int x, int y, int z, int type, int surfAtN) {
     if (surfAtN != -1) {
-
         std::swap(m_surfaceAtoms[surfAtN], m_surfaceAtoms.back());
         m_surfaceAtoms.pop_back();
         std::swap(m_surfaceAtoms[surfAtN], m_surfaceAtoms.back());
@@ -209,9 +208,9 @@ void Surface3D::addLayer(const AllNeighbors& totalNeighbors, int sX, int sY, int
         surfaceX.reserve(sX);
 
         for (int x = 0; x < sX; ++x) {
-            Cell cell;
-            cell.atoms.reserve(totalNeighbors.size());
-            for (auto &neighbors : totalNeighbors) {
+            Atoms atoms;
+            atoms.reserve(totalNeighbors.size());
+            for (auto const& neighbors : totalNeighbors) {
                 Neighbors neighbs;
                 // First neighbors count
                 char numberNeighbs = 0;
@@ -232,9 +231,9 @@ void Surface3D::addLayer(const AllNeighbors& totalNeighbors, int sX, int sY, int
                 atom.neighbors = neighbs;
                 atom.fNbCount = numberNeighbs;
                 atom.deleted = numberNeighbs == 0;
-                cell.atoms.push_back(atom);
+                atoms.push_back(atom);
             }
-            surfaceX.push_back(cell);
+            surfaceX.push_back(Cell(atoms));
         }
         surfaceXY.push_back(surfaceX);
     }
@@ -336,13 +335,13 @@ bool Surface3D::selAtomCA(int z_min, Cell &tA, std::vector<bool> const& mask,
 AtomTypes Surface3D::initSurfaceAtoms() const {
     AtomTypes surfaceAtoms;
     int z = 0;
-    for (auto& surface2D : m_surfaces2D) {
+    for (auto const& surface2D : m_surfaces2D) {
         int y = 0;
-        for (auto& surface1D : surface2D) {
+        for (auto const& surface1D : surface2D) {
             int x = 0;
-            for (auto& cell : surface1D) {
+            for (auto const& cell : surface1D) {
                 unsigned char a = 0;
-                for (auto& atom : cell.atoms) {
+                for (auto const& atom : cell.atoms) {
                     if (x > 1 && x < static_cast<int>(surface1D.size()) - 2
                         && y > 1 && y < static_cast<int>(surface2D[z].size()) - 2
                         && atom.neighbors.size() < 4) {

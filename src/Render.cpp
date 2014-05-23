@@ -351,7 +351,7 @@ struct Render::Private {
         const size_t dY = surface[z_min].size() - 3;
 
         AtomInfo stubAtom(AtomType(Coords3D(-1.0, -1.0, -1.0)));
-        Cells points(dY, Atoms(dX, stubAtom));
+        Cells points(dY, Cell(Atoms(dX, stubAtom)));
 
         for (size_t z = z_min; z < surface.size() - 2; ++z)
             for (size_t y = surface[z].size() - 2; --y >= 2;)
