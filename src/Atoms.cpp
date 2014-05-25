@@ -82,7 +82,7 @@ public:
 
     bool checkContains(Private const& other) {
         bool isEual = false;
-        for (auto otherAtomsIt = other.m_atomInfos.begin(); otherAtomsIt != other.m_atomInfos.end() - 4; ++otherAtomsIt) {
+        for (auto otherAtomsIt = other.m_atomInfos.begin(); otherAtomsIt != other.m_atomInfos.end(); ++otherAtomsIt) {
 
             isEual = false;
 

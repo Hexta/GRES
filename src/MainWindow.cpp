@@ -130,7 +130,17 @@ struct MainWindow::Private {
         int const zMax = SIZE_Z;
         z_center = z_min + (zMax - 2 - z_min) / 2;
 
-        cell = Cell(h, k, l, Xsize, Ysize, Zsize, Vx, Vy, Vz);
+        cell = Cell(h, k, l);
+        Xsize = cell.getXSize();
+        Ysize = cell.getYSize();
+        Zsize = cell.getZSize();
+
+        Vx = cell.getVx();
+        Vy = cell.getVy();
+        Vz = cell.getVz();
+
+        cell.optimize();
+
         auto const numberOfAtomInCell =
             static_cast<unsigned int> (cell.size());
         neighbors = cell.findNeighbors(Xsize, Ysize, Zsize);
@@ -169,7 +179,7 @@ struct MainWindow::Private {
                         atom.fNbCount = numberNeighbs;
                         atom.deleted = numberNeighbs == 0;
                         // TODO: atom.type = 
-                        cell.atoms.push_back(atom);
+                        cell.addAtom(atom);
                     }
                     surfaceX.push_back(cell);
                 }

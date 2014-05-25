@@ -106,13 +106,148 @@ bool rect_comp(const rectangle &r1, const rectangle &r2) {
 
 }
 
-Cell::Cell() {
+class Cell::Private {
+public:
+    Private() {}
+    Private(Atoms const& atoms) :
+        m_atoms(atoms) {
+    }
+
+    Coords3D getp1() const {
+        return m_p1;
+    }
+
+    Coords3D getVx() const {
+        return m_vX;
+    }
+
+    Coords3D getVy() const {
+        return m_vY;
+    }
+
+    Coords3D getVz() const {
+        return m_vZ;
+    }
+
+    void setp1(Coords3D const& p1) {
+        m_p1 = p1;
+    }
+
+    void setVx(Coords3D const& vX) {
+        m_vX = vX;
+    }
+
+    void setVy(Coords3D const& vY) {
+        m_vY = vY;
+    }
+
+    void setVz(Coords3D const& vZ) {
+        m_vZ = vZ;
+    }
+
+    Atoms getAtoms() const {
+        return m_atoms;
+    }
+
+    Atoms& getAtoms() {
+        return m_atoms;
+    }
+
+    size_t size() const {
+        return m_atoms.size();
+    }
+
+    const AllNeighbors findNeighbors(float xs, float ys, float zs) {
+        const auto NUMBER_OF_ATOMS_IN_CELL = size();
+
+        AllNeighbors totalNeighbors;
+        for (size_t type0 = 0; type0 < NUMBER_OF_ATOMS_IN_CELL; ++type0) {
+            Neighbors neighbors;
+
+            double x0 = m_atoms[type0].type.coords.x;
+            double y0 = m_atoms[type0].type.coords.y;
+            double z0 = m_atoms[type0].type.coords.z;
+
+            // shift of the cell #1
+            for (int xc1 = -1; xc1 < 2; ++xc1)
+            for (int yc1 = -1; yc1 < 2; ++yc1)
+            for (int zc1 = -1; zc1 < 2; ++zc1)
+            for (unsigned char type1 = 0;
+                type1 < NUMBER_OF_ATOMS_IN_CELL; ++type1)
+            if (!(type1 == type0 && !xc1 && !yc1 && !zc1)) {
+                double x1 = m_atoms[type1].type.coords.x + xc1*xs;
+                double y1 = m_atoms[type1].type.coords.y + yc1*ys;
+                double z1 = m_atoms[type1].type.coords.z + zc1*zs;
+
+                // square of the bond #1 length
+                if (fabs(pow(x1 - x0, 2) + pow(y1 - y0, 2) + pow(z1 - z0, 2) - 3.0 / 16.0) <= 0.001) {
+                    AtomType s1(xc1, yc1, zc1, type1, false);
+                    neighbors.push_back(s1);
+                }
+            }
+            totalNeighbors.push_back(neighbors);
+        }
+
+        return totalNeighbors;
+    }
+
+    void optimize() {
+        Atoms newAtoms;
+
+        for (auto i = m_atoms.begin(); i < m_atoms.end(); ++i) {
+            const auto x = i->type.coords.x;
+            const auto y = i->type.coords.y;
+            const auto z = i->type.coords.z;
+
+            if (x > 0.01 && y > 0.01 && z > 0.01) {
+                Coords3D atom = { x, y, z };
+                newAtoms.push_back(AtomInfo(AtomType(atom)));
+            }
+        }
+
+        m_atoms = newAtoms;
+    }
+
+    void moveCoords(const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy,
+        const Coords3D &Vz) {
+        for (auto atom_coords_it = m_atoms.begin();
+            atom_coords_it < m_atoms.end(); ++atom_coords_it) {
+
+            const auto& vec = atom_coords_it->type.coords - O;
+            const double x = (vec * Vx) / Vx.length();
+            const double y = (vec * Vy) / Vy.length();
+            const double z = (vec * Vz) / Vz.length();
+
+            atom_coords_it->type.coords.x = static_cast<float> (x);
+            atom_coords_it->type.coords.y = static_cast<float> (y);
+            atom_coords_it->type.coords.z = static_cast<float> (z);
+        }
+    }
+
+    void addAtom(AtomInfo const& atom) {
+        m_atoms.push_back(atom);
+    }
+
+private:
+    Atoms m_atoms;
+
+    Coords3D m_p1;
+
+    Coords3D m_vX;
+    Coords3D m_vY;
+    Coords3D m_vZ;
+};
+
+Cell::Cell() :
+    m_impl(new Private) {
 }
 
-Cell::Cell(const Atoms& atoms) : atoms(atoms) {
+Cell::Cell(const Atoms& atoms) : 
+    m_impl(new Private(atoms)) {
 }
 
-Cell::Cell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &vX, Coords3D &vY, Coords3D &vZ) {
+Cell::Cell(int h, int k, int l) :
+    m_impl(new Private) {
     const int SIZE_X = 5;
     const int SIZE_Y = 5;
     const int SIZE_Z = 5;
@@ -229,7 +364,7 @@ Cell::Cell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &vX, C
                         ) {
                         const size_t n = v - lengths.begin();
 
-                        std::swap(v, lengths.end());
+                        std::swap(lengths[n], lengths.back());
                         lengths.pop_back();
                         
                         v = lengths.begin() + n - 1;
@@ -308,12 +443,13 @@ Cell::Cell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &vX, C
 
                 Atoms cellAtoms(allAtoms, Vx, Vy, Vz, P1);
 
-                // а в конец списка атомов запишем векторы координат и координаты начала координат :)
-                cellAtoms.push_back(AtomInfo(AtomType(P1)));
-                cellAtoms.push_back(AtomInfo(AtomType(Vx)));
-                cellAtoms.push_back(AtomInfo(AtomType(Vy)));
-                cellAtoms.push_back(AtomInfo(AtomType(Vz)));
-                allCells.push_back(Cell(cellAtoms));
+                Cell cell(cellAtoms);
+                cell.setp1(P1);
+                cell.setVx(Vx);
+                cell.setVy(Vy);
+                cell.setVz(Vz);
+
+                allCells.push_back(cell);
             }
         }
     }
@@ -324,28 +460,24 @@ Cell::Cell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &vX, C
         const size_t cellSize = cell.size();
 
         //считаем векторы координат
-        const Coords3D &P1 = (cell.atoms.end() - 4)->type.coords;
-        const Coords3D &Vx = (cell.atoms.end() - 3)->type.coords;
-        const Coords3D &Vy = (cell.atoms.end() - 2)->type.coords;
-        const Coords3D &Vz = (cell.atoms.end() - 1)->type.coords;
+        const Coords3D P1 = cell.getp1();
+        const Coords3D Vx = cell.getVx();
+        const Coords3D Vy = cell.getVy();
+        const Coords3D Vz = cell.getVz();
 
-        if (allAtoms.checkContains((cell + Vx).atoms) // транслируем по OX
-            && allAtoms.checkContains((cell + Vy).atoms) // транслируем по OY
-            && allAtoms.checkContains((cell + Vz).atoms) // транслируем по OZ
-            && allAtoms.checkContains((cell + (-1) * Vz).atoms) // транслируем по -OZ
-            && allAtoms.checkContains((cell + (-1) * Vy).atoms) // транслируем по -OY
-            && allAtoms.checkContains((cell + (-1) * Vx).atoms) // транслируем по -OX
+        if (allAtoms.checkContains((cell + Vx).getAtoms()) // транслируем по OX
+            && allAtoms.checkContains((cell + Vy).getAtoms()) // транслируем по OY
+            && allAtoms.checkContains((cell + Vz).getAtoms()) // транслируем по OZ
+            && allAtoms.checkContains((cell + (-1) * Vz).getAtoms()) // транслируем по -OZ
+            && allAtoms.checkContains((cell + (-1) * Vy).getAtoms()) // транслируем по -OY
+            && allAtoms.checkContains((cell + (-1) * Vx).getAtoms()) // транслируем по -OX
 
-            && Atoms(allAtoms, Vx, Vy, Vz, P1 + Vx).size() == cellSize - 4
-            && Atoms(allAtoms, Vx, Vy, Vz, P1 + Vy).size() == cellSize - 4
-            && Atoms(allAtoms, Vx, Vy, Vz, P1 + Vz).size() == cellSize - 4
-            && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vx).size() == cellSize - 4
-            && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vy).size() == cellSize - 4
-            && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vz).size() == cellSize - 4) {
-
-            vX = Vx;
-            vY = Vy;
-            vZ = Vz;
+            && Atoms(allAtoms, Vx, Vy, Vz, P1 + Vx).size() == cellSize
+            && Atoms(allAtoms, Vx, Vy, Vz, P1 + Vy).size() == cellSize
+            && Atoms(allAtoms, Vx, Vy, Vz, P1 + Vz).size() == cellSize
+            && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vx).size() == cellSize
+            && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vy).size() == cellSize
+            && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vz).size() == cellSize) {
 
             *this = cell;
 
@@ -353,119 +485,131 @@ Cell::Cell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &vX, C
         }
     }
 
-    moveCoords((atoms.end() - 4)->type.coords,
-        (atoms.end() - 3)->type.coords,
-        (atoms.end() - 2)->type.coords,
-        (atoms.end() - 1)->type.coords);
+    moveCoords(m_impl->getp1(), m_impl->getVx(), m_impl->getVy(), m_impl->getVz());
+}
 
-    xs = getXSize();
-    ys = getYSize();
-    zs = getZSize();
+Cell::Cell(const Cell& other) :
+    m_impl(new Private(*other.m_impl))
+{
+}
 
-    optimize();
+Cell::Cell(Cell&& other) :
+    m_impl(std::move(other.m_impl))
+{
 }
 
 size_t Cell::size() const {
-    return atoms.size();
+    return m_impl->size();
 }
 
 bool Cell::operator<(const Cell& cell) const {
-    return atoms.size() < cell.atoms.size();
+    return size() < cell.size();
 }
 
 const AllNeighbors Cell::findNeighbors(float xs, float ys, float zs) {
-    const auto NUMBER_OF_ATOMS_IN_CELL = atoms.size();
-    AllNeighbors totalNeighbors;
-    for (size_t type0 = 0; type0 < NUMBER_OF_ATOMS_IN_CELL; ++type0) {
-        Neighbors neighbors;
-
-        double x0 = atoms[type0].type.coords.x;
-        double y0 = atoms[type0].type.coords.y;
-        double z0 = atoms[type0].type.coords.z;
-
-        // shift of the cell #1
-        for (int xc1 = -1; xc1 < 2; ++xc1)
-        for (int yc1 = -1; yc1 < 2; ++yc1)
-        for (int zc1 = -1; zc1 < 2; ++zc1)
-        for (unsigned char type1 = 0;
-            type1 < NUMBER_OF_ATOMS_IN_CELL; ++type1)
-        if (!(type1 == type0 && !xc1 && !yc1 && !zc1)) {
-            double x1 = atoms[type1].type.coords.x + xc1*xs;
-            double y1 = atoms[type1].type.coords.y + yc1*ys;
-            double z1 = atoms[type1].type.coords.z + zc1*zs;
-
-            // square of the bond #1 length
-            if (fabs(pow(x1 - x0, 2) + pow(y1 - y0, 2) + pow(z1 - z0, 2) - 3.0 / 16.0) <= 0.001)
-            {
-                AtomType s1(xc1, yc1, zc1, type1, false);
-                neighbors.push_back(s1);
-            }
-        }
-        totalNeighbors.push_back(neighbors);
-    }
-
-    return totalNeighbors;
+    return m_impl->findNeighbors(xs, ys, zs);
 }
 
 void Cell::optimize() {
-    Atoms newAtoms;
-
-    for (auto i = atoms.begin(); i < atoms.end() - 4; ++i) {
-        const auto x = i->type.coords.x;
-        const auto y = i->type.coords.y;
-        const auto z = i->type.coords.z;
-
-        if (x > 0.01 && y > 0.01 && z > 0.01) {
-            Coords3D atom = {x, y, z};
-            newAtoms.push_back(AtomInfo(AtomType(atom)));
-        }
-    }
-
-    atoms = newAtoms;
+    m_impl->optimize();
 }
 
 double Cell::getXSize() const
 {
-    return (*(atoms.end() - 3)).type.coords.length();
+    return m_impl->getVx().length();
 }
 
 double Cell::getYSize() const
 {
-    return (*(atoms.end() - 2)).type.coords.length();
+    return m_impl->getVy().length();
 }
 
 double Cell::getZSize() const
 {
-    return (*(atoms.end() - 1)).type.coords.length();
+    return m_impl->getVz().length();
 }
 
 void Cell::moveCoords(const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy,
     const Coords3D &Vz) {
-    for (auto atom_coords_it = atoms.begin();
-        atom_coords_it < atoms.end() - 4; ++atom_coords_it) {
+    m_impl->moveCoords(O, Vx, Vy, Vz);
+}
 
-        const auto& vec = atom_coords_it->type.coords - O;
-        const double x = (vec * Vx) / Vx.length();
-        const double y = (vec * Vy) / Vy.length();
-        const double z = (vec * Vz) / Vz.length();
+Coords3D Cell::getVx() const {
+    return m_impl->getVx();
+}
 
-        atom_coords_it->type.coords.x = static_cast<float> (x);
-        atom_coords_it->type.coords.y = static_cast<float> (y);
-        atom_coords_it->type.coords.z = static_cast<float> (z);
-    }
+Coords3D Cell::getVy() const {
+    return m_impl->getVy();
+}
+
+Coords3D Cell::getVz() const {
+    return m_impl->getVz();
+}
+
+Coords3D Cell::getp1() const {
+    return m_impl->getp1();
+}
+
+void Cell::setp1(Coords3D const& p1)
+{
+    m_impl->setp1(p1);
+}
+
+void Cell::setVx(Coords3D const& vX)
+{
+    m_impl->setVx(vX);
+}
+
+void Cell::setVy(Coords3D const& vY) {
+    m_impl->setVy(vY);
+}
+
+void Cell::setVz(Coords3D const& vZ) {
+    m_impl->setVz(vZ);
+}
+
+Cell& Cell::operator=(const Cell& other) {
+    m_impl.reset(new Private(*other.m_impl));
+
+    return *this;
+}
+
+Cell& Cell::operator=(Cell&& other)
+{
+    m_impl = std::move(other.m_impl);
+
+    return *this;
+}
+
+Cell::~Cell() {
+}
+
+Atoms Cell::getAtoms() const
+{
+    return m_impl->getAtoms();
+}
+
+Atoms& Cell::getAtoms() {
+    return m_impl->getAtoms();
+}
+
+void Cell::addAtom(AtomInfo const& atom) {
+    m_impl->addAtom(atom);
 }
 
 const Cell operator+(Cell const& cell, Coords3D const& v) {
     Cell resultCell;
 
-    for (auto cell_atom_it = cell.atoms.begin();
-        cell_atom_it < cell.atoms.end() - 4; ++cell_atom_it) {
-        resultCell.atoms.push_back(AtomInfo(AtomType(cell_atom_it->type.coords + v)));
+    Atoms const atoms = cell.getAtoms();
+
+    for (auto cell_atom_it = atoms.begin();
+        cell_atom_it < atoms.end(); ++cell_atom_it) {
+        resultCell.addAtom(AtomInfo(AtomType(cell_atom_it->type.coords + v)));
     }
 
-    for (auto cell_atom_it = cell.atoms.end() - 4;
-        cell_atom_it < cell.atoms.end(); ++cell_atom_it) {
-        resultCell.atoms.push_back(*cell_atom_it);
+    for (auto cell_atom_it = atoms.end();
+        cell_atom_it < atoms.end(); ++cell_atom_it) {
+        resultCell.addAtom(*cell_atom_it);
     }
 
     return resultCell;

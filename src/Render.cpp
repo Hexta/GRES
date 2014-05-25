@@ -356,9 +356,9 @@ struct Render::Private {
         for (size_t z = z_min; z < surface.size() - 2; ++z)
             for (size_t y = surface[z].size() - 2; --y >= 2;)
                 for (size_t x = surface[z][y].size() - 2; --x >= 2;)
-                    for (const auto& atom : surface[z][y][x].atoms)
+                    for (const auto& atom : surface[z][y][x].getAtoms())
                         if (!atom.deleted) {
-                            auto& atom_ = points[y - 2].atoms[x - 2];
+                            auto& atom_ = points[y - 2].getAtoms()[x - 2];
                             if (cmp_float(atom_.type.coords.x, -1.0)) {
                                 atom_.type.coords = Coords3D(scaling * (x - 2) * xs,
                                     scaling * (y - 2) * ys, -scaling * z * zs);
@@ -366,17 +366,17 @@ struct Render::Private {
                         }
 
         for (size_t i = 0; i < dY; ++i) {
-            points[i].atoms[dX - 1].type.coords = Coords3D(
-                points[i].atoms[dX - 2].type.coords.x + scaling * xs,
-                points[i].atoms[dX - 2].type.coords.y,
-                points[i].atoms[dX - 2].type.coords.z);
+            points[i].getAtoms()[dX - 1].type.coords = Coords3D(
+                points[i].getAtoms()[dX - 2].type.coords.x + scaling * xs,
+                points[i].getAtoms()[dX - 2].type.coords.y,
+                points[i].getAtoms()[dX - 2].type.coords.z);
         }
 
         for (size_t i = 0; i < dX; ++i) {
-            points[dY - 1].atoms[i].type.coords = Coords3D(
-                points[dY - 2].atoms[i].type.coords.x,
-                points[dY - 2].atoms[i].type.coords.y + scaling * ys,
-                points[dY - 2].atoms[i].type.coords.z);
+            points[dY - 1].getAtoms()[i].type.coords = Coords3D(
+                points[dY - 2].getAtoms()[i].type.coords.x,
+                points[dY - 2].getAtoms()[i].type.coords.y + scaling * ys,
+                points[dY - 2].getAtoms()[i].type.coords.z);
         }
         surfVertex.reserve((SIZE_Y - 4)*(SIZE_X - 4));
         surfNormals.reserve((SIZE_Y - 4)*(SIZE_X - 4));
@@ -386,11 +386,11 @@ struct Render::Private {
                 Cell& cell = points[i];
                 Cell& cellNext = points[i + 1];
 
-                auto const& coordsCellJNext = cell.atoms[j + 1].type.coords;
-                auto const& coordsCellNextJNext = cellNext.atoms[j + 1].type.coords;
+                auto const& coordsCellJNext = cell.getAtoms()[j + 1].type.coords;
+                auto const& coordsCellNextJNext = cellNext.getAtoms()[j + 1].type.coords;
 
-                auto const& coordsCellJ = cell.atoms[j].type.coords;
-                auto const& coordsCellNextJ = cellNext.atoms[j].type.coords;
+                auto const& coordsCellJ = cell.getAtoms()[j].type.coords;
+                auto const& coordsCellNextJ = cellNext.getAtoms()[j].type.coords;
 
                 Coords3D const& v1 = coordsCellJ;
                 Coords3D const v2 = {coordsCellJNext.x, coordsCellJNext.y, coordsCellJ.z};
@@ -443,7 +443,7 @@ struct Render::Private {
     }
 
     void createAtomsAndBonds() {
-        auto& cellAts = cellAtoms.atoms;
+        auto& cellAts = cellAtoms.getAtoms();
         auto& surface = *surfaceXYZ;
 
         int name = 0;
@@ -456,7 +456,7 @@ struct Render::Private {
                     const char atomsCount = static_cast<char>(surface[z][y][x].size());
                     for (unsigned char a = atomsCount; --a > 0;) {
 
-                        if (surface[z][y][x].atoms[a].fNbCount) {
+                        if (surface[z][y][x].getAtoms()[a].fNbCount) {
                             float xA = x0 + scaling * cellAts[a].type.coords.x;
                             float yA = y0 + scaling * cellAts[a].type.coords.y;
                             float zA = z0 - scaling * cellAts[a].type.coords.z;
@@ -468,7 +468,7 @@ struct Render::Private {
                                 static_cast<int>(atomsCount)};
                             atNames.push_back(temp);
 
-                            for (auto &nb : surface[z][y][x].atoms[a].neighbors) {
+                            for (auto &nb : surface[z][y][x].getAtoms()[a].neighbors) {
                                 float xNb = scaling * (xs * nb.x + cellAts[nb.type].type.coords.x);
                                 float yNb = scaling * (ys * nb.y + cellAts[nb.type].type.coords.y);
                                 float zNb = scaling * (-zs * nb.z - cellAts[nb.type].type.coords.z);
@@ -482,7 +482,7 @@ struct Render::Private {
     }
 
     void createAtomsAndBondes() {
-        auto& atoms = cellAtoms.atoms;
+        auto& atoms = cellAtoms.getAtoms();
 
         int name = 0;
 
@@ -493,7 +493,7 @@ struct Render::Private {
             const int z = surfAtom.z;
             const unsigned char a = surfAtom.type;
 
-            auto &neighbors = surface[z][y][x].atoms[a].neighbors;
+            auto &neighbors = surface[z][y][x].getAtoms()[a].neighbors;
 
             if (!neighbors.empty()) {
                 float x0 = scaling * x * xs;
@@ -525,13 +525,13 @@ struct Render::Private {
             int const z_ = surfAtom.z;
             unsigned char a_ = surfAtom.type;
 
-            for (auto &nb : surface[z_][y_][x_].atoms[a_].neighbors) {
+            for (auto &nb : surface[z_][y_][x_].getAtoms()[a_].neighbors) {
                 int x = nb.x;
                 int y = nb.y;
                 int z = nb.z;
                 unsigned char a = nb.type;
 
-                auto &surfaceZYXA = surface[z][y][x].atoms[a];
+                auto &surfaceZYXA = surface[z][y][x].getAtoms()[a];
 
                 if (x > 1 && x < static_cast<decltype(x)>(surface[z_][y_].size()) - 2
                     && y > 1 && y < static_cast<decltype(y)>(surface[z_].size()) - 2)
@@ -805,10 +805,12 @@ struct Render::Private {
     }
 
     void initializeGL() {
+#ifdef _WIN32
         pglBindBufferARB = reinterpret_cast<PFNGLBINDBUFFERARBPROC>(wglGetProcAddress("glBindBufferARB"));
         pglDeleteBuffersARB = reinterpret_cast<PFNGLDELETEBUFFERSARBPROC>(wglGetProcAddress("glDeleteBuffersARB"));
         pglBufferDataARB = reinterpret_cast<PFNGLBUFFERDATAARBPROC>(wglGetProcAddress("glBufferDataARB"));
         pglBufferSubDataARB = reinterpret_cast<PFNGLBUFFERSUBDATAARBPROC>(wglGetProcAddress("glBufferSubDataARB"));
+#endif
     }
 
     void processAtom(const GLuint *pSelectBuff) {

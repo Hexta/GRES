@@ -23,16 +23,23 @@
 #include <cstddef>
 #include <vector>
 #include <deque>
+#include <memory>
 
 class Cell {
 public:
     Cell();
     explicit Cell(const Atoms& atoms);
+    Cell(const Cell& other);
+    Cell(Cell&& other);
 
-    Cell(int h, int k, int l, float &xs, float &ys, float &zs, Coords3D &vX,
-        Coords3D &vY, Coords3D &vZ);
+    Cell(int h, int k, int l);
+
+    ~Cell();
 
     bool operator<(const Cell& cell) const;
+
+    Cell& operator=(const Cell& other);
+    Cell& operator=(Cell&& other);
 
     size_t size() const;
 
@@ -45,12 +52,28 @@ public:
     double getYSize() const;
     double getZSize() const;
 
+    Atoms getAtoms() const;
+    Atoms& getAtoms();
+
+    void addAtom(AtomInfo const& atom);
+
     // смещение координат в €чейку
     void moveCoords(const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy,
         const Coords3D &Vz);
 
-public:
-    Atoms atoms;
+    Coords3D getp1() const;
+    Coords3D getVx() const;
+    Coords3D getVy() const;
+    Coords3D getVz() const;
+
+    void setp1(Coords3D const& p1);
+    void setVx(Coords3D const& vX);
+    void setVy(Coords3D const& vX);
+    void setVz(Coords3D const& vX);
+
+private:
+    class Private;
+    std::unique_ptr<Private> m_impl;
 };
 
 const Cell operator+(Cell const& cell, Coords3D const& v);
