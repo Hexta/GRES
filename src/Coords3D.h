@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -27,19 +27,16 @@ struct Coords3D {
     Coords3D();
     Coords3D(float x, float y, float z);
 
-    const Coords3D operator +(const Coords3D& v) const;
+    const Coords3D operator+(const Coords3D& v) const;
+    const Coords3D operator-(const Coords3D& v) const;
 
-    //Разность координат двух точек
-    const Coords3D operator -(const Coords3D& v) const;
+    // scalar product of vectors
+    double operator*(const Coords3D& v) const;
 
-    //Скалярное произведение векторов
-    double operator *(const Coords3D& v) const;
+    bool operator==(const Coords3D& v) const;
 
-    bool operator ==(const Coords3D& v) const;
-
-    //Возведение вектора в квадрат
     double sqr() const;
-    double length() const; //Вычисляет длину вектора
+    double length() const;
 
     void normalize();
 
@@ -49,10 +46,9 @@ private:
     static float zPrev;
 
     static double resultPrev;
-}; 
+};
 
-Coords3D operator *(const Coords3D& v, int n);
-
-Coords3D operator *(int n, const Coords3D& v);
+Coords3D operator*(const Coords3D& v, int n);
+Coords3D operator*(int n, const Coords3D& v);
 
 typedef std::vector<Coords3D> Coords3DList;

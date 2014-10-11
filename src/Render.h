@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -42,16 +42,26 @@ class Render : public QGLWidget {
     Q_OBJECT
 
 public:
-    Render(QWidget *parent = 0);
+    Render(QWidget* parent = 0);
     ~Render();
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 
 public slots:
-    void view(Surface3DPtr surface, Cell &atTypes, float Xsize, float Ysize,
-        float Zsize, int center, int min, int width, int height,
-        Coords3D &vX, Coords3D &vY, Coords3D &vZ, GRES::VizType vT);
+    void view(Surface3DPtr surface,
+        Cell& atTypes,
+        float Xsize,
+        float Ysize,
+        float Zsize,
+        int center,
+        int min,
+        int width,
+        int height,
+        Coords3D& vX,
+        Coords3D& vY,
+        Coords3D& vZ,
+        GRES::VizType vT);
     void changeVizType(GRES::VizType type);
     void saveResult();
 
@@ -62,10 +72,10 @@ protected:
     void initializeGL();
     void resizeGL(int width, int height);
     void paintGL();
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void keyPressEvent(QKeyEvent * event);
+    void mousePressEvent(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event);
+    void keyPressEvent(QKeyEvent* event);
 
 private:
     struct Private;

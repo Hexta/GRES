@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -20,19 +20,17 @@
 #include <cmath>
 
 namespace {
-    const double FLOAT_TOL = 0.00001;
+const double FLOAT_TOL = 0.00001;
 
-    bool cmp_float(double x, double y) {
-        return fabs(x - y) < FLOAT_TOL;
-    }
+bool cmp_float(double x, double y) {
+    return fabs(x - y) < FLOAT_TOL;
+}
 }
 
-const Coords3D Coords3D::operator +(const Coords3D& v) const {
-
+const Coords3D Coords3D::operator+(const Coords3D& v) const {
     Coords3D temp = {x + v.x, y + v.y, z + v.z};
     return temp;
 }
-
 
 double Coords3D::resultPrev = 0;
 float Coords3D::zPrev = 0;
@@ -68,27 +66,29 @@ bool Coords3D::operator==(const Coords3D& v) const {
     return cmp_float(x, v.x) && cmp_float(y, v.y) && cmp_float(z, v.z);
 }
 
-Coords3D::Coords3D(float x, float y, float z) : x(x), y(y), z(z) {
-
+Coords3D::Coords3D(float x, float y, float z) :
+    x(x),
+    y(y),
+    z(z) {
 }
 
 Coords3D::Coords3D() {
 }
 
 void Coords3D::normalize() {
-    const float len = static_cast<float> (sqrt(pow(x, 2) + pow(y, 2) +
-        pow(z, 2)));
+    const float len = static_cast<float>(sqrt(pow(x, 2) + pow(y, 2) +
+                                             pow(z, 2)));
 
     x /= len;
     y /= len;
     z /= len;
 }
 
-Coords3D operator *(const Coords3D& v, int n) {
-    Coords3D temp = {n * v.x, n * v.y, n * v.z};
+Coords3D operator*(const Coords3D& v, int n) {
+    Coords3D temp = {n* v.x, n * v.y, n * v.z};
     return temp;
 }
 
-Coords3D operator *(int n, const Coords3D& v) {
+Coords3D operator*(int n, const Coords3D& v) {
     return v * n;
 }

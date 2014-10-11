@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -21,6 +21,7 @@
 
 class MaskPreview : public QLabel {
     Q_OBJECT
+
 public:
-    MaskPreview(QWidget *parent = 0);
+    MaskPreview(QWidget* parent = 0);
 };

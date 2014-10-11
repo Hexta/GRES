@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -19,7 +19,7 @@
 
 #include "functions.h"
 
-#ifdef _WIN32 
+#ifdef _WIN32
 #include <windows.h>
 #include <wingdi.h>
 #endif
@@ -40,7 +40,7 @@ struct atomName {
     int fNbCount;
 };
 
-typedef std::vector<atomName>AtomNames;
+typedef std::vector<atomName> AtomNames;
 
 struct Bond {
     float x1;
@@ -55,7 +55,6 @@ typedef std::vector<Bond> Bonds;
 
 struct Coords3D;
 
-void createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
-        int &vSize2, int &vSize3);
+void createSphere(GLdouble radius, GLint slices, GLint stacks, int& vSize1, int& vSize2, int& vSize3);
 
 Coords3D normcrossprod(const Coords3D& in1, const Coords3D& in2);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -26,15 +26,16 @@
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
+
 public:
-    MainWindow(QWidget *parent = 0, int argc = 0, char *const argv[] = NULL);
+    MainWindow(QWidget* parent = 0, int argc = 0, char* const argv[] = NULL);
     virtual ~MainWindow();
 
 public slots:
     void newDocument();
     void getSettings(int, int, int, int, int, int);
     void changeVizType(QAction* type);
-    void etch(int, int, float *rates);
+    void etch(int, int, float* rates);
 
 private:
     void createActions();

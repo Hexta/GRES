@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -57,9 +57,8 @@ public:
 
     void addAtom(AtomInfo const& atom);
 
-    // смещение координат в €чейку
-    void moveCoords(const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy,
-        const Coords3D &Vz);
+    // move coordinations to the cell
+    void moveCoords(const Coords3D& O, const Coords3D& Vx, const Coords3D& Vy, const Coords3D& Vz);
 
     Coords3D getp1() const;
     Coords3D getVx() const;

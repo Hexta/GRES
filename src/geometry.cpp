@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -32,22 +32,24 @@
 #define SQRT sqrtf
 
 #ifdef _WIN32
-#define glBindBufferARB           pglBindBufferARB
-#define glDeleteBuffersARB        pglDeleteBuffersARB
-#define glBufferDataARB           pglBufferDataARB
-#define glBufferSubDataARB        pglBufferSubDataARB
+#define glBindBufferARB pglBindBufferARB
+#define glDeleteBuffersARB pglDeleteBuffersARB
+#define glBufferDataARB pglBufferDataARB
+#define glBufferSubDataARB pglBufferSubDataARB
 #endif
 
-void
-createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
-             int &vSize2, int &vSize3) {
+void createSphere(GLdouble radius, GLint slices, GLint stacks, int& vSize1, int& vSize2, int& vSize3) {
 #ifdef _WIN32
-    PFNGLBINDBUFFERARBPROC pglBindBufferARB = reinterpret_cast<PFNGLBINDBUFFERARBPROC>(wglGetProcAddress("glBindBufferARB"));
-    PFNGLDELETEBUFFERSARBPROC pglDeleteBuffersARB = reinterpret_cast<PFNGLDELETEBUFFERSARBPROC>(wglGetProcAddress("glDeleteBuffersARB"));
-    PFNGLBUFFERDATAARBPROC pglBufferDataARB = reinterpret_cast<PFNGLBUFFERDATAARBPROC>(wglGetProcAddress("glBufferDataARB"));
-    PFNGLBUFFERSUBDATAARBPROC pglBufferSubDataARB = reinterpret_cast<PFNGLBUFFERSUBDATAARBPROC>(wglGetProcAddress("glBufferSubDataARB"));
+    PFNGLBINDBUFFERARBPROC pglBindBufferARB =
+        reinterpret_cast<PFNGLBINDBUFFERARBPROC>(wglGetProcAddress("glBindBufferARB"));
+    PFNGLDELETEBUFFERSARBPROC pglDeleteBuffersARB =
+        reinterpret_cast<PFNGLDELETEBUFFERSARBPROC>(wglGetProcAddress("glDeleteBuffersARB"));
+    PFNGLBUFFERDATAARBPROC pglBufferDataARB =
+        reinterpret_cast<PFNGLBUFFERDATAARBPROC>(wglGetProcAddress("glBufferDataARB"));
+    PFNGLBUFFERSUBDATAARBPROC pglBufferSubDataARB =
+        reinterpret_cast<PFNGLBUFFERSUBDATAARBPROC>(wglGetProcAddress("glBufferSubDataARB"));
 #endif
-    const auto SIZE_OF_FLOAT = sizeof (float);
+    const auto SIZE_OF_FLOAT = sizeof(float);
 
     GLint i, j;
     GLfloat sinCache1a[CACHE_SIZE];
@@ -78,15 +80,15 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     needCache3 = GL_TRUE;
 
     for (i = 0; i < slices; ++i) {
-        angle = static_cast<GLfloat> (2 * PI * i / slices);
-        sinCache1a[i] = static_cast<GLfloat> (SIN(angle));
-        cosCache1a[i] = static_cast<GLfloat> (COS(angle));
+        angle = static_cast<GLfloat>(2 * PI * i / slices);
+        sinCache1a[i] = static_cast<GLfloat>(SIN(angle));
+        cosCache1a[i] = static_cast<GLfloat>(COS(angle));
     }
 
     for (j = 0; j <= stacks; ++j) {
-        angle = static_cast<GLfloat> (PI * j / stacks);
-        sinCache1b[j] = static_cast<GLfloat> (radius * SIN(angle));
-        cosCache1b[j] = static_cast<GLfloat> (radius * COS(angle));
+        angle = static_cast<GLfloat>(PI * j / stacks);
+        sinCache1b[j] = static_cast<GLfloat>(radius * SIN(angle));
+        cosCache1b[j] = static_cast<GLfloat>(radius * COS(angle));
     }
     /* Make sure it comes to a point */
     sinCache1b[0] = 0;
@@ -94,14 +96,14 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
 
     if (needCache3) {
         for (i = 0; i < slices; ++i) {
-            angle = static_cast<GLfloat> (2 * PI * (i - 0.5) / slices);
-            sinCache3a[i] = static_cast<GLfloat> (SIN(angle));
-            cosCache3a[i] = static_cast<GLfloat> (COS(angle));
+            angle = static_cast<GLfloat>(2 * PI * (i - 0.5) / slices);
+            sinCache3a[i] = static_cast<GLfloat>(SIN(angle));
+            cosCache3a[i] = static_cast<GLfloat>(COS(angle));
         }
         for (j = 0; j <= stacks; ++j) {
-            angle = static_cast<GLfloat> (PI * (j - 0.5) / stacks);
-            sinCache3b[j] = static_cast<GLfloat> (SIN(angle));
-            cosCache3b[j] = static_cast<GLfloat> (COS(angle));
+            angle = static_cast<GLfloat>(PI * (j - 0.5) / stacks);
+            sinCache3b[j] = static_cast<GLfloat>(SIN(angle));
+            cosCache3b[j] = static_cast<GLfloat>(COS(angle));
         }
     }
 
@@ -127,7 +129,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     sintemp3 = sinCache3b[1];
     costemp3 = cosCache3b[1];
 
-    //GL_TRIANGLE_FAN
+    // GL_TRIANGLE_FAN
 
     Coords3DList norm1;
     Coords3DList vertex1;
@@ -135,7 +137,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     vertex1.reserve(slices + 1);
     norm1.reserve(slices + 1);
 
-    Coords3D v1 = {0.0, 0.0, static_cast<float> (radius)};
+    Coords3D v1 = {0.0, 0.0, static_cast<float>(radius)};
     vertex1.push_back(v1);
     v1.normalize();
     norm1.push_back(v1);
@@ -143,7 +145,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
         Coords3D n1 = {sinCache3a[i + 1] * sintemp3,
                        cosCache3a[i + 1] * sintemp3, costemp3};
         norm1.push_back(n1);
-        Coords3D v1 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
+        Coords3D v1 = {sintemp2* sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
         vertex1.push_back(v1);
     }
 
@@ -152,7 +154,7 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     zHigh = cosCache1b[stacks - 1];
     sintemp3 = sinCache3b[stacks];
     costemp3 = cosCache3b[stacks];
-    //GL_TRIANGLE_FAN
+    // GL_TRIANGLE_FAN
 
     Coords3DList norm2;
     Coords3DList vertex2;
@@ -160,14 +162,14 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
     vertex2.reserve(slices + 1);
     norm2.reserve(slices + 1);
 
-    Coords3D v2 = {0.0, 0.0, static_cast<float> (-radius)};
+    Coords3D v2 = {0.0, 0.0, static_cast<float>(-radius)};
     vertex2.push_back(v2);
     v2.normalize();
     norm2.push_back(v2);
     for (i = 0; i <= slices; ++i) {
         Coords3D n2 = {sinCache3a[i] * sintemp3, cosCache3a[i] * sintemp3, costemp3};
         norm2.push_back(n2);
-        Coords3D v2 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
+        Coords3D v2 = {sintemp2* sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
         vertex2.push_back(v2);
     }
 
@@ -185,46 +187,46 @@ createSphere(GLdouble radius, GLint slices, GLint stacks, int &vSize1,
         sintemp4 = sinCache3b[j + 1];
         costemp4 = cosCache3b[j + 1];
 
-        //GL_QUAD_STRIP
+        // GL_QUAD_STRIP
         for (i = 0; i <= slices; ++i) {
-            Coords3D v3 = {sintemp2 * sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
+            Coords3D v3 = {sintemp2* sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
             vertex3.push_back(v3);
 
             Coords3D n3 = {sinCache3a[i] * sintemp4, cosCache3a[i] * sintemp4, costemp4};
             norm3.push_back(n3);
             norm3.push_back(n3);
 
-            Coords3D v3_ = {sintemp1 * sinCache1a[i], sintemp1 * cosCache1a[i], zLow};
+            Coords3D v3_ = {sintemp1* sinCache1a[i], sintemp1 * cosCache1a[i], zLow};
             vertex3.push_back(v3_);
         }
     }
-    vSize1 = static_cast<int> (vertex1.size());
+    vSize1 = static_cast<int>(vertex1.size());
 
     glBindBufferARB(GL_ARRAY_BUFFER, 1);
-    glBufferDataARB(GL_ARRAY_BUFFER, (vSize1 + norm1.size())*3 * SIZE_OF_FLOAT, 0, GL_STATIC_DRAW);
+    glBufferDataARB(GL_ARRAY_BUFFER, (vSize1 + norm1.size()) * 3 * SIZE_OF_FLOAT, 0, GL_STATIC_DRAW);
     glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize1 * 3 * SIZE_OF_FLOAT, &vertex1[0].x);
     glBufferSubDataARB(GL_ARRAY_BUFFER, vSize1 * 3 * SIZE_OF_FLOAT,
-            norm1.size()*3 * SIZE_OF_FLOAT, &norm1[0].x);
+        norm1.size() * 3 * SIZE_OF_FLOAT, &norm1[0].x);
 
-    vSize2 = static_cast<int> (vertex2.size());
+    vSize2 = static_cast<int>(vertex2.size());
 
     glBindBufferARB(GL_ARRAY_BUFFER, 2);
-    glBufferDataARB(GL_ARRAY_BUFFER, (vSize2 + norm2.size())*3 * SIZE_OF_FLOAT,
-            0, GL_STATIC_DRAW);
+    glBufferDataARB(GL_ARRAY_BUFFER, (vSize2 + norm2.size()) * 3 * SIZE_OF_FLOAT,
+        0, GL_STATIC_DRAW);
     glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize2 * 3 * SIZE_OF_FLOAT,
-            &vertex2[0].x);
+        &vertex2[0].x);
     glBufferSubDataARB(GL_ARRAY_BUFFER, vSize2 * 3 * SIZE_OF_FLOAT,
-            norm2.size()*3 * SIZE_OF_FLOAT, &norm2[0].x);
+        norm2.size() * 3 * SIZE_OF_FLOAT, &norm2[0].x);
 
-    vSize3 = static_cast<int> (vertex3.size());
+    vSize3 = static_cast<int>(vertex3.size());
 
     glBindBufferARB(GL_ARRAY_BUFFER, 3);
-    glBufferDataARB(GL_ARRAY_BUFFER, (vSize3 + norm3.size())*3 * SIZE_OF_FLOAT,
-            0, GL_STATIC_DRAW);
+    glBufferDataARB(GL_ARRAY_BUFFER, (vSize3 + norm3.size()) * 3 * SIZE_OF_FLOAT,
+        0, GL_STATIC_DRAW);
     glBufferSubDataARB(GL_ARRAY_BUFFER, 0, vSize3 * 3 * SIZE_OF_FLOAT,
-            &vertex3[0].x);
+        &vertex3[0].x);
     glBufferSubDataARB(GL_ARRAY_BUFFER, vSize3 * 3 * SIZE_OF_FLOAT,
-            norm3.size()*3 * SIZE_OF_FLOAT, &norm3[0].x);
+        norm3.size() * 3 * SIZE_OF_FLOAT, &norm3[0].x);
 
     glBindBufferARB(GL_ARRAY_BUFFER, 0);
     vertex1.clear();

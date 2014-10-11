@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -24,12 +24,15 @@ class QLabel;
 
 class SelectAtomMenu : public QWidget {
     Q_OBJECT
+
 public:
-    SelectAtomMenu(QWidget *parent = 0);
+    SelectAtomMenu(QWidget* parent = 0);
     QSize sizeHint() const;
+
 public slots:
     void setInfo(int x, int y, int z, int type, int fNbCount);
+
 private:
-    QLabel *atomPosition;
-    QLabel *firstNeighborsCount;
+    QLabel* atomPosition;
+    QLabel* firstNeighborsCount;
 };

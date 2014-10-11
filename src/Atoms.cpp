@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -17,28 +17,26 @@
 
 #include "Atoms.h"
 
-bool operator==(const AtomType &a1, const AtomType &a2) {
+bool operator==(const AtomType& a1, const AtomType& a2) {
     return ((a1.x == a2.x) && (a1.y == a2.y) && (a1.z == a2.z) && (a1.type == a2.type));
 }
 
 class Atoms::Private {
 public:
     Private() :
-        m_atomInfos()
-    {
+        m_atomInfos() {
     }
 
-    Private(std::size_t n, AtomInfo const& atom) : 
-        m_atomInfos(n, atom)
-    {
+    Private(std::size_t n, AtomInfo const& atom) :
+        m_atomInfos(n, atom) {
     }
 
-    Private(Private const& other) : 
-        m_atomInfos(other.m_atomInfos)  {
-
+    Private(Private const& other) :
+        m_atomInfos(other.m_atomInfos) {
     }
 
-    ~Private() {}
+    ~Private() {
+    }
 
     void reserve(std::size_t size) {
         m_atomInfos.reserve(size);
@@ -82,11 +80,11 @@ public:
 
     bool checkContains(Private const& other) {
         bool isEual = false;
-        for (auto otherAtomsIt = other.m_atomInfos.begin(); otherAtomsIt != other.m_atomInfos.end(); ++otherAtomsIt) {
-
+        for (auto otherAtomsIt = other.m_atomInfos.begin(); otherAtomsIt != other.m_atomInfos.end();
+             ++otherAtomsIt) {
             isEual = false;
 
-            for (auto &atom : m_atomInfos) {
+            for (auto& atom : m_atomInfos) {
                 if (otherAtomsIt->type.coords == atom.type.coords) {
                     isEual = true;
                     break;
@@ -100,7 +98,6 @@ public:
         return isEual;
     }
 
-
 private:
     typedef std::vector<AtomInfo> AtomInfos;
     AtomInfos m_atomInfos;
@@ -110,11 +107,11 @@ Atoms::Atoms() :
     m_impl(new Private) {
 }
 
-Atoms::Atoms(Atoms&& other) : 
+Atoms::Atoms(Atoms&& other) :
     m_impl(std::move(other.m_impl)) {
 }
 
-Atoms::Atoms(Atoms const& other) : 
+Atoms::Atoms(Atoms const& other) :
     m_impl(new Private(*other.m_impl)) {
 }
 
@@ -122,9 +119,12 @@ Atoms::Atoms(std::size_t n, AtomInfo const& atom) :
     m_impl(new Private(n, atom)) {
 }
 
-Atoms::Atoms(const Atoms &atomsIn, const Coords3D &Vx, const Coords3D &Vy, const Coords3D &Vz, const Coords3D &P1) :
-    m_impl(new Private)
-{
+Atoms::Atoms(const Atoms& atomsIn,
+    const Coords3D& Vx,
+    const Coords3D& Vy,
+    const Coords3D& Vz,
+    const Coords3D& P1) :
+    m_impl(new Private) {
     for (auto const& atom : atomsIn) {
         auto const V = atom.type.coords - P1;
 
@@ -141,7 +141,6 @@ Atoms::Atoms(const Atoms &atomsIn, const Coords3D &Vx, const Coords3D &Vy, const
 }
 
 Atoms::~Atoms() {
-
 }
 
 Atoms& Atoms::operator=(Atoms&& other) {
@@ -198,13 +197,10 @@ bool Atoms::checkContains(Atoms const& other) {
     return m_impl->checkContains(*other.m_impl);
 }
 
-
 Atoms AtomsHelper::allCellAtoms;
 
-Atoms AtomsHelper::createAllCellAtoms(Coords3DList const& atomTypes)
-{
-    if (!allCellAtoms.empty())
-    {
+Atoms AtomsHelper::createAllCellAtoms(Coords3DList const& atomTypes) {
+    if (!allCellAtoms.empty()) {
         return allCellAtoms;
     }
 
@@ -214,13 +210,13 @@ Atoms AtomsHelper::createAllCellAtoms(Coords3DList const& atomTypes)
 
     // create crystal from cells
     for (int z = 0; z < 9; ++z)
-    for (int y = 0; y < 9; ++y)
-    for (int x = 0; x < 9; ++x)
-    for (size_t a = 0; a < cellSize; ++a) {
-        Coords3D atom = { x + atomTypes[a].x, y + atomTypes[a].y,
-            z + atomTypes[a].z };
-        allCellAtoms.push_back(AtomInfo(AtomType(atom)));
-    }
+        for (int y = 0; y < 9; ++y)
+            for (int x = 0; x < 9; ++x)
+                for (size_t a = 0; a < cellSize; ++a) {
+                    Coords3D atom = {x + atomTypes[a].x, y + atomTypes[a].y,
+                                     z + atomTypes[a].z};
+                    allCellAtoms.push_back(AtomInfo(AtomType(atom)));
+                }
 
     return allCellAtoms;
 }

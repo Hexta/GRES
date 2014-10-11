@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -18,15 +18,14 @@
 #define _STDCALL_SUPPORTED
 #define GLUT_NO_LIB_PRAGMA
 
-#define NOMINMAX 
+#define NOMINMAX
 #include "MainWindow.h"
 
 #include <QApplication>
 
 #include <QGLFormat>
 
-int
-main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     Q_INIT_RESOURCE(resources);
     QApplication app(argc, argv);
 #ifdef _WIN32
@@ -35,7 +34,7 @@ main(int argc, char *argv[]) {
     fmt.setDoubleBuffer(false);
     QGLFormat::setDefaultFormat(fmt);
 #endif
-    MainWindow *content;
+    MainWindow* content;
     content = new MainWindow(0, argc, argv);
     content->setWindowTitle(QObject::tr("GRES"));
     content->show();

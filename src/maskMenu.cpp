@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -32,37 +32,34 @@ struct MaskMenu::Private {
         loadMaskButton(new QPushButton(tr("Load Mask"))),
         setMaskButton(new QPushButton(tr("Set Mask"))),
         maskImage(new QImage) {
-
     }
 
     QLabel* maskPreview;
-    QPushButton *loadMaskButton;
-    QPushButton *setMaskButton;
+    QPushButton* loadMaskButton;
+    QPushButton* setMaskButton;
     QImage* maskImage;
     int xS, yS;
 };
 
-MaskMenu::MaskMenu(QWidget *parent, int xS_, int yS_) :
+MaskMenu::MaskMenu(QWidget* parent, int xS_, int yS_) :
     QWidget(parent),
-    d(new Private){
-
+    d(new Private) {
     d->maskPreview->setMinimumSize(200, 200);
 
     connect(d->loadMaskButton, SIGNAL(clicked()), this, SLOT(loadMask()));
     connect(d->setMaskButton, SIGNAL(clicked()), this, SLOT(setMask()));
 
-    QGridLayout *grid = new QGridLayout;
-    grid ->addWidget(d->maskPreview, 0, 0);
-    grid ->addWidget(d->loadMaskButton, 0, 1);
-    grid ->addWidget(d->setMaskButton, 1, 1);
+    QGridLayout* grid = new QGridLayout;
+    grid->addWidget(d->maskPreview, 0, 0);
+    grid->addWidget(d->loadMaskButton, 0, 1);
+    grid->addWidget(d->setMaskButton, 1, 1);
     setLayout(grid);
 
     d->xS = xS_;
     d->yS = yS_;
 }
 
-void
-MaskMenu::loadMask() {
+void MaskMenu::loadMask() {
     QString selFilter = "";
     QString fileName = QFileDialog::getOpenFileName(this,
         tr("Open file with mask"),
@@ -70,8 +67,7 @@ MaskMenu::loadMask() {
         &selFilter);
 
     // check that user canceled file selection
-    if (!fileName.isNull())
-    {
+    if (!fileName.isNull()) {
         d->maskImage = new QImage(fileName);
         if (d->maskImage->isNull()) {
             QMessageBox::information(this, tr("GRES"),
@@ -86,8 +82,7 @@ MaskMenu::loadMask() {
     }
 }
 
-void
-MaskMenu::setMask() {
+void MaskMenu::setMask() {
     std::vector<bool> mask;
     auto const& xSize = d->xS;
     auto const& ySize = d->yS;

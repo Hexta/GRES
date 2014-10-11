@@ -5,9 +5,10 @@ cmake_policy(SET CMP0020 NEW)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 SET(QT_USE_QTOPENGL TRUE)
-find_package(Qt5Widgets REQUIRED)
+set(CMAKE_AUTOMOC ON)
 
-add_definitions(${QT5_DEFINITIONS})
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5OpenGL REQUIRED)
 
 find_package(OpenGL REQUIRED)
 
@@ -71,16 +72,6 @@ set(${PROJECT_NAME}_HEADERS
     Surface3D.h
 )
 
-set(${PROJECT_NAME}_HEADERS_MOC
-    etchingMenu.h
-    MainWindow.h
-    maskMenu.h
-    maskPreview.h
-    Render.h
-    selectAtomMenu.h
-    Settings.h
-)
-
 source_group(${PROJECT_NAME} FILES
     ${${PROJECT_NAME}_SRC}
     ${${PROJECT_NAME}_HEADERS}
@@ -90,19 +81,16 @@ set(${PROJECT_NAME}_RESOURCES
     resources.qrc
 )
 
-QT5_WRAP_CPP(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_HEADERS_MOC})
 QT5_ADD_RESOURCES(${PROJECT_NAME}_RESOURCES_RCC ${${PROJECT_NAME}_RESOURCES})
 
 add_executable(${PROJECT_NAME}
     ${${PROJECT_NAME}_SRC}
-    ${${PROJECT_NAME}_HEADERS_MOC}
     ${${PROJECT_NAME}_RESOURCES_RCC}
     ${${PROJECT_NAME}_HEADERS}
 )
 
-qt5_use_modules(${PROJECT_NAME} Widgets Gui Core OpenGL)
-
 target_link_libraries(${PROJECT_NAME}
-    ${QT_LIBRARIES}
+    Qt5::Widgets
+	Qt5::OpenGL
     ${OPENGL_LIBRARIES}
 )

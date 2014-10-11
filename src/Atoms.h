@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -41,7 +41,7 @@ struct AtomType {
 
     Coords3D coords;
 
-    int x; //сдвиг €чейки по OX (-1;0;+1)
+    int x; // cell shift by OX (-1;0;+1)
     int y;
     int z;
 
@@ -50,12 +50,12 @@ struct AtomType {
     bool toDel;
 };
 
-bool operator==(const AtomType &a1, const AtomType &a2);
+bool operator==(const AtomType& a1, const AtomType& a2);
 
 typedef std::vector<AtomType> AtomTypes;
- // atom's neighbors
+// atom's neighbors
 typedef std::vector<AtomType> Neighbors;
- // all neighbors
+// all neighbors
 typedef std::vector<Neighbors> AllNeighbors;
 
 struct AtomInfo {
@@ -72,8 +72,7 @@ struct AtomInfo {
     bool deleted;
 };
 
-class Atoms
-{
+class Atoms {
 public:
     typedef std::vector<AtomInfo>::iterator Iterator;
     typedef std::vector<AtomInfo>::const_iterator ConstIterator;
@@ -84,8 +83,8 @@ public:
     Atoms(Atoms&& other);
     Atoms(std::size_t, AtomInfo const& atom);
 
-    Atoms(const Atoms &atomsIn, const Coords3D &Vx, const Coords3D &Vy,
-        const Coords3D &Vz, const Coords3D &P1);
+    Atoms(const Atoms& atomsIn, const Coords3D& Vx, const Coords3D& Vy, const Coords3D& Vz,
+        const Coords3D& P1);
 
     ~Atoms();
 

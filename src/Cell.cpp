@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -27,10 +27,16 @@
 using std::pow;
 
 namespace {
-float distance(const double& x1, const double& y1, const double& z1,
-    const double& x2, const double& y2, const double& z2) {
-        return static_cast<float>(sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2) +
-            pow((z2 - z1), 2)));
+float distance(const double& x1,
+    const double& y1,
+    const double& z1,
+    const double& x2,
+    const double& y2,
+    const double& z2) {
+    auto const result = sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2) +
+        pow((z2 - z1), 2));
+
+    return static_cast<float>(result);
 }
 
 float distance(AtomInfo const& left, AtomInfo const& right) {
@@ -61,7 +67,7 @@ struct Length {
     float l;
 };
 
-typedef std::vector<Length>Lengths;
+typedef std::vector<Length> Lengths;
 
 struct rectangle {
     float x1;
@@ -79,7 +85,7 @@ struct rectangle {
     float S;
 };
 
-typedef std::vector<rectangle>rectangles;
+typedef std::vector<rectangle> rectangles;
 
 // Silicon cell
 Coords3DList atomTypes = {
@@ -93,22 +99,20 @@ Coords3DList atomTypes = {
     {0.25, 0.75, 0.75}
 };
 
-const int NUMBER_OF_ATOMS_IN_CELL = atomTypes.size();
-
-bool rect_comp(const rectangle &r1, const rectangle &r2) {
-
+bool rect_comp(const rectangle& r1, const rectangle& r2) {
     const double S1 = distance(r1.x1, r1.y1, r1.z1, r1.x2, r1.y2, r1.z2) *
-        distance(r1.x3, r1.y3, r1.z3, r1.x4, r1.y4, r1.z4);
+                      distance(r1.x3, r1.y3, r1.z3, r1.x4, r1.y4, r1.z4);
     const double S2 = distance(r2.x1, r2.y1, r2.z1, r2.x2, r2.y2, r2.z2) *
-        distance(r2.x3, r2.y3, r2.z3, r2.x4, r2.y4, r2.z4);
+                      distance(r2.x3, r2.y3, r2.z3, r2.x4, r2.y4, r2.z4);
     return S1 < S2;
 }
-
 }
 
 class Cell::Private {
 public:
-    Private() {}
+    Private() {
+    }
+
     Private(Atoms const& atoms) :
         m_atoms(atoms) {
     }
@@ -158,33 +162,38 @@ public:
     }
 
     const AllNeighbors findNeighbors(float xs, float ys, float zs) {
-        const auto NUMBER_OF_ATOMS_IN_CELL = size();
+        const auto numberOfAtomsInCell = size();
 
         AllNeighbors totalNeighbors;
-        for (size_t type0 = 0; type0 < NUMBER_OF_ATOMS_IN_CELL; ++type0) {
+        for (size_t type0 = 0; type0 < numberOfAtomsInCell; ++type0) {
             Neighbors neighbors;
 
-            double x0 = m_atoms[type0].type.coords.x;
-            double y0 = m_atoms[type0].type.coords.y;
-            double z0 = m_atoms[type0].type.coords.z;
+            auto const& coords0 = m_atoms[type0].type.coords;
+
+            double const x0 = coords0.x;
+            double const y0 = coords0.y;
+            double const z0 = coords0.z;
 
             // shift of the cell #1
             for (int xc1 = -1; xc1 < 2; ++xc1)
-            for (int yc1 = -1; yc1 < 2; ++yc1)
-            for (int zc1 = -1; zc1 < 2; ++zc1)
-            for (unsigned char type1 = 0;
-                type1 < NUMBER_OF_ATOMS_IN_CELL; ++type1)
-            if (!(type1 == type0 && !xc1 && !yc1 && !zc1)) {
-                double x1 = m_atoms[type1].type.coords.x + xc1*xs;
-                double y1 = m_atoms[type1].type.coords.y + yc1*ys;
-                double z1 = m_atoms[type1].type.coords.z + zc1*zs;
+                for (int yc1 = -1; yc1 < 2; ++yc1)
+                    for (int zc1 = -1; zc1 < 2; ++zc1)
+                        for (unsigned char type1 = 0;
+                             type1 < numberOfAtomsInCell; ++type1)
+                            if (!(type1 == type0 && !xc1 && !yc1 && !zc1)) {
+                                auto const& coords1 = m_atoms[type1].type.coords;
 
-                // square of the bond #1 length
-                if (fabs(pow(x1 - x0, 2) + pow(y1 - y0, 2) + pow(z1 - z0, 2) - 3.0 / 16.0) <= 0.001) {
-                    AtomType s1(xc1, yc1, zc1, type1, false);
-                    neighbors.push_back(s1);
-                }
-            }
+                                double const x1 = coords1.x + xc1 * xs;
+                                double const y1 = coords1.y + yc1 * ys;
+                                double const z1 = coords1.z + zc1 * zs;
+
+                                // square of the bond #1 length
+                                if (fabs(pow(x1 - x0,
+                                            2) + pow(y1 - y0, 2) + pow(z1 - z0, 2) - 3.0 / 16.0) <= 0.001) {
+                                    AtomType s1(xc1, yc1, zc1, type1, false);
+                                    neighbors.push_back(s1);
+                                }
+                            }
             totalNeighbors.push_back(neighbors);
         }
 
@@ -194,33 +203,34 @@ public:
     void optimize() {
         Atoms newAtoms;
 
-        for (auto i = m_atoms.begin(); i < m_atoms.end(); ++i) {
-            const auto x = i->type.coords.x;
-            const auto y = i->type.coords.y;
-            const auto z = i->type.coords.z;
+        for (auto const& atom : m_atoms) {
+            const auto& coords = atom.type.coords;
+            const auto x = coords.x;
+            const auto y = coords.y;
+            const auto z = coords.z;
 
             if (x > 0.01 && y > 0.01 && z > 0.01) {
-                Coords3D atom = { x, y, z };
-                newAtoms.push_back(AtomInfo(AtomType(atom)));
+                newAtoms.push_back(atom);
             }
         }
 
         m_atoms = newAtoms;
     }
 
-    void moveCoords(const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy,
-        const Coords3D &Vz) {
+    void moveCoords(const Coords3D& O, const Coords3D& Vx, const Coords3D& Vy, const Coords3D& Vz) {
         for (auto atom_coords_it = m_atoms.begin();
-            atom_coords_it < m_atoms.end(); ++atom_coords_it) {
+             atom_coords_it < m_atoms.end(); ++atom_coords_it) {
 
-            const auto& vec = atom_coords_it->type.coords - O;
+			auto& coords = atom_coords_it->type.coords;
+
+            const auto& vec = coords - O;
             const double x = (vec * Vx) / Vx.length();
             const double y = (vec * Vy) / Vy.length();
             const double z = (vec * Vz) / Vz.length();
 
-            atom_coords_it->type.coords.x = static_cast<float> (x);
-            atom_coords_it->type.coords.y = static_cast<float> (y);
-            atom_coords_it->type.coords.z = static_cast<float> (z);
+            coords.x = static_cast<float>(x);
+            coords.y = static_cast<float>(y);
+            coords.z = static_cast<float>(z);
         }
     }
 
@@ -242,7 +252,7 @@ Cell::Cell() :
     m_impl(new Private) {
 }
 
-Cell::Cell(const Atoms& atoms) : 
+Cell::Cell(const Atoms& atoms) :
     m_impl(new Private(atoms)) {
 }
 
@@ -252,23 +262,23 @@ Cell::Cell(int h, int k, int l) :
     const int SIZE_Y = 5;
     const int SIZE_Z = 5;
 
-
-    //Найдем свободный член в уравнении секущей плоскости hx+ky+lz-C=0
+    // Найдем свободный член в уравнении секущей плоскости hx+ky+lz-C=0
     int C = (h * (SIZE_X - 1) + k * (SIZE_Y - 1) + l * (SIZE_Z - 1)) / 2 + 1;
 
     // atoms located on the surface
     Atoms atomsP1;
 
     // Find atoms located on plane #1
-    atomsP1.reserve(SIZE_Z * SIZE_Y * SIZE_X * NUMBER_OF_ATOMS_IN_CELL);
+    atomsP1.reserve(SIZE_Z * SIZE_Y * SIZE_X * atomTypes.size());
     for (int z = 0; z < SIZE_Z; ++z)
-    for (int y = 0; y < SIZE_Y; ++y)
-    for (int x = 0; x < SIZE_X; ++x)
-    for (size_t a = 0; a < NUMBER_OF_ATOMS_IN_CELL; ++a)
-    if (cmp_float(h * (x + atomTypes[a].x) + k * (y + atomTypes[a].y) + l * (z + atomTypes[a].z), C)) {
-        Coords3D atom = { x + atomTypes[a].x, y + atomTypes[a].y, z + atomTypes[a].z };
-        atomsP1.push_back(AtomInfo(AtomType(atom)));
-    }
+        for (int y = 0; y < SIZE_Y; ++y)
+            for (int x = 0; x < SIZE_X; ++x)
+                for (auto const& atomType : atomTypes)
+                    if (cmp_float(h *
+                            (x + atomType.x) + k * (y + atomType.y) + l * (z + atomType.z), C)) {
+                        Coords3D atom = {x + atomType.x, y + atomType.y, z + atomType.z};
+                        atomsP1.push_back(AtomInfo(AtomType(atom)));
+                    }
 
     // Find rectangles located on the plane #1
     const size_t atomsP1Size = atomsP1.size();
@@ -280,7 +290,7 @@ Cell::Cell(int h, int k, int l) :
         for (size_t j = i + 1; j < atomsP1Size; ++j) {
             auto const& atomP1A = atomsP1[i];
             auto const& atomP1B = atomsP1[j];
-            Length L (atomP1A.type.coords, atomP1B.type.coords);
+            Length L(atomP1A.type.coords, atomP1B.type.coords);
             lengths.push_back(L);
         }
 
@@ -291,101 +301,99 @@ Cell::Cell(int h, int k, int l) :
     rectangles rectanglesP1;
 
     for (auto i = lengths.begin(); i != lengths.end(); ++i)
-    for (auto j = i + 1; j != lengths.end(); ++j) {
-        auto const& length1 = *i;
-        auto const& length2 = *j;
-       
-        auto x1 = length1.x1;
-        auto y1 = length1.y1;
-        auto z1 = length1.z1;
-        auto x2 = length1.x2;
-        auto y2 = length1.y2;
-        auto z2 = length1.z2;
-        
-        auto x3 = length2.x1;
-        auto y3 = length2.y1;
-        auto z3 = length2.z1;
-        auto x4 = length2.x2;
-        auto y4 = length2.y2;
-        auto z4 = length2.z2;
+        for (auto j = i + 1; j != lengths.end(); ++j) {
+            auto const& length1 = *i;
+            auto const& length2 = *j;
 
-        auto l1 = length1.l;
-        auto l2 = length2.l;
+            auto x1 = length1.x1;
+            auto y1 = length1.y1;
+            auto z1 = length1.z1;
+            auto x2 = length1.x2;
+            auto y2 = length1.y2;
+            auto z2 = length1.z2;
 
-        if (cmp_float(l1, l2)) {
-            if (!cmp_float(x4, x3))
-                kx = (x2 - x1) / (x4 - x3);
-            else if (cmp_float(x2, x1))
-                kx = 1;
+            auto x3 = length2.x1;
+            auto y3 = length2.y1;
+            auto z3 = length2.z1;
+            auto x4 = length2.x2;
+            auto y4 = length2.y2;
+            auto z4 = length2.z2;
 
-            if (!cmp_float(y4, y3))
-                ky = (y2 - y1) / (y4 - y3);
-            else if (cmp_float(y2, y1))
-                ky = 1;
+            auto l1 = length1.l;
+            auto l2 = length2.l;
 
-            if (!cmp_float(z4, z3))
-                kz = (z2 - z1) / (z4 - z3);
-            else if (cmp_float(z2, z1))
-                kz = 1;
+            if (cmp_float(l1, l2)) {
+                if (!cmp_float(x4, x3))
+                    kx = (x2 - x1) / (x4 - x3);
+                else if (cmp_float(x2, x1))
+                    kx = 1;
 
-            if ((cmp_float(kx, ky) && cmp_float(kx, kz)) &&
-                cmp_float((x2 - x1)*(x4 - x2) + (y2 - y1)*(y4 - y2) + (z2 - z1)*(z4 - z2), 0)) {
-                rectangle rect = {x1, y1, z1, x2, y2, z2,
-                    x3, y3, z3, x4, y4, z4, l1};
-                rectanglesP1.push_back(rect);
+                if (!cmp_float(y4, y3))
+                    ky = (y2 - y1) / (y4 - y3);
+                else if (cmp_float(y2, y1))
+                    ky = 1;
 
-                std::size_t duplicatesFoundCount = 0;
+                if (!cmp_float(z4, z3))
+                    kz = (z2 - z1) / (z4 - z3);
+                else if (cmp_float(z2, z1))
+                    kz = 1;
 
-                // remove duplicates rectangles edges
-                for (auto v = j + 1; v != lengths.end(); ++v) {
-                    const auto& v_x1 = v->x1;
-                    const auto& v_x2 = v->x2;
-                    const auto& v_y1 = v->y1;
-                    const auto& v_y2 = v->y2;
-                    const auto& v_z1 = v->z1;
-                    const auto& v_z2 = v->z2;
+                if ((cmp_float(kx, ky) && cmp_float(kx, kz))
+                    && cmp_float((x2 - x1) * (x4 - x2) + (y2 - y1) * (y4 - y2) + (z2 - z1) * (z4 - z2), 0)) {
+                    rectangle rect = {x1, y1, z1, x2, y2, z2,
+                                      x3, y3, z3, x4, y4, z4, l1};
+                    rectanglesP1.push_back(rect);
 
-                    if (((cmp_float(v_x1, x1) && cmp_float(v_x2, x3)
-                        && cmp_float(v_y1, y1) && cmp_float(v_y2, y3)
-                        && cmp_float(v_z1, z1) && cmp_float(v_z2, z3))
+                    std::size_t duplicatesFoundCount = 0;
 
-                        || (cmp_float(v_x1, x2) && cmp_float(v_x2, x4)
-                        && cmp_float(v_y1, y2) && cmp_float(v_y2, y4)
-                        && cmp_float(v_z1, z2) && cmp_float(v_z2, z4)))
-                        
-                        || (cmp_float(v_x1, x3) && cmp_float(v_x2, x1)
-                        && cmp_float(v_y1, y3) && cmp_float(v_y2, y1)
-                        && cmp_float(v_z1, z3) && cmp_float(v_z2, z1))
+                    // remove duplicates rectangles edges
+                    for (auto v = j + 1; v != lengths.end(); ++v) {
+                        const auto& v_x1 = v->x1;
+                        const auto& v_x2 = v->x2;
+                        const auto& v_y1 = v->y1;
+                        const auto& v_y2 = v->y2;
+                        const auto& v_z1 = v->z1;
+                        const auto& v_z2 = v->z2;
 
-                        || (cmp_float(v_x1, x4) && cmp_float(v_x2, x2)
-                        && cmp_float(v_y1, y4) && cmp_float(v_y2, y2)
-                        && cmp_float(v_z1, z4) && cmp_float(v_z2, z2))
-                        
-                        ) {
-                        const size_t n = v - lengths.begin();
+                        if (((cmp_float(v_x1, x1) && cmp_float(v_x2, x3)
+                              && cmp_float(v_y1, y1) && cmp_float(v_y2, y3)
+                              && cmp_float(v_z1, z1) && cmp_float(v_z2, z3))
 
-                        std::swap(lengths[n], lengths.back());
-                        lengths.pop_back();
-                        
-                        v = lengths.begin() + n - 1;
+                             || (cmp_float(v_x1, x2) && cmp_float(v_x2, x4)
+                                 && cmp_float(v_y1, y2) && cmp_float(v_y2, y4)
+                                 && cmp_float(v_z1, z2) && cmp_float(v_z2, z4)))
 
-                        ++duplicatesFoundCount;
+                            || (cmp_float(v_x1, x3) && cmp_float(v_x2, x1)
+                                && cmp_float(v_y1, y3) && cmp_float(v_y2, y1)
+                                && cmp_float(v_z1, z3) && cmp_float(v_z2, z1))
 
+                            || (cmp_float(v_x1, x4) && cmp_float(v_x2, x2)
+                                && cmp_float(v_y1, y4) && cmp_float(v_y2, y2)
+                                && cmp_float(v_z1, z4) && cmp_float(v_z2, z2))
 
-                        if (duplicatesFoundCount == 1)
-                        {
-                            break;
+                            ) {
+                            const size_t n = v - lengths.begin();
+
+                            std::swap(lengths[n], lengths.back());
+                            lengths.pop_back();
+
+                            v = lengths.begin() + n - 1;
+
+                            ++duplicatesFoundCount;
+
+                            if (duplicatesFoundCount == 1) {
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-    }
-    
+
     std::stable_sort(rectanglesP1.begin(), rectanglesP1.end(), rect_comp);
 
     Cells allCells;
-    //Atoms allAtoms = CreateAllAtoms();
+    // Atoms allAtoms = CreateAllAtoms();
     Atoms allAtoms = AtomsHelper::createAllCellAtoms(Coords3DList(atomTypes));
 
     for (auto const& rectangle : rectanglesP1) {
@@ -405,25 +413,23 @@ Cell::Cell(int h, int k, int l) :
                 auto const atomCoordZ = atomCoords.z - n * l;
 
                 if ((cmp_float(atomCoordX, x1)
-                    && cmp_float(atomCoordY, y1)
-                    && cmp_float(atomCoordZ, z1))
+                     && cmp_float(atomCoordY, y1)
+                     && cmp_float(atomCoordZ, z1))
 
                     || (cmp_float(atomCoordX, x2)
-                    && cmp_float(atomCoordY, y2)
-                    && cmp_float(atomCoordZ, z2))
+                        && cmp_float(atomCoordY, y2)
+                        && cmp_float(atomCoordZ, z2))
 
                     || (cmp_float(atomCoordX, x3)
-                    && cmp_float(atomCoordY, y3)
-                    && cmp_float(atomCoordZ, z3))
+                        && cmp_float(atomCoordY, y3)
+                        && cmp_float(atomCoordZ, z3))
 
                     || (cmp_float(atomCoordX, x4)
-                    && cmp_float(atomCoordY, y4)
-                    && cmp_float(atomCoordZ, z4))) {
-                    
+                        && cmp_float(atomCoordY, y4)
+                        && cmp_float(atomCoordZ, z4))) {
                     ++atomsOnRectangleCount;
 
-                    if (atomsOnRectangleCount == 4)
-                    {
+                    if (atomsOnRectangleCount == 4) {
                         break;
                     }
                 }
@@ -459,7 +465,7 @@ Cell::Cell(int h, int k, int l) :
     for (auto const& cell : allCells) {
         const size_t cellSize = cell.size();
 
-        //считаем векторы координат
+        // calculate coordination vectors
         const Coords3D P1 = cell.getp1();
         const Coords3D Vx = cell.getVx();
         const Coords3D Vy = cell.getVy();
@@ -478,7 +484,6 @@ Cell::Cell(int h, int k, int l) :
             && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vx).size() == cellSize
             && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vy).size() == cellSize
             && Atoms(allAtoms, Vx, Vy, Vz, P1 + -1 * Vz).size() == cellSize) {
-
             *this = cell;
 
             break;
@@ -489,13 +494,11 @@ Cell::Cell(int h, int k, int l) :
 }
 
 Cell::Cell(const Cell& other) :
-    m_impl(new Private(*other.m_impl))
-{
+    m_impl(new Private(*other.m_impl)) {
 }
 
 Cell::Cell(Cell&& other) :
-    m_impl(std::move(other.m_impl))
-{
+    m_impl(std::move(other.m_impl)) {
 }
 
 size_t Cell::size() const {
@@ -514,23 +517,19 @@ void Cell::optimize() {
     m_impl->optimize();
 }
 
-double Cell::getXSize() const
-{
+double Cell::getXSize() const {
     return m_impl->getVx().length();
 }
 
-double Cell::getYSize() const
-{
+double Cell::getYSize() const {
     return m_impl->getVy().length();
 }
 
-double Cell::getZSize() const
-{
+double Cell::getZSize() const {
     return m_impl->getVz().length();
 }
 
-void Cell::moveCoords(const Coords3D &O, const Coords3D &Vx, const Coords3D &Vy,
-    const Coords3D &Vz) {
+void Cell::moveCoords(const Coords3D& O, const Coords3D& Vx, const Coords3D& Vy, const Coords3D& Vz) {
     m_impl->moveCoords(O, Vx, Vy, Vz);
 }
 
@@ -550,13 +549,11 @@ Coords3D Cell::getp1() const {
     return m_impl->getp1();
 }
 
-void Cell::setp1(Coords3D const& p1)
-{
+void Cell::setp1(Coords3D const& p1) {
     m_impl->setp1(p1);
 }
 
-void Cell::setVx(Coords3D const& vX)
-{
+void Cell::setVx(Coords3D const& vX) {
     m_impl->setVx(vX);
 }
 
@@ -574,8 +571,7 @@ Cell& Cell::operator=(const Cell& other) {
     return *this;
 }
 
-Cell& Cell::operator=(Cell&& other)
-{
+Cell& Cell::operator=(Cell&& other) {
     m_impl = std::move(other.m_impl);
 
     return *this;
@@ -584,8 +580,7 @@ Cell& Cell::operator=(Cell&& other)
 Cell::~Cell() {
 }
 
-Atoms Cell::getAtoms() const
-{
+Atoms Cell::getAtoms() const {
     return m_impl->getAtoms();
 }
 
@@ -603,13 +598,8 @@ const Cell operator+(Cell const& cell, Coords3D const& v) {
     Atoms const atoms = cell.getAtoms();
 
     for (auto cell_atom_it = atoms.begin();
-        cell_atom_it < atoms.end(); ++cell_atom_it) {
+         cell_atom_it < atoms.end(); ++cell_atom_it) {
         resultCell.addAtom(AtomInfo(AtomType(cell_atom_it->type.coords + v)));
-    }
-
-    for (auto cell_atom_it = atoms.end();
-        cell_atom_it < atoms.end(); ++cell_atom_it) {
-        resultCell.addAtom(*cell_atom_it);
     }
 
     return resultCell;

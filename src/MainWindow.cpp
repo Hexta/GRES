@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>     *
+ * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>     *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -29,28 +29,28 @@
 #include <QToolBar>
 
 struct MainWindow::Private {
-    QAction *aboutQtAction;
-    QAction *exitAction;
-    QAction *newAct;
-    QAction *saveAct;
-    QAction *viewAsAtsAndBonds_SurfaceAndBulkAct;
-    QAction *viewAsAtsAndBonds_SurfaceAct;
+    QAction* aboutQtAction;
+    QAction* exitAction;
+    QAction* newAct;
+    QAction* saveAct;
+    QAction* viewAsAtsAndBonds_SurfaceAndBulkAct;
+    QAction* viewAsAtsAndBonds_SurfaceAct;
 
-    QAction *viewAsAts_SurfaceAndBulkAct;
-    QAction *viewAsAts_SurfaceAct;
-    QAction *viewAsCellsSurface;
-    QAction *etchingAction;
-    QAction *maskAction;
+    QAction* viewAsAts_SurfaceAndBulkAct;
+    QAction* viewAsAts_SurfaceAct;
+    QAction* viewAsCellsSurface;
+    QAction* etchingAction;
+    QAction* maskAction;
 
-    QMenu *viewSurfaceMenu;
-    QMenu *viewBulkMenu;
-    QActionGroup *viewGroup;
+    QMenu* viewSurfaceMenu;
+    QMenu* viewBulkMenu;
+    QActionGroup* viewGroup;
 
-    MaskMenu *maskMenu;
+    MaskMenu* maskMenu;
     EtchingMenu* etchMenu;
 
     Render* result;
-    Settings *settings;
+    Settings* settings;
 
     int h, k, l;
     int SIZE_X, SIZE_Y, SIZE_Z;
@@ -78,14 +78,12 @@ struct MainWindow::Private {
         viewAsCellsSurface(new QAction(tr("Surface"), parent)),
         etchingAction(new QAction(tr("Etch"), parent)),
         maskAction(new QAction(tr("Mask"), parent)),
-
         viewSurfaceMenu(new QMenu(tr("Surface"))),
         viewBulkMenu(new QMenu(tr("Surface and bulk"))),
         viewGroup(new QActionGroup(parent)),
         etchMenu(new EtchingMenu),
         result(new Render),
         settings(new Settings),
-
         h(1),
         k(0),
         l(0),
@@ -95,7 +93,6 @@ struct MainWindow::Private {
         z_min(0),
         surfaceXYZ(new Surface3D),
         vizualizationType(GRES::VizType::CELLS_SURFACE) {
-
         saveAct->setEnabled(false);
 
         viewAsAtsAndBonds_SurfaceAndBulkAct->setCheckable(true);
@@ -142,7 +139,7 @@ struct MainWindow::Private {
         cell.optimize();
 
         auto const numberOfAtomInCell =
-            static_cast<unsigned int> (cell.size());
+            static_cast<unsigned int>(cell.size());
         neighbors = cell.findNeighbors(Xsize, Ysize, Zsize);
 
         surfaceXYZ->clear();
@@ -159,7 +156,7 @@ struct MainWindow::Private {
                         Neighbors neighbs;
                         char numberNeighbs = 0; // number of the first neighbors
                         for (int nb = 0; nb < 4; ++nb) {
-                            auto &neighborsANb = neighbors[a][nb];
+                            auto& neighborsANb = neighbors[a][nb];
                             if (x + neighborsANb.x >= 0
                                 && y + neighborsANb.y >= 0
                                 && z + neighborsANb.z >= 0
@@ -168,8 +165,8 @@ struct MainWindow::Private {
                                 && z + neighborsANb.z < zMax + 1) {
                                 ++numberNeighbs;
                                 AtomType neighb = {x + neighborsANb.x, y + neighborsANb.y,
-                                    z + neighborsANb.z, neighborsANb.type,
-                                    false};
+                                                   z + neighborsANb.z, neighborsANb.type,
+                                                   false};
                                 neighbs.push_back(neighb);
                             }
                         }
@@ -178,7 +175,7 @@ struct MainWindow::Private {
                         atom.neighbors = neighbs;
                         atom.fNbCount = numberNeighbs;
                         atom.deleted = numberNeighbs == 0;
-                        // TODO: atom.type = 
+                        // TODO: atom.type =
                         cell.addAtom(atom);
                     }
                     surfaceX.push_back(cell);
@@ -197,10 +194,10 @@ struct MainWindow::Private {
             Vz, vizualizationType);
     }
 
-    void etch(int simType_, int IterCount, float *rates) {
-        GRES::SimType sT = static_cast<GRES::SimType> (simType_);
+    void etch(int simType_, int IterCount, float* rates) {
+        GRES::SimType sT = static_cast<GRES::SimType>(simType_);
         QTime t;
-        //    t.start();
+        // t.start();
         bool perfect = false;
         auto surface = surfaceXYZ;
 
@@ -219,7 +216,7 @@ struct MainWindow::Private {
             z_min = surface->findZmin(z_min);
             surface->optimize(z_min);
         }
-        //    qDebug() << "etch: " << t.elapsed();
+        // qDebug() << "etch: " << t.elapsed();
         z_center = (SIZE_Z - 2 + z_min) / 2;
         drawResult();
     }
@@ -238,9 +235,9 @@ struct MainWindow::Private {
     }
 };
 
-MainWindow::MainWindow(QWidget *parent, int, char * const *) : QMainWindow(parent),
+MainWindow::MainWindow(QWidget* parent, int, char* const*) :
+    QMainWindow(parent),
     d(new Private(this)) {
-
     createActions();
     createMenus();
     createToolBars();
@@ -249,7 +246,7 @@ MainWindow::MainWindow(QWidget *parent, int, char * const *) : QMainWindow(paren
     setCentralWidget(d->result);
     d->result->setFocusPolicy(Qt::ClickFocus);
 
-    QDockWidget *settingsDock = new QDockWidget(tr("Settings"), this);
+    QDockWidget* settingsDock = new QDockWidget(tr("Settings"), this);
     settingsDock->setAllowedAreas(Qt::LeftDockWidgetArea);
     settingsDock->setWidget(d->settings);
     addDockWidget(Qt::LeftDockWidgetArea, settingsDock);
@@ -261,13 +258,12 @@ MainWindow::MainWindow(QWidget *parent, int, char * const *) : QMainWindow(paren
         this,
         SLOT(getSettings(int, int, int, int, int, int)));
 
-    //     connect (result, SIGNAL (etching()), this, SLOT (etch()));
+    // connect (result, SIGNAL (etching()), this, SLOT (etch()));
     connect(d->etchMenu, SIGNAL(startEtching(int, int, float*)), this,
         SLOT(etch(int, int, float*)));
 }
 
-void
-MainWindow::changeVizType(QAction* type) {
+void MainWindow::changeVizType(QAction* type) {
     if (type == d->viewAsAts_SurfaceAndBulkAct)
         d->vizualizationType = GRES::VizType::ATOMS_SURFACE_AND_BULK;
 
@@ -286,8 +282,7 @@ MainWindow::changeVizType(QAction* type) {
     d->result->changeVizType(d->vizualizationType);
 }
 
-void
-MainWindow::createActions() {
+void MainWindow::createActions() {
     connect(d->newAct, SIGNAL(triggered()), this, SLOT(newDocument()));
     connect(d->etchingAction, SIGNAL(triggered()), this, SLOT(showEtchMenu()));
     connect(d->viewGroup, SIGNAL(triggered(QAction*)), this, SLOT(changeVizType(QAction*)));
@@ -296,8 +291,7 @@ MainWindow::createActions() {
     connect(d->aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
-void
-MainWindow::createMenus() {
+void MainWindow::createMenus() {
     QMenu* fileMenu = menuBar()->addMenu(tr("File"));
     fileMenu->addAction(d->newAct);
     fileMenu->addAction(d->saveAct);
@@ -318,8 +312,7 @@ MainWindow::createMenus() {
     helpMenu->addAction(d->aboutQtAction);
 }
 
-void
-MainWindow::createToolBars() {
+void MainWindow::createToolBars() {
     QToolBar* fileToolBar = addToolBar(tr("File"));
     fileToolBar->addAction(d->newAct);
     fileToolBar->addAction(d->saveAct);
@@ -329,36 +322,30 @@ MainWindow::createToolBars() {
     etchingToolBar->addAction(d->etchingAction);
 }
 
-void
-MainWindow::etch(int simType_, int IterCount, float *rates) {
+void MainWindow::etch(int simType_, int IterCount, float* rates) {
     d->etch(simType_, IterCount, rates);
 }
 
-void
-MainWindow::getSettings(int h, int k, int l, int xS, int yS, int zS) {
+void MainWindow::getSettings(int h, int k, int l, int xS, int yS, int zS) {
     d->getSettings(h, k, l, xS, yS, zS);
 }
 
-void
-MainWindow::newDocument() {
+void MainWindow::newDocument() {
     d->newDocument();
 }
 
-void
-MainWindow::showMenuMask() {
+void MainWindow::showMenuMask() {
     d->maskMenu = new MaskMenu(0, d->SIZE_X - 4, d->SIZE_Y - 4);
     connect(d->maskMenu, SIGNAL(maskChanged(std::vector<bool>)), this,
         SLOT(setMask(std::vector<bool>)));
     d->maskMenu->show();
 }
 
-void
-MainWindow::setMask(const std::vector<bool> inMask) {
+void MainWindow::setMask(const std::vector<bool> inMask) {
     d->mask = inMask;
 }
 
-void
-MainWindow::showEtchMenu() {
+void MainWindow::showEtchMenu() {
     d->etchMenu->show();
 }
 

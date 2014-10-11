@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2009-2013 Artur Molchanov <artur.molchanov@gmail.com>        *
+* Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
 *                                                                            *
 * This program is free software: you can redistribute it and/or modify       *
 * it under the terms of the GNU General Public License as published by       *
@@ -49,11 +49,13 @@ public:
     const AtomTypes& getSurfaceAtoms() const;
     void delAtom(int x, int y, int z, int type, int surfAtN);
 
-    bool selAtom(AllNeighbors const& neighbs, size_t z_min, Cell &tA,
-        const std::vector<bool> &mask, const float *rates);
+    bool selAtom(AllNeighbors const& neighbs,
+        size_t z_min,
+        Cell& tA,
+        const std::vector<bool>& mask,
+        const float* rates);
 
-    bool selAtomCA(int z_min, Cell &tA, std::vector<bool> const& mask,
-        float* rates);
+    bool selAtomCA(int z_min, Cell& tA, std::vector<bool> const& mask, float* rates);
 
     void addLayer(const AllNeighbors& totalNeighbors, int sX, int sY, int sZ);
     void rebuildSurfaceAtoms();
