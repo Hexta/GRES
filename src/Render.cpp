@@ -19,8 +19,11 @@
 
 #define NOMINMAX
 #include "Render.h"
-#include "selectAtomMenu.h"
-#include "geometry.h"
+
+#include "functions.h"
+#include "SelectAtomMenu.h"
+#include "GeometryPrimitives.h"
+#include "Surface3D.h"
 #include "Cell.h"
 
 #include <GL/gl.h>
@@ -35,6 +38,8 @@
 #include <QDebug>
 #include <QMouseEvent>
 #include <QKeyEvent>
+
+#include <cstdint>
 
 #define BUFFER_OFFSET(i) ((char*)NULL + (i))
 #ifdef _WIN32
@@ -56,7 +61,42 @@ void sphereTemplate(float R) {
     // glutSolidCube(2*sR-0.04);
     // glutSolidCube(sR-0.04);
 }
+
+struct AtomName {
+    int name;
+    int xC;
+    int yC;
+    int zC;
+    float x;
+    float y;
+    float z;
+    std::uint8_t type;
+    int fNbCount;
+};
+
+typedef std::vector<AtomName> AtomNames;
+
+struct Bond {
+    float x1;
+    float y1;
+    float z1;
+    float x2;
+    float y2;
+    float z2;
+};
+
+typedef std::vector<Bond> Bonds;
+
+Coords3D normcrossprod(const Coords3D& in1, const Coords3D& in2) {
+    Coords3D out;
+    out.x = in1.y * in2.z - in1.z * in2.y;
+    out.y = in1.z * in2.x - in1.x * in2.z;
+    out.z = in1.x * in2.y - in1.y * in2.x;
+    out.normalize();
+    return out;
 }
+
+} // namespace
 
 struct Render::Private {
     GLfloat drotationX;
@@ -71,7 +111,7 @@ struct Render::Private {
 
     SelectAtomMenu* selAtomMenu;
 
-    atomName selAtomType;
+    AtomName selAtomType;
 
     AtomNames typeAndCoordsOfAtoms;
     AtomNames atNames;
@@ -265,7 +305,7 @@ struct Render::Private {
                 }
 
                 createAtomsAndBonds();
-                createSphere(0.09 * scaling, 10, 10, vSize1, vSize2,
+                GeometryPrimitives::createSphere(0.09 * scaling, 10, 10, vSize1, vSize2,
                     vSize3);
                 buffers.clear();
                 buffers.push_back(1);
@@ -279,7 +319,7 @@ struct Render::Private {
                 }
 
                 createAtomsAndBondes();
-                createSphere(0.09 * scaling, 10, 10, vSize1, vSize2,
+                GeometryPrimitives::createSphere(0.09 * scaling, 10, 10, vSize1, vSize2,
                     vSize3);
                 buffers.clear();
                 buffers.push_back(1);
@@ -293,7 +333,7 @@ struct Render::Private {
                 }
 
                 createAtomsAndBonds();
-                createSphere(0.2 * scaling, 10, 10, vSize1, vSize2,
+                GeometryPrimitives::createSphere(0.2 * scaling, 10, 10, vSize1, vSize2,
                     vSize3);
                 buffers.clear();
                 buffers.push_back(1);
@@ -307,7 +347,7 @@ struct Render::Private {
                 }
 
                 createAtomsAndBondes();
-                createSphere(0.2 * scaling, 10, 10, vSize1, vSize2,
+                GeometryPrimitives::createSphere(0.2 * scaling, 10, 10, vSize1, vSize2,
                     vSize3);
                 buffers.clear();
                 buffers.push_back(1);
@@ -474,7 +514,7 @@ struct Render::Private {
                             float zA = z0 - scaling * cellAts[a].type.coords.z;
 
                             ++name;
-                            atomName temp = {name, static_cast<int>(x),
+                            AtomName temp = {name, static_cast<int>(x),
                                              static_cast<int>(y),
                                              static_cast<int>(z), xA, yA, zA, a,
                                              static_cast<int>(atomsCount)};
@@ -517,7 +557,7 @@ struct Render::Private {
                 float zA = z0 - scaling * atoms[a].type.coords.z;
 
                 ++name;
-                atomName temp = {name, x, y, z, xA, yA, zA, a, static_cast<int>(neighbors.size())};
+                AtomName temp = {name, x, y, z, xA, yA, zA, a, static_cast<int>(neighbors.size())};
                 atNames.push_back(temp);
 
                 for (auto& nb : neighbors) {
@@ -557,7 +597,7 @@ struct Render::Private {
                         float zA = z0 - scaling * atoms[a].type.coords.z;
 
                         ++name;
-                        atomName temp = {name, x, y, z, xA, yA, zA, a,
+                        AtomName temp = {name, x, y, z, xA, yA, zA, a,
                                          static_cast<int>(surfaceZYXA.neighbors.size())};
                         atNames.push_back(temp);
 

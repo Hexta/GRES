@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#include "etchingMenu.h"
+#include "EtchingMenu.h"
 
 #include <QLabel>
 #include <QLineEdit>

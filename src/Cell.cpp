@@ -217,16 +217,16 @@ public:
         m_atoms = newAtoms;
     }
 
-    void moveCoords(const Coords3D& O, const Coords3D& Vx, const Coords3D& Vy, const Coords3D& Vz) {
+    void moveCoords() {
         for (auto atom_coords_it = m_atoms.begin();
-             atom_coords_it < m_atoms.end(); ++atom_coords_it) {
+            atom_coords_it < m_atoms.end(); ++atom_coords_it) {
 
-			auto& coords = atom_coords_it->type.coords;
+            auto& coords = atom_coords_it->type.coords;
 
-            const auto& vec = coords - O;
-            const double x = (vec * Vx) / Vx.length();
-            const double y = (vec * Vy) / Vy.length();
-            const double z = (vec * Vz) / Vz.length();
+            const auto& vec = coords - m_p1;
+            const double x = (vec * m_vX) / m_vX.length();
+            const double y = (vec * m_vY) / m_vY.length();
+            const double z = (vec * m_vZ) / m_vZ.length();
 
             coords.x = static_cast<float>(x);
             coords.y = static_cast<float>(y);
@@ -344,8 +344,6 @@ Cell::Cell(int h, int k, int l) :
                                       x3, y3, z3, x4, y4, z4, l1};
                     rectanglesP1.push_back(rect);
 
-                    std::size_t duplicatesFoundCount = 0;
-
                     // remove duplicates rectangles edges
                     for (auto v = j + 1; v != lengths.end(); ++v) {
                         const auto& v_x1 = v->x1;
@@ -379,11 +377,7 @@ Cell::Cell(int h, int k, int l) :
 
                             v = lengths.begin() + n - 1;
 
-                            ++duplicatesFoundCount;
-
-                            if (duplicatesFoundCount == 1) {
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
@@ -393,7 +387,6 @@ Cell::Cell(int h, int k, int l) :
     std::stable_sort(rectanglesP1.begin(), rectanglesP1.end(), rect_comp);
 
     Cells allCells;
-    // Atoms allAtoms = CreateAllAtoms();
     Atoms allAtoms = AtomsHelper::createAllCellAtoms(Coords3DList(atomTypes));
 
     for (auto const& rectangle : rectanglesP1) {
@@ -490,7 +483,7 @@ Cell::Cell(int h, int k, int l) :
         }
     }
 
-    moveCoords(m_impl->getp1(), m_impl->getVx(), m_impl->getVy(), m_impl->getVz());
+    m_impl->moveCoords();
 }
 
 Cell::Cell(const Cell& other) :
@@ -527,10 +520,6 @@ double Cell::getYSize() const {
 
 double Cell::getZSize() const {
     return m_impl->getVz().length();
-}
-
-void Cell::moveCoords(const Coords3D& O, const Coords3D& Vx, const Coords3D& Vy, const Coords3D& Vz) {
-    m_impl->moveCoords(O, Vx, Vy, Vz);
 }
 
 Coords3D Cell::getVx() const {

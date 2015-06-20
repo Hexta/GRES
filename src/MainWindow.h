@@ -18,7 +18,7 @@
 #pragma once
 
 #include "functions.h"
-#include "consts.h"
+#include "constants.h"
 
 #include <QtGui>
 #include <QMainWindow>

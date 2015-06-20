@@ -15,7 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#include "selectAtomMenu.h"
+#include "SelectAtomMenu.h"
+
 #include <QLabel>
 #include <QGridLayout>
 #include <QHBoxLayout>

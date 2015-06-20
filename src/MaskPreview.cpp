@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#include "maskPreview.h"
+#include "MaskPreview.h"
 
 MaskPreview::MaskPreview(QWidget* parent) : QLabel(parent) {
 }

@@ -16,10 +16,17 @@
  ******************************************************************************/
 
 #define GL_GLEXT_PROTOTYPES
-#include "geometry.h"
+#include "GeometryPrimitives.h"
 
 #include "Coords3D.h"
 #include "Atoms.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#include <wingdi.h>
+#endif
+
+#include <GL/glu.h>
 
 #include <GL/glext.h>
 
@@ -38,7 +45,8 @@
 #define glBufferSubDataARB pglBufferSubDataARB
 #endif
 
-void createSphere(GLdouble radius, GLint slices, GLint stacks, int& vSize1, int& vSize2, int& vSize3) {
+namespace GeometryPrimitives {
+void createSphere(double radius, int slices, int stacks, int& vSize1, int& vSize2, int& vSize3) {
 #ifdef _WIN32
     PFNGLBINDBUFFERARBPROC pglBindBufferARB =
         reinterpret_cast<PFNGLBINDBUFFERARBPROC>(wglGetProcAddress("glBindBufferARB"));
@@ -142,8 +150,8 @@ void createSphere(GLdouble radius, GLint slices, GLint stacks, int& vSize1, int&
     v1.normalize();
     norm1.push_back(v1);
     for (i = slices; i >= 0; --i) {
-        Coords3D n1 = {sinCache3a[i + 1] * sintemp3,
-                       cosCache3a[i + 1] * sintemp3, costemp3};
+        Coords3D n1 = {sinCache3a[i] * sintemp3,
+                       cosCache3a[i] * sintemp3, costemp3};
         norm1.push_back(n1);
         Coords3D v1 = {sintemp2* sinCache1a[i], sintemp2 * cosCache1a[i], zHigh};
         vertex1.push_back(v1);
@@ -236,12 +244,4 @@ void createSphere(GLdouble radius, GLint slices, GLint stacks, int& vSize1, int&
     vertex3.clear();
     norm3.clear();
 }
-
-Coords3D normcrossprod(const Coords3D& in1, const Coords3D& in2) {
-    Coords3D out;
-    out.x = in1.y * in2.z - in1.z * in2.y;
-    out.y = in1.z * in2.x - in1.x * in2.z;
-    out.z = in1.x * in2.y - in1.y * in2.x;
-    out.normalize();
-    return out;
-}
+} // namespace GeometryPrimitives

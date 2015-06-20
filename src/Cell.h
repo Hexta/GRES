@@ -57,9 +57,6 @@ public:
 
     void addAtom(AtomInfo const& atom);
 
-    // move coordinations to the cell
-    void moveCoords(const Coords3D& O, const Coords3D& Vx, const Coords3D& Vy, const Coords3D& Vz);
-
     Coords3D getp1() const;
     Coords3D getVx() const;
     Coords3D getVy() const;

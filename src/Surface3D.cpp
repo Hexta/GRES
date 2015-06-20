@@ -271,8 +271,8 @@ bool Surface3D::selAtomCA(int z_min, Cell& tA, std::vector<bool> const& mask, fl
                         || (z + tAz >= 0.5)))
             || !maskON) {
             float randN = rd();
-            int bonds = surfaceZY[x].getAtoms()[a].fNbCount;
-            if (!bonds) {
+            auto const bonds = surfaceZY[x].getAtoms()[a].fNbCount;
+            if (bonds == 0) {
                 m_surfaceAtoms.erase(m_surfaceAtoms.begin() + i--);
                 --surfAtomsSize;
                 continue;
@@ -288,8 +288,9 @@ bool Surface3D::selAtomCA(int z_min, Cell& tA, std::vector<bool> const& mask, fl
         }
     }
 
-    int i = 0;
+    std::size_t i = 0;
     auto surfAtomsEnd = m_surfaceAtoms.end();
+
     for (auto surfAtomIter = m_surfaceAtoms.begin(); surfAtomIter != surfAtomsEnd;
          ++surfAtomIter) {
         if (surfAtomIter->toDel) {

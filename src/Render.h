@@ -17,10 +17,7 @@
 
 #pragma once
 
-#include "functions.h"
-#include "consts.h"
-#include "geometry.h"
-#include "Surface3D.h"
+#include "constants.h"
 
 #include <QtOpenGL/QGLWidget>
 
@@ -37,6 +34,11 @@ class QWidget;
 class QMouseEvent;
 class QKeyEvent;
 class Cell;
+
+struct Coords3D;
+
+class Surface3D;
+typedef std::shared_ptr<Surface3D> Surface3DPtr;
 
 class Render : public QGLWidget {
     Q_OBJECT

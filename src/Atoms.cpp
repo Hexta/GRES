@@ -125,14 +125,17 @@ Atoms::Atoms(const Atoms& atomsIn,
     const Coords3D& Vz,
     const Coords3D& P1) :
     m_impl(new Private) {
+    double const VzSqr = Vz.sqr();
+    double const VySqr = Vy.sqr();
+    double const VxSqr = Vx.sqr();
     for (auto const& atom : atomsIn) {
         auto const V = atom.type.coords - P1;
 
-        double k = (V * Vz) / Vz.sqr();
+        double k = (V * Vz) / VzSqr;
         if (k >= 0.0 && k <= 1.0) {
-            k = (V * Vy) / Vy.sqr();
+            k = (V * Vy) / VySqr;
             if (k >= 0.0 && k <= 1.0) {
-                k = (V * Vx) / Vx.sqr();
+                k = (V * Vx) / VxSqr;
                 if (k >= 0.0 && k <= 1.0)
                     push_back(atom); // place atoms to cells
             }

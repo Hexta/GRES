@@ -18,10 +18,13 @@
 #include "MainWindow.h"
 #include "Render.h"
 #include "Settings.h"
-#include "consts.h"
-#include "etchingMenu.h"
-#include "maskMenu.h"
+#include "EtchingMenu.h"
+#include "MaskMenu.h"
+
+#include "Surface3D.h"
 #include "Cell.h"
+
+#include "constants.h"
 
 #include <QDockWidget>
 #include <QActionGroup>

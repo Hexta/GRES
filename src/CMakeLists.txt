@@ -27,6 +27,7 @@ message("Include: ${3rdparty_GL}")
 include_directories(SYSTEM ${3rdparty_GL})
 endif()
 
+
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -ggdb -Wall -Wextra")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++0x -ggdb -Wall -Wno-long-long -pedantic -Wextra -Wno-format-extra-args -Wformat=2 -Winit-self -Wmissing-include-dirs -Wsystem-headers -Wfloat-equal -Wconversion -Wlogical-op -Wmissing-noreturn -Wunreachable-code -Winline -Wdisabled-optimization -Woverlength-strings -Wold-style-cast -Woverloaded-virtual -Wsign-promo")
@@ -42,15 +43,15 @@ set(${PROJECT_NAME}_SRC
     Atoms.cpp
     Cell.cpp
     Coords3D.cpp
-    etchingMenu.cpp
+    EtchingMenu.cpp
     functions.cpp
-    geometry.cpp
+    GeometryPrimitives.cpp
     main.cpp
     MainWindow.cpp
-    maskMenu.cpp
-    maskPreview.cpp
+    MaskMenu.cpp
+    MaskPreview.cpp
     Render.cpp
-    selectAtomMenu.cpp
+    SelectAtomMenu.cpp
     Settings.cpp
     Surface3D.cpp
 )
@@ -58,16 +59,17 @@ set(${PROJECT_NAME}_SRC
 set(${PROJECT_NAME}_HEADERS
     Atoms.h
     Cell.h
+    constants.h
     Coords3D.h
-    etchingMenu.h
+    EtchingMenu.h
     functions.h
-    geometry.h
+    GeometryPrimitives.h
     MainWindow.h
-    maskMenu.h
-    maskPreview.h
+    MaskMenu.h
+    MaskPreview.h
     opengl.h
     Render.h
-    selectAtomMenu.h
+    SelectAtomMenu.h
     Settings.h
     Surface3D.h
 )
@@ -83,11 +85,22 @@ set(${PROJECT_NAME}_RESOURCES
 
 QT5_ADD_RESOURCES(${PROJECT_NAME}_RESOURCES_RCC ${${PROJECT_NAME}_RESOURCES})
 
-add_executable(${PROJECT_NAME}
+set(EXECUTABLE_DEPS
     ${${PROJECT_NAME}_SRC}
     ${${PROJECT_NAME}_RESOURCES_RCC}
     ${${PROJECT_NAME}_HEADERS}
 )
+
+if(WIN32)
+    add_executable(${PROJECT_NAME}
+        WIN32
+        ${EXECUTABLE_DEPS}
+    )
+else()
+    add_executable(${PROJECT_NAME}
+        ${EXECUTABLE_DEPS}
+    )
+endif()
 
 target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
