@@ -180,13 +180,9 @@ bool Surface3D::deleteRandomAtomKmc(AllNeighbors const& neighbors,
     size_t z_min,
     const std::vector<bool>& mask,
     const float* rates) {
-    auto const& P1 = rates[0];
-    auto const& P2 = rates[1];
-    auto const& P3 = rates[2];
     const int yC = static_cast<int>(m_surfaces2D[z_min].size());
     const int xC = static_cast<int>(m_surfaces2D[z_min][0].size());
     bool result = false;
-    bool maskON = !mask.empty();
 
     static std::mt19937 randomProviderDevice(std::random_device {} ());
 
@@ -289,13 +285,9 @@ void Surface3D::addLayer(const AllNeighbors& totalNeighbors, int sX, int sY, int
 }
 
 bool Surface3D::deleteRandomAtomCa(int z_min, std::vector<bool> const& mask, float* rates) {
-    auto const& P1 = rates[0];
-    auto const& P2 = rates[1];
-    auto const& P3 = rates[2];
     const int yC = static_cast<int>(m_surfaces2D[z_min].size());
     const int xC = static_cast<int>(m_surfaces2D[z_min][0].size());
     bool result = false;
-    bool maskON = !mask.empty();
 
     auto surfAtomsSize = m_surfaceAtoms.size();
 
@@ -305,7 +297,6 @@ bool Surface3D::deleteRandomAtomCa(int z_min, std::vector<bool> const& mask, flo
         auto const y = surfAtom.y;
         auto const z = surfAtom.z;
         auto const a = surfAtom.type;
-        auto const tAz = m_cell.getAtoms()[a].type.coords.z;
         auto const& surfaceZY = m_surfaces2D[z][y];
 
         if (isMaskedAtom(surfAtom, mask)) {
