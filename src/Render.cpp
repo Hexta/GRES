@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2016 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -20,7 +20,7 @@
 #define NOMINMAX
 #include "Render.h"
 
-#include "functions.h"
+#include "FloatHelper.h"
 #include "SelectAtomMenu.h"
 #include "GeometryPrimitives.h"
 #include "Surface3D.h"
@@ -49,6 +49,8 @@
 #define glBufferSubDataARB pglBufferSubDataARB
 #endif
 
+using FloatHelper::cmp_float;
+
 namespace {
 QTime t;
 
@@ -57,9 +59,6 @@ void sphereTemplate(float R) {
     quadobj = gluNewQuadric();
     gluSphere(quadobj, R, 10, 10);
     gluDeleteQuadric(quadobj);
-    // glutSolidSphere(sR-0.06, 10, 10);
-    // glutSolidCube(2*sR-0.04);
-    // glutSolidCube(sR-0.04);
 }
 
 struct AtomName {
@@ -133,12 +132,12 @@ struct Render::Private {
     bool dataChanged;
     bool dataInitialized;
     float scaling;
-    Atoms coordsOfAtoms; // список координат атомов
+    Atoms coordsOfAtoms; // atom coordinations list
     Bonds bonds;
 
     QAction* exitAction;
 
-    GRES::VizType visualizationType;
+    VizType visualizationType;
     Cells surfPoints;
     Coords3DList surfVertex;
     Coords3DList surfNormals;
@@ -166,7 +165,7 @@ struct Render::Private {
         scale(1.0),
         selAtomMenu(new SelectAtomMenu),
         sR(0.05F),
-        surfaceXYZ(new Surface3D),
+        surfaceXYZ(nullptr),
         xs(1),
         ys(1),
         zs(1),
@@ -180,7 +179,7 @@ struct Render::Private {
         dataChanged(false),
         dataInitialized(false),
         exitAction(new QAction(QIcon(":/images/exit.png"), tr("E&xit"), parent)),
-        visualizationType(GRES::VizType::CELLS_SURFACE),
+        visualizationType(VizType::CELLS_SURFACE),
         sphereQual(3),
         parent(parent)
 #ifdef _WIN32
@@ -193,11 +192,11 @@ struct Render::Private {
                                                                             "glBufferSubDataARB")))
 #endif
     {
-        selAtomType.x =
-            selAtomType.y =
-                selAtomType.z =
-                    selAtomType.type =
-                        selAtomType.fNbCount = -1;
+        selAtomType.x = -1;
+        selAtomType.y = -1;
+        selAtomType.z = -1;
+        selAtomType.type = -1;
+        selAtomType.fNbCount = -1;
     }
 
     void view(Surface3DPtr surface,
@@ -212,7 +211,7 @@ struct Render::Private {
         Coords3D& vX,
         Coords3D& vY,
         Coords3D& vZ,
-        GRES::VizType vT) {
+        VizType vT) {
         visualizationType = vT;
 
         xs = Xsize;
@@ -270,11 +269,11 @@ struct Render::Private {
         matrix = matrix1;
     }
 
-    void changeVizType(GRES::VizType type) {
+    void changeVizType(VizType type) {
         visualizationType = type;
 
         if (!dataInitialized
-            || !(dataChanged || coordsOfAtoms.empty()
+            || !(dataChanged || coordsOfAtoms.isEmpty()
                  || surfPoints.empty())) {
             parent->updateGL();
             dataChanged = false;
@@ -290,7 +289,7 @@ struct Render::Private {
             glDeleteBuffersARB(1, &buffers[0]);
 
         switch (visualizationType) {
-            case GRES::VizType::CELLS_SURFACE:
+            case VizType::CELLS_SURFACE:
                 if (!surfPoints.empty()) {
                     break;
                 }
@@ -299,8 +298,8 @@ struct Render::Private {
                 buffers.clear();
                 buffers.push_back(1);
                 break;
-            case GRES::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK: {
-                if (!coordsOfAtoms.empty()) {
+            case VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK: {
+                if (!coordsOfAtoms.isEmpty()) {
                     break;
                 }
 
@@ -313,8 +312,8 @@ struct Render::Private {
                 buffers.push_back(3);
             }
             break;
-            case GRES::VizType::ATOMS_AND_BONDS_SURFACE: {
-                if (!coordsOfAtoms.empty()) {
+            case VizType::ATOMS_AND_BONDS_SURFACE: {
+                if (!coordsOfAtoms.isEmpty()) {
                     break;
                 }
 
@@ -327,8 +326,8 @@ struct Render::Private {
                 buffers.push_back(3);
             }
             break;
-            case GRES::VizType::ATOMS_SURFACE_AND_BULK: {
-                if (!coordsOfAtoms.empty()) {
+            case VizType::ATOMS_SURFACE_AND_BULK: {
+                if (!coordsOfAtoms.isEmpty()) {
                     break;
                 }
 
@@ -341,8 +340,8 @@ struct Render::Private {
                 buffers.push_back(3);
             }
             break;
-            case GRES::VizType::ATOMS_SURFACE: {
-                if (!coordsOfAtoms.empty()) {
+            case VizType::ATOMS_SURFACE: {
+                if (!coordsOfAtoms.isEmpty()) {
                     break;
                 }
 
@@ -508,7 +507,7 @@ struct Render::Private {
                     float z0 = -scaling * (z - z_min) * zs;
                     const char atomsCount = static_cast<char>(surface[z][y][x].size());
                     for (unsigned char a = atomsCount; --a > 0;) {
-                        if (surface[z][y][x].getAtoms()[a].fNbCount) {
+                        if (surface[z][y][x].getAtoms()[a].firstNeighborsCount) {
                             float xA = x0 + scaling * cellAts[a].type.coords.x;
                             float yA = y0 + scaling * cellAts[a].type.coords.y;
                             float zA = z0 - scaling * cellAts[a].type.coords.z;
@@ -620,10 +619,10 @@ struct Render::Private {
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
 
-            if (visualizationType == GRES::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK
-                || visualizationType == GRES::VizType::ATOMS_SURFACE_AND_BULK
-                || visualizationType == GRES::VizType::ATOMS_AND_BONDS_SURFACE
-                || visualizationType == GRES::VizType::ATOMS_SURFACE) {
+            if (visualizationType == VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK
+                || visualizationType == VizType::ATOMS_SURFACE_AND_BULK
+                || visualizationType == VizType::ATOMS_AND_BONDS_SURFACE
+                || visualizationType == VizType::ATOMS_SURFACE) {
                 /*GLfloat ambientLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
                   GLfloat diffuseLight[] = { 0.8, 0.8, 0.8, 1.0 };*/
                 GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
@@ -665,8 +664,8 @@ struct Render::Private {
                 glColor3f(0.98f, 0.625f, 0.12f);
                 // sphere( 5,10,10 );
 
-                if (!(visualizationType == GRES::VizType::ATOMS_SURFACE_AND_BULK
-                      || visualizationType == GRES::VizType::ATOMS_SURFACE)
+                if (!(visualizationType == VizType::ATOMS_SURFACE_AND_BULK
+                      || visualizationType == VizType::ATOMS_SURFACE)
                     || rotating || scribble || moving) {
                     glColor3f(0, 0, 1.0);
                     glEnableClientState(GL_VERTEX_ARRAY);
@@ -730,7 +729,7 @@ struct Render::Private {
                 }
 
                 glFlush();
-            } else if (visualizationType == GRES::VizType::CELLS_SURFACE) {
+            } else if (visualizationType == VizType::CELLS_SURFACE) {
                 GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
                 GLfloat diffuseLight[] = {0.7f, 0.7f, 0.7f, 1.0f};
                 GLfloat specularLight[] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -913,7 +912,7 @@ Render::Render(QWidget* parent) : QGLWidget(parent),
                                   d(new Private(this)) {
 }
 
-void Render::changeVizType(GRES::VizType type) {
+void Render::changeVizType(VizType type) {
     d->changeVizType(type);
 }
 
@@ -1014,7 +1013,7 @@ void Render::view(Surface3DPtr surface,
     Coords3D& vX,
     Coords3D& vY,
     Coords3D& vZ,
-    GRES::VizType vT) {
+    VizType vT) {
     d->view(surface, atTypes, Xsize, Ysize, Zsize,
         center, min, width, height, vX, vY, vZ, vT);
 }

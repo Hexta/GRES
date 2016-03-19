@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2016 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -15,11 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  ******************************************************************************/
 
-#include "functions.h"
+#include "FloatHelper.h"
 
 #include <math.h>
 
+namespace {
+
+auto const FLOAT_COMPARE_PRECISION = 0.000001;
+
+} // namespace
+
+namespace FloatHelper {
+
 bool cmp_float(double x, double y) {
-    const double FLOAT_TOL = 0.000001;
-    return fabs(x - y) < FLOAT_TOL;
+    return fabs(x - y) < FLOAT_COMPARE_PRECISION;
 }
+
+} // namespace FloatHelper

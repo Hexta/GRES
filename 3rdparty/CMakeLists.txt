@@ -1,3 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.11)
 
 set(3rdparty_GL ${CMAKE_CURRENT_SOURCE_DIR}/opengl PARENT_SCOPE)

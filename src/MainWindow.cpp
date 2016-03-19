@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>     *
+ * Copyright (c) 2009-2016 Artur Molchanov <artur.molchanov@gmail.com>     *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -24,7 +24,7 @@
 #include "Surface3D.h"
 #include "Cell.h"
 
-#include "constants.h"
+#include "SimulationType.h"
 
 #include <QDockWidget>
 #include <QActionGroup>
@@ -65,7 +65,7 @@ struct MainWindow::Private {
     Coords3D Vx, Vy, Vz;
     AllNeighbors neighbors;
     Cells surfacePoints;
-    GRES::VizType vizualizationType;
+    Render::VizType vizualizationType;
 
     std::vector<bool> mask;
 
@@ -94,8 +94,8 @@ struct MainWindow::Private {
         SIZE_Y(54),
         SIZE_Z(4),
         z_min(0),
-        surfaceXYZ(new Surface3D),
-        vizualizationType(GRES::VizType::CELLS_SURFACE) {
+        surfaceXYZ(nullptr),
+        vizualizationType(Render::VizType::CELLS_SURFACE) {
         saveAct->setEnabled(false);
 
         viewAsAtsAndBonds_SurfaceAndBulkAct->setCheckable(true);
@@ -113,8 +113,6 @@ struct MainWindow::Private {
 
         etchingAction->setEnabled(false);
         maskAction->setEnabled(false);
-
-        surfaceXYZ->reserve(5000);
     }
 
     void newDocument() {
@@ -145,6 +143,7 @@ struct MainWindow::Private {
             static_cast<unsigned int>(cell.size());
         neighbors = cell.findNeighbors(Xsize, Ysize, Zsize);
 
+        surfaceXYZ.reset(new Surface3D(cell));
         surfaceXYZ->clear();
         surfaceXYZ->reserve(SIZE_Z);
         for (int z = 0; z < SIZE_Z; ++z) {
@@ -176,7 +175,7 @@ struct MainWindow::Private {
 
                         AtomInfo atom;
                         atom.neighbors = neighbs;
-                        atom.fNbCount = numberNeighbs;
+                        atom.firstNeighborsCount = numberNeighbs;
                         atom.deleted = numberNeighbs == 0;
                         // TODO: atom.type =
                         cell.addAtom(atom);
@@ -206,9 +205,9 @@ struct MainWindow::Private {
 
         for (int n = 0; n < IterCount; ++n) {
             if (sT == GRES::SimType::KMC)
-                perfect = surface->selAtom(neighbors, z_min, cell, mask, rates);
+                perfect = surface->deleteRandomAtomKmc(neighbors, z_min, mask, rates);
             else if (sT == GRES::SimType::CA)
-                perfect = surface->selAtomCA(z_min, cell, mask, rates);
+                perfect = surface->deleteRandomAtomCa(z_min, mask, rates);
 
             if (perfect) {
                 surface->addLayer(neighbors, SIZE_X, SIZE_Y, SIZE_Z);
@@ -268,19 +267,19 @@ MainWindow::MainWindow(QWidget* parent, int, char* const*) :
 
 void MainWindow::changeVizType(QAction* type) {
     if (type == d->viewAsAts_SurfaceAndBulkAct)
-        d->vizualizationType = GRES::VizType::ATOMS_SURFACE_AND_BULK;
+        d->vizualizationType = Render::VizType::ATOMS_SURFACE_AND_BULK;
 
     else if (type == d->viewAsAts_SurfaceAct)
-        d->vizualizationType = GRES::VizType::ATOMS_SURFACE;
+        d->vizualizationType = Render::VizType::ATOMS_SURFACE;
 
     else if (type == d->viewAsAtsAndBonds_SurfaceAndBulkAct)
-        d->vizualizationType = GRES::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK;
+        d->vizualizationType = Render::VizType::ATOMS_AND_BONDS_SURFACE_AND_BULK;
 
     else if (type == d->viewAsAtsAndBonds_SurfaceAct)
-        d->vizualizationType = GRES::VizType::ATOMS_AND_BONDS_SURFACE;
+        d->vizualizationType = Render::VizType::ATOMS_AND_BONDS_SURFACE;
 
     else if (type == d->viewAsCellsSurface)
-        d->vizualizationType = GRES::VizType::CELLS_SURFACE;
+        d->vizualizationType = Render::VizType::CELLS_SURFACE;
 
     d->result->changeVizType(d->vizualizationType);
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2016 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -18,44 +18,42 @@
 #include "Cell.h"
 
 #include "Coords3D.h"
+#include "FloatHelper.h"
 
-#include "functions.h"
-
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
 using std::pow;
+using FloatHelper::cmp_float;
 
 namespace {
-float distance(const double& x1,
+float calculateDistance(const double& x1,
     const double& y1,
     const double& z1,
     const double& x2,
     const double& y2,
     const double& z2) {
-    auto const result = sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2) +
-        pow((z2 - z1), 2));
+    auto const result = sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2) + pow((z2 - z1), 2));
 
     return static_cast<float>(result);
 }
 
-float distance(AtomInfo const& left, AtomInfo const& right) {
+float calculateDistance(AtomInfo const& left, AtomInfo const& right) {
     auto const& leftCoords = left.type.coords;
     auto const& rightCoords = right.type.coords;
 
-    return distance(leftCoords.x, leftCoords.y, leftCoords.z,
-        rightCoords.x, rightCoords.y, rightCoords.z);
+    return calculateDistance(leftCoords.x, leftCoords.y, leftCoords.z, rightCoords.x, rightCoords.y, rightCoords.z);
 }
 
-struct Length {
-    Length(Coords3D const& left, Coords3D const& right) :
+struct Line {
+    Line(Coords3D const& left, Coords3D const& right) :
         x1(left.x),
         y1(left.y),
         z1(left.z),
         x2(right.x),
         y2(right.y),
         z2(right.z),
-        l(distance(x1, y1, z1, x2, y2, z2)) {
+        length(calculateDistance(x1, y1, z1, x2, y2, z2)) {
     }
 
     float x1;
@@ -64,12 +62,12 @@ struct Length {
     float x2;
     float y2;
     float z2;
-    float l;
+    float length;
 };
 
-typedef std::vector<Length> Lengths;
+typedef std::vector<Line> Lines;
 
-struct rectangle {
+struct Rectangle {
     float x1;
     float y1;
     float z1;
@@ -82,10 +80,9 @@ struct rectangle {
     float x4;
     float y4;
     float z4;
-    float S;
 };
 
-typedef std::vector<rectangle> rectangles;
+typedef std::vector<Rectangle> rectangles;
 
 // Silicon cell
 Coords3DList atomTypes = {
@@ -99,11 +96,11 @@ Coords3DList atomTypes = {
     {0.25, 0.75, 0.75}
 };
 
-bool rect_comp(const rectangle& r1, const rectangle& r2) {
-    const double S1 = distance(r1.x1, r1.y1, r1.z1, r1.x2, r1.y2, r1.z2) *
-                      distance(r1.x3, r1.y3, r1.z3, r1.x4, r1.y4, r1.z4);
-    const double S2 = distance(r2.x1, r2.y1, r2.z1, r2.x2, r2.y2, r2.z2) *
-                      distance(r2.x3, r2.y3, r2.z3, r2.x4, r2.y4, r2.z4);
+bool compareRectangles(const Rectangle& r1, const Rectangle& r2) {
+    double const S1 = calculateDistance(r1.x1, r1.y1, r1.z1, r1.x2, r1.y2, r1.z2) *
+                      calculateDistance(r1.x3, r1.y3, r1.z3, r1.x4, r1.y4, r1.z4);
+    double const S2 = calculateDistance(r2.x1, r2.y1, r2.z1, r2.x2, r2.y2, r2.z2) *
+                      calculateDistance(r2.x3, r2.y3, r2.z3, r2.x4, r2.y4, r2.z4);
     return S1 < S2;
 }
 }
@@ -283,14 +280,14 @@ Cell::Cell(int h, int k, int l) :
     // Find rectangles located on the plane #1
     const size_t atomsP1Size = atomsP1.size();
 
-    Lengths lengths;
+    Lines lengths;
     lengths.reserve(atomsP1Size * atomsP1Size / 2);
 
     for (size_t i = 0; i < atomsP1Size; ++i)
         for (size_t j = i + 1; j < atomsP1Size; ++j) {
             auto const& atomP1A = atomsP1[i];
             auto const& atomP1B = atomsP1[j];
-            Length L(atomP1A.type.coords, atomP1B.type.coords);
+            Line L(atomP1A.type.coords, atomP1B.type.coords);
             lengths.push_back(L);
         }
 
@@ -319,8 +316,8 @@ Cell::Cell(int h, int k, int l) :
             auto y4 = length2.y2;
             auto z4 = length2.z2;
 
-            auto l1 = length1.l;
-            auto l2 = length2.l;
+            auto l1 = length1.length;
+            auto l2 = length2.length;
 
             if (cmp_float(l1, l2)) {
                 if (!cmp_float(x4, x3))
@@ -340,8 +337,8 @@ Cell::Cell(int h, int k, int l) :
 
                 if ((cmp_float(kx, ky) && cmp_float(kx, kz))
                     && cmp_float((x2 - x1) * (x4 - x2) + (y2 - y1) * (y4 - y2) + (z2 - z1) * (z4 - z2), 0)) {
-                    rectangle rect = {x1, y1, z1, x2, y2, z2,
-                                      x3, y3, z3, x4, y4, z4, l1};
+                    Rectangle rect = {x1, y1, z1, x2, y2, z2,
+                                      x3, y3, z3, x4, y4, z4};
                     rectanglesP1.push_back(rect);
 
                     // remove duplicates rectangles edges
@@ -384,7 +381,7 @@ Cell::Cell(int h, int k, int l) :
             }
         }
 
-    std::stable_sort(rectanglesP1.begin(), rectanglesP1.end(), rect_comp);
+    std::stable_sort(rectanglesP1.begin(), rectanglesP1.end(), compareRectangles);
 
     Cells allCells;
     Atoms allAtoms = AtomsHelper::createAllCellAtoms(Coords3DList(atomTypes));

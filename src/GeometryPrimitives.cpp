@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2016 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -18,8 +18,8 @@
 #define GL_GLEXT_PROTOTYPES
 #include "GeometryPrimitives.h"
 
-#include "Coords3D.h"
 #include "Atoms.h"
+#include "Coords3D.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -27,7 +27,6 @@
 #endif
 
 #include <GL/glu.h>
-
 #include <GL/glext.h>
 
 #include <cmath>
@@ -75,7 +74,7 @@ void createSphere(double radius, int slices, int stacks, int& vSize1, int& vSize
     GLboolean needCache3;
     GLint start, finish;
 
-    if (slices >= CACHE_SIZE + 1) slices = CACHE_SIZE - 2;
+    if (slices >= CACHE_SIZE) slices = CACHE_SIZE - 2;
     if (stacks >= CACHE_SIZE) stacks = CACHE_SIZE - 1;
     if (slices < 2 || stacks < 1 || radius < 0.0) {
         return;

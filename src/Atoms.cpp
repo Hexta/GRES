@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2016 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -192,7 +192,7 @@ void Atoms::clear() {
     m_impl->clear();
 }
 
-bool Atoms::empty() const {
+bool Atoms::isEmpty() const {
     return m_impl->empty();
 }
 
@@ -203,7 +203,7 @@ bool Atoms::checkContains(Atoms const& other) {
 Atoms AtomsHelper::allCellAtoms;
 
 Atoms AtomsHelper::createAllCellAtoms(Coords3DList const& atomTypes) {
-    if (!allCellAtoms.empty()) {
+    if (!allCellAtoms.isEmpty()) {
         return allCellAtoms;
     }
 

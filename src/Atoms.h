@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2016 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -32,7 +32,7 @@ struct AtomType {
         y(y),
         z(z),
         type(type),
-        toDel(deleteFlag) {
+        shouldBeDeleted(deleteFlag) {
     }
 
     explicit AtomType(Coords3D const& coords) :
@@ -47,7 +47,7 @@ struct AtomType {
 
     // atom type (1 - 8)
     uint8_t type;
-    bool toDel;
+    bool shouldBeDeleted;
 };
 
 bool operator==(const AtomType& a1, const AtomType& a2);
@@ -68,7 +68,7 @@ struct AtomInfo {
 
     AtomType type;
     std::vector<AtomType> neighbors;
-    char fNbCount;
+    char firstNeighborsCount;
     bool deleted;
 };
 
@@ -104,7 +104,7 @@ public:
     AtomInfo& operator[](size_t n);
 
     void clear();
-    bool empty() const;
+    bool isEmpty() const;
 
     bool checkContains(Atoms const& other);
 

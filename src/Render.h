@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2009-2014 Artur Molchanov <artur.molchanov@gmail.com>        *
+ * Copyright (c) 2009-2016 Artur Molchanov <artur.molchanov@gmail.com>        *
  *                                                                            *
  * This program is free software: you can redistribute it and/or modify       *
  * it under the terms of the GNU General Public License as published by       *
@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "constants.h"
+#include "SimulationType.h"
 
 #include <QtOpenGL/QGLWidget>
 
@@ -44,6 +44,15 @@ class Render : public QGLWidget {
     Q_OBJECT
 
 public:
+    enum class VizType {
+        ATOMS_SURFACE_AND_BULK,
+        ATOMS_SURFACE,
+        ATOMS_AND_BONDS_SURFACE_AND_BULK,
+        ATOMS_AND_BONDS_SURFACE,
+        CELLS_SURFACE
+    };
+
+public:
     Render(QWidget* parent = 0);
     ~Render();
 
@@ -63,8 +72,9 @@ public slots:
         Coords3D& vX,
         Coords3D& vY,
         Coords3D& vZ,
-        GRES::VizType vT);
-    void changeVizType(GRES::VizType type);
+        VizType vT);
+
+    void changeVizType(VizType type);
     void saveResult();
 
 signals:

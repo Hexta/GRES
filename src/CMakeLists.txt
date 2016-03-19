@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.11)
 
 cmake_policy(SET CMP0020 NEW)
 
@@ -44,7 +44,7 @@ set(${PROJECT_NAME}_SRC
     Cell.cpp
     Coords3D.cpp
     EtchingMenu.cpp
-    functions.cpp
+    FloatHelper.cpp
     GeometryPrimitives.cpp
     main.cpp
     MainWindow.cpp
@@ -59,10 +59,9 @@ set(${PROJECT_NAME}_SRC
 set(${PROJECT_NAME}_HEADERS
     Atoms.h
     Cell.h
-    constants.h
     Coords3D.h
     EtchingMenu.h
-    functions.h
+    FloatHelper.h
     GeometryPrimitives.h
     MainWindow.h
     MaskMenu.h
@@ -71,6 +70,7 @@ set(${PROJECT_NAME}_HEADERS
     Render.h
     SelectAtomMenu.h
     Settings.h
+	SimulationType.h
     Surface3D.h
 )
 

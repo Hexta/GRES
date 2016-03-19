@@ -1,0 +1,4 @@
+* text=auto !eol
+
+*.cmake text
+*.ui text
